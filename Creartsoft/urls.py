@@ -34,6 +34,6 @@ urlpatterns = [
     path('solicitudes_vendedor', views.solicitudes_vendedor, name='solicitudes'),
     path('editar_solicitud', views.editar_solicitud, name='editar_solicitud'),
     path('gestionar_producto', views.gestionar_producto, name='gestionar_producto'),
-    path('editar_producto', views.editar_producto, name='editar_producto'),
+    path('editar_producto', views.editar_produjnghjfgjfghdcto, name='editar_producto'),
     path('', views.index, name='home'),
 ]

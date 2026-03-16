@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://kit.fontawesome.com/2c4ce15497.js" crossorigin="anonymous"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Leckerli+One&display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="{% static 'css/vendedor.css' %}">
+	<title>Reportes nombre de usuario</title>
+</head>
+<body>
+	<header class="vendedor">
+		<div class="presentacion">
+			<h1>Creart</h1>
+			<p>{{ usuario.nombre }}</p>
+		</div>
+		<ul>
+			<li><a href="index.html">Cerrar sesion</a></li>
+		</ul>
+
+		<ul class="opciones">
+			<li><a href="{% url 'vendedor' %}"><i class="fa-solid fa-house"></i> Bandeja</a></li>
+			<li><a href="{% url 'vendedor_solicitudes' %}"><i class="fa-solid fa-envelope"></i> Solicitudes</a></li>
+			<li><a href="{% url 'vendedor_ventas' %}"><i class="fa-solid fa-bag-shopping"></i> Ventas</a></li>
+			<li><a href="{% url 'vendedor_clientes' %}"><i class="fa-solid fa-people-line"></i> Clientes</a></li>
+			<li><a href="{% url 'vendedor_productos' %}"><i class="fa-solid fa-box"></i> Productos</a></li>
+			<li><a href="{% url 'vendedor_reportes' %}"><i class="fa-solid fa-align-right"></i> Reportes</a></li>
+			<li><a href="{% url 'vendedor_bonos' %}"><i class="fa-solid fa-gift"></i> Bonos</a></li>
+			<li><a href="{% url 'vendedor_perfil' %}"><i class="fa-solid fa-user"></i>Perfil</a></li>
+		</ul>
+	</header>
+	
+	<section class="reportes">
+		<div class="display">
+			<div class="titulo_area">
+				<i class="fa-solid fa-box"></i>
+				<div class="texto_area">
+					<strong>Mis reportes</strong>
+					<p>Reporta problemas y recibe respuestas del admin</p>
+				</div>
+			</div>
+			<button class="button">+ Crear reportes</button>
+		</div><br><br>
+		<section class="modal">
+			<strong>Crear nuevo reporte</strong>
+			<div class="display">
+				<div class="input">
+					<label>Asunto del reporte</label><br><br>
+					<input type="text" name="nombre" placeholder="Ej: Pastel de chocolate">
+				</div><br><br>
+				<div class="input">
+					<label>Categoria del reporte</label>
+					<select>
+						<option id="pasteles">Pasteles</option>
+						<option id="pasteles">Pasteles</option>
+						<option id="pasteles">Pasteles</option>
+						<option id="pasteles">Pasteles</option>
+					</select>
+				</div>
+			</div><br><br>
+			<label>Mensaje</label><br><br>
+			<textarea></textarea><br><br>
+			<label>Cliente involucrado</label><br><br>
+			<input type="text" name="precio" placeholder="Ej: 500"><br><br>
+			<p>Tu reporte sera evaluado por administracion</p><br><br>
+			<a href="">Enviar reporte a Admin</a>
+		</section>
+		<br><br>
+		<strong><i class="fa-regular fa-clock"></i> Pendientes de respuesta (1)</strong><br><br>
+		<div class="pendiente">
+			<article class="card_reportes">
+				<div class="display">
+					<div class="figure">
+						<i class="fa-solid fa-triangle-exclamation"></i>
+					</div>
+					<strong>Queja sobre decoración</strong>
+					<p>La cliente indica que la decoración del pastel no coincidía exactamente con lo que había solicitado.</p>
+					<p>pendiente</p>
+				</div>
+				<div class="display">
+					<p>Enviado el 07/03/2024</p>
+					<p>Esperando respuesta del admin</p>
+				</div>
+				<button>Editar</button>
+			</article>
+		</div>
+		<br><br>
+		<strong><i class="fa-regular fa-clock"></i> Respondidas (2)</strong><br><br>
+		<div class="aceptados">
+			
+			<article class="card_reportes">
+				<div class="display">
+					<div class="figure">
+						<i class="fa-solid fa-triangle-exclamation"></i>
+					</div>
+					<strong>Retraso en entrega</strong>
+					<p>pendiente</p>
+				</div>
+				<div class="reporte">
+						<p>El cliente solicitó su pedido para el día 8 pero indicó que llegó un día tarde. Pide compensación.</p>
+				</div>
+				<div class="respuesta">
+					<p>Respuesta del admin</p>	
+					<p>Hemos revisado el caso. Por favor, ofrece un descuento del 15% en su próxima compra. El retraso fue por el proveedor de transporte.</p>
+				</div>
+				<div class="display">
+					<p>Enviado el 07/03/2024</p>
+					<p>Respondido el 01520111</p>
+				</div>
+			</article>
+			<article class="card_reportes">
+				<div class="display">
+					<div class="figure">
+						<i class="fa-solid fa-triangle-exclamation"></i>
+					</div>
+					<strong>Retraso en entrega</strong>
+					<p>pendiente</p>
+				</div>
+				<div class="reporte">
+						<p>El cliente solicitó su pedido para el día 8 pero indicó que llegó un día tarde. Pide compensación.</p>
+				</div>
+				<div class="respuesta">
+					<p>Respuesta del admin</p>	
+					<p>Hemos revisado el caso. Por favor, ofrece un descuento del 15% en su próxima compra. El retraso fue por el proveedor de transporte.</p>
+				</div>
+				<div class="display">
+					<p>Enviado el 07/03/2024</p>
+					<p>Respondido el 01520111</p>
+				</div>
+			</article>
+		</div>
+	</section>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>

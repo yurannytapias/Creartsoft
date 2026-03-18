@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://kit.fontawesome.com/2c4ce15497.js" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Leckerli+One&display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" type="text/css" href="{% static 'css/estilos.css' %}">
+<title>Creart</title>
+
+</head>
+
+<body>
+<header>
+<center>
+<h1>Creart</h1>
+</center>
+<ul>
+<li><a href="{% url 'inicio' %}">Iniciar sesion</a></li>
+<li><a href="#">catalogo</a></li>
+<li><a href="#">historia</a></li>
+</ul>
+</header>
+<section class="carta">
+<div class="slider">
+<div class="slider_content">
+<img src="">
+<strong>Con todo el amor de mamá</strong>
+<p>Con un 45%</p>
+<a href="#">Compra ya</a>
+</div>
+<div class="slider_content">
+<img src="{% static 'imagenes/tres_leches.jpg' %}">
+<strong>Para un San Valentín lleno de amor</strong>
+<p>Con un 50%</p>
+<a href="#">Compra ya</a>
+</div>
+<div class="slider_content">
+<img src="{% static 'imagenes/pistacho.jpg' %}">
+<strong>Para celebrar su fuerza y dulzura</strong>
+<p>Con un 10%</p>
+<a href="#">Compra ya</a>
+</div>
+</div>
+</section>
+<center>
+<div class="texto">
+<h2 class="cereza">Un Regalo Dulce para el Alma</h2>
+<p>Pasteles artesanales hechos con amor, perfectos para compartir <br> momentos especiales</p> <br><br>
+<div class="botones">
+<a href="#">Ver catalogo</a>
+<a href="#">Pedidos personalizados</a>
+</div>
+</div>
+</center>
+<br><br><br><br>
+<section class="promesas">
+<article class="promesa">
+<div class="circle">
+<i class="fa-solid fa-heart"></i>
+</div>
+<strong>Hecho con Amor</strong>
+<p>Cada pastel está preparado con <br> ingredientes frescos y mucho <br> cariño</p>
+</article>
+<article class="promesa">
+<div class="circle">
+<i class="fa-solid fa-gift"></i>
+</div>
+<strong>Regalo Perfecto</strong>
+<p>Envoltorio especial para que tu <br> regalo sea inolvidable</p>
+</article>
+<article class="promesa">
+<div class="circle">
+<img src="{% static 'imagenes/cake.png' %}">
+</div>
+<strong>Recetas Artesanales</strong>
+<p>Recetas familiares transmitidas por <br> generaciones</p>
+</article>
+<article class="promesa">
+<div class="circle">
+<img src="{% static 'imagenes/time.png' %}">
+</div>
+<strong>Entrega Rápida</strong>
+<p>Entregamos tu pedido fresco el <br> mismo día</p>
+</article>
+</section>
+<br><br><br><br>
+<div class="comercio">
+<h3>Nuestros Pasteles</h3>
+<br>
+<p>Descubre nuestra deliciosa selección</p>
+<div class="productos">
+<div class="producto">
+<img src="{% static 'imagenes/pie.jpg' %}"><br><br>
+<strong>Cherry Pie Clásico</strong><br>
+<p>Nuestro clásico pastel de cereza con masa artesanal</p><br>
+<div class="compra">
+<p>$25.00</p>
+<a href="#">Ordenar</a>
+</div>
+</div>
+<div class="producto">
+<img src="{% static 'imagenes/torta_chocolate.jpg' %}"><br><br>
+<strong>Torta de chocolate</strong><br>
+<p>Rico chocolate belga con crema batida</p><br>
+<div class="compra">
+<p>$30.00</p>
+<a href="#">Ordenar</a>
+</div>
+</div>
+<div class="producto">
+<img src="{% static 'imagenes/cupcakkes.jpg' %}"><br><br>
+<strong>Pastel de Fresa</strong><br>
+<p>Fresas frescas con crema de vainilla</p><br>
+<div class="compra">
+<p>$28.00</p>
+<a href="#">Ordenar</a>
+</div>
+</div>
+<div class="producto">
+<img src="{% static 'imagenes/cupcakkes_variados.jpg' %}"><br><br>
+<strong>Cupcakes Variados</strong><br>
+<p>Set de 6 cupcakes con diferentes sabores</p><br>
+<div class="compra">
+<p>$18.00</p>
+<a href="#">Ordenar</a>
+</div>
+</div>
+</div>
+</div>
+<br><br><br><br><br><br><br><br><br><br><br><br>
+<section class="historia">
+<div class="texto">
+<h3>Nuestra Historia</h3>
+<p>En Creart, cada pastel es una obra de arte creada con dedicación y pasión. Nuestra pastelería nació del amor por los sabores tradicionales y el deseo de hacer felices a las personas.</p>
+<p>Usamos solo ingredientes de la más alta calidad y recetas que han pasado de generación en generación. Cada pedido es preparado fresco, especialmente para ti.</p><br><br><br><br>    
+<a href="#">Conoce más</a>
+</div>
+<img src="{% static 'imagenes/pie.jpg' %}">
+</section>
+<br><br><br><br><br><br><br>
+<center>
+<div class="iniciar">
+<h3>¿Listo para endulzar tu día?</h3><br>
+<p>Haz tu pedido hoy y recíbelo fresco en tu puerta</p><br><br>
+<div class="pedidos">
+<a href="#">Hacer pedido</a>
+<a href="#">Llamanos +57 312 456 0789</a>
+</div>
+</div>
+</center>
+</body>
+<br><br><br><br><br><br><br><br><br><br><br><br>
+<footer>
+<div class="publicidad">
+<div class="creart">
+<strong>Creart</strong>
+<p>Pasteles artesanales hechos con amor desde 2020</p>
+</div>
+<div class="enlaces">
+<strong>Enlaces rapidos</strong><br><br>
+<a href="#">Inicio</a><br><br>
+<a href="#">Productos</a><br><br>
+<a href="#">Nosotros</a><br><br>
+<a href="#">Contactos</a><br><br>
+</div>
+<div class="horario">
+<strong>Horarios</strong>
+<p>Lunes - Viernes: 9:00 AM - 7:00 PM</p>
+<p>Sábado: 10:00 AM - 6:00 PM</p>
+<p>Domingo: 11:00 AM - 4:00 PM</p>
+</div>
+</div>
+<div class="derechos">
+<p>© 2026 Creart. Todos los derechos reservados.</p>
+</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+</html>

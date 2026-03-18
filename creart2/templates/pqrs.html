@@ -1,0 +1,226 @@
+{% extends 'layout_header.html' %}
+{% load static %}
+{% block titulo %}PQRS — Creart{% endblock %}
+
+{% block contenido %}
+
+<!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
+<section class="tarjetas-tx-grid">
+    <div class="tarjeta-tx">
+        <div class="tx-icono" style="background:#f5f5f5">
+            <i class="fa-solid fa-comments fa-lg" style="color:#555"></i>
+        </div>
+        <div><p class="tx-numero">6</p><p class="tx-etiqueta">Total PQRS</p></div>
+    </div>
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-rojo">
+            <i class="fa-solid fa-clock fa-lg" style="color:#c62828"></i>
+        </div>
+        <div><p class="tx-numero" style="color:#c62828">2</p><p class="tx-etiqueta">Pendientes</p></div>
+    </div>
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-amarillo">
+            <i class="fa-solid fa-circle-exclamation fa-lg" style="color:#f57c00"></i>
+        </div>
+        <div><p class="tx-numero" style="color:#f57c00">2</p><p class="tx-etiqueta">En Proceso</p></div>
+    </div>
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-verde">
+            <i class="fa-solid fa-circle-check fa-lg" style="color:#2e7d32"></i>
+        </div>
+        <div><p class="tx-numero" style="color:#2e7d32">2</p><p class="tx-etiqueta">Resueltos</p></div>
+    </div>
+</section>
+
+
+<!-- ═══════════ FILTROS ═══════════ -->
+<div class="filtros-tabs">
+    <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
+    <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
+    <button class="tab" onclick="filtrarPQRS(this,'en-proceso')">En Proceso</button>
+    <button class="tab" onclick="filtrarPQRS(this,'resuelto')">Resueltos</button>
+</div>
+
+
+<!-- ═══════════ LAYOUT: lista + panel ═══════════ -->
+<div class="pqrs-layout">
+
+    <!-- LISTA -->
+    <div class="pqrs-lista" id="pqrsLista">
+
+        <div class="pqrs-tarjeta" data-estado="pendiente"
+             onclick="abrirDetalle(this,'PQRS001','Queja','Cliente','María García','maria.garcia@email.com','Pedido llegó tarde','Mi pedido de Cherry Pie llegó 2 horas después de lo programado. Me gustaría una explicación.','2026-03-07')">
+            <div class="pqrs-cabecera">
+                <div class="pqrs-tags">
+                    <span class="tag tag-queja">Queja</span>
+                    <span class="tag tag-cliente">Cliente</span>
+                </div>
+                <span class="badge-estado badge-amarillo">Pendiente</span>
+            </div>
+            <p class="pqrs-titulo">Pedido llegó tarde</p>
+            <p class="pqrs-usuario">María García</p>
+            <p class="pqrs-mensaje">Mi pedido de Cherry Pie llegó 2 horas después de lo programado. Me gustaría una explicación.</p>
+            <p class="pqrs-fecha">2026-03-07 · PQRS001</p>
+        </div>
+
+        <div class="pqrs-tarjeta" data-estado="en-proceso"
+             onclick="abrirDetalle(this,'PQRS002','Sugerencia','Cliente','Juan Pérez','juan.perez@email.com','Nuevos sabores','Sería genial si pudieran ofrecer pasteles sin azúcar para diabéticos.','2026-03-06')">
+            <div class="pqrs-cabecera">
+                <div class="pqrs-tags">
+                    <span class="tag tag-sugerencia">Sugerencia</span>
+                    <span class="tag tag-cliente">Cliente</span>
+                </div>
+                <span class="badge-estado badge-naranja">En Proceso</span>
+            </div>
+            <p class="pqrs-titulo">Nuevos sabores</p>
+            <p class="pqrs-usuario">Juan Pérez</p>
+            <p class="pqrs-mensaje">Sería genial si pudieran ofrecer pasteles sin azúcar para diabéticos.</p>
+            <p class="pqrs-fecha">2026-03-06 · PQRS002</p>
+        </div>
+
+        <div class="pqrs-tarjeta" data-estado="resuelto"
+             onclick="abrirDetalle(this,'PQRS003','Queja','Cliente','Ana Rodríguez','ana.rodriguez@email.com','Producto con sabor extraño','El pastel de chocolate que recibí tenía un sabor extraño, como si estuviera vencido.','2026-03-05')">
+            <div class="pqrs-cabecera">
+                <div class="pqrs-tags">
+                    <span class="tag tag-queja">Queja</span>
+                    <span class="tag tag-cliente">Cliente</span>
+                </div>
+                <span class="badge-estado badge-verde">Resuelto</span>
+            </div>
+            <p class="pqrs-titulo">Producto con sabor extraño</p>
+            <p class="pqrs-usuario">Ana Rodríguez</p>
+            <p class="pqrs-mensaje">El pastel de chocolate que recibí tenía un sabor extraño, como si estuviera vencido.</p>
+            <p class="pqrs-fecha">2026-03-05 · PQRS003</p>
+        </div>
+
+        <div class="pqrs-tarjeta" data-estado="en-proceso"
+             onclick="abrirDetalle(this,'PQRS004','Petición','Cliente','Carlos López','carlos.lopez@email.com','Torta personalizada para boda','Necesito una cotización para una torta de boda para 200 personas el próximo mes.','2026-03-04')">
+            <div class="pqrs-cabecera">
+                <div class="pqrs-tags">
+                    <span class="tag tag-peticion">Petición</span>
+                    <span class="tag tag-cliente">Cliente</span>
+                </div>
+                <span class="badge-estado badge-naranja">En Proceso</span>
+            </div>
+            <p class="pqrs-titulo">Torta personalizada para boda</p>
+            <p class="pqrs-usuario">Carlos López</p>
+            <p class="pqrs-mensaje">Necesito una cotización para una torta de boda para 200 personas el próximo mes.</p>
+            <p class="pqrs-fecha">2026-03-04 · PQRS004</p>
+        </div>
+
+        <div class="pqrs-tarjeta" data-estado="pendiente"
+             onclick="abrirDetalle(this,'PQRS005','Queja','Cliente','Sofía Martínez','sofia.martinez@email.com','Atención al cliente','La persona que me atendió fue poco amable al teléfono.','2026-03-04')">
+            <div class="pqrs-cabecera">
+                <div class="pqrs-tags">
+                    <span class="tag tag-queja">Queja</span>
+                    <span class="tag tag-cliente">Cliente</span>
+                </div>
+                <span class="badge-estado badge-amarillo">Pendiente</span>
+            </div>
+            <p class="pqrs-titulo">Atención al cliente</p>
+            <p class="pqrs-usuario">Sofía Martínez</p>
+            <p class="pqrs-mensaje">La persona que me atendió fue poco amable al teléfono.</p>
+            <p class="pqrs-fecha">2026-03-04 · PQRS005</p>
+        </div>
+
+        <div class="pqrs-tarjeta" data-estado="resuelto"
+             onclick="abrirDetalle(this,'PQRS006','Reclamo','Cliente','Luis Hernández','luis.hernandez@email.com','Cobro incorrecto','Me cobraron $50 de más en mi último pedido. Solicito reembolso.','2026-03-01')">
+            <div class="pqrs-cabecera">
+                <div class="pqrs-tags">
+                    <span class="tag tag-reclamo">Reclamo</span>
+                    <span class="tag tag-cliente">Cliente</span>
+                </div>
+                <span class="badge-estado badge-verde">Resuelto</span>
+            </div>
+            <p class="pqrs-titulo">Cobro incorrecto</p>
+            <p class="pqrs-usuario">Luis Hernández</p>
+            <p class="pqrs-mensaje">Me cobraron $50 de más en mi último pedido. Solicito reembolso.</p>
+            <p class="pqrs-fecha">2026-03-01 · PQRS006</p>
+        </div>
+
+    </div>
+
+
+    <!-- PANEL DETALLE -->
+    <div class="pqrs-panel">
+
+        <div class="panel-vacio" id="panelVacio">
+            <i class="fa-regular fa-comment-dots fa-3x" style="color:#ccc"></i>
+            <p>Selecciona un PQRS para ver los detalles</p>
+        </div>
+
+        <div id="panelDetalle" style="display:none">
+            <div class="panel-header">
+                <span class="panel-titulo">Detalles del PQRS</span>
+                <select class="form-select form-select-sm" id="panelEstado" style="width:auto">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en-proceso">En Proceso</option>
+                    <option value="resuelto">Resuelto</option>
+                </select>
+            </div>
+            <div class="panel-campo"><p class="panel-clave">ID</p><p class="panel-valor" id="pd-id"></p></div>
+            <div class="panel-campo"><p class="panel-clave">Tipo</p><p class="panel-valor" id="pd-tipo"></p></div>
+            <div class="panel-campo"><p class="panel-clave">Origen</p><p class="panel-valor" id="pd-origen"></p></div>
+            <div class="panel-campo"><p class="panel-clave">Nombre</p><p class="panel-valor" id="pd-nombre"></p></div>
+            <div class="panel-campo"><p class="panel-clave">Asunto</p><p class="panel-valor" id="pd-asunto"></p></div>
+            <div class="panel-campo"><p class="panel-clave">Mensaje</p><p class="panel-valor td-gris" id="pd-mensaje" style="line-height:1.5"></p></div>
+            <div class="panel-campo"><p class="panel-clave">Fecha</p><p class="panel-valor" id="pd-fecha"></p></div>
+
+            <hr style="border-color:#e8e8e8;margin:12px 0">
+
+            <p class="panel-clave mb-1">Responder</p>
+            <textarea class="form-control" id="pd-respuesta" rows="4"
+                      placeholder="Escribe tu respuesta aquí..."
+                      oninput="actualizarBtnResponder()"></textarea>
+            <button class="btn-responder mt-2" id="btnResponder" onclick="enviarRespuesta()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Enviar Respuesta y Marcar como Resuelto
+            </button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    function filtrarPQRS(btn, estado) {
+        document.querySelectorAll('.filtros-tabs .tab').forEach(function(b) { b.classList.remove('activo'); });
+        btn.classList.add('activo');
+        document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) {
+            t.style.display = (estado === 'todos' || t.dataset.estado === estado) ? '' : 'none';
+        });
+    }
+
+    function abrirDetalle(tarjeta, id, tipo, origen, nombre, correo, asunto, mensaje, fecha) {
+        document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) { t.classList.remove('seleccionada'); });
+        tarjeta.classList.add('seleccionada');
+        document.getElementById('panelVacio').style.display   = 'none';
+        document.getElementById('panelDetalle').style.display = '';
+        document.getElementById('pd-id').textContent      = id;
+        document.getElementById('pd-tipo').textContent    = tipo;
+        document.getElementById('pd-origen').textContent  = origen;
+        document.getElementById('pd-nombre').textContent  = nombre;
+        document.getElementById('pd-asunto').textContent  = asunto;
+        document.getElementById('pd-mensaje').textContent = mensaje;
+        document.getElementById('pd-fecha').textContent   = fecha;
+        document.getElementById('pd-respuesta').value     = '';
+        actualizarBtnResponder();
+    }
+
+    function actualizarBtnResponder() {
+        var tiene = document.getElementById('pd-respuesta').value.trim().length > 0;
+        document.getElementById('btnResponder').classList.toggle('activo', tiene);
+    }
+
+    function enviarRespuesta() {
+        if (!document.getElementById('pd-respuesta').value.trim()) return;
+        document.getElementById('panelEstado').value      = 'resuelto';
+        document.getElementById('pd-respuesta').value     = '';
+        actualizarBtnResponder();
+        alert('Respuesta enviada y PQRS marcado como Resuelto.');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends 'layout_header.html' %}
+{% load static %}
+{% block titulo %}Usuarios — Creart{% endblock %}
+
+{% block contenido %}
+
+<!-- ═══════════ BUSCADOR ═══════════ -->
+<div class="barra-herramientas">
+    <div class="busqueda-caja">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="busqueda-input" id="buscadorUsuarios"
+               placeholder="Buscar usuarios..."
+               oninput="filtrarUsuarios()"/>
+    </div>
+</div>
+
+
+<!-- ═══════════ STATS ═══════════ -->
+<section class="usuarios-stats">
+    <div class="caja-stat">
+        <i class="fa-solid fa-users fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+        <p class="stat-mini-label">Total Usuarios</p>
+        <p class="stat-mini-valor">8</p>
+    </div>
+    <div class="caja-stat">
+        <i class="fa-solid fa-user-check fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+        <p class="stat-mini-label">Usuarios Activos</p>
+        <p class="stat-mini-valor">7</p>
+    </div>
+    <div class="caja-stat">
+        <i class="fa-solid fa-user-plus fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+        <p class="stat-mini-label">Nuevos este Mes</p>
+        <p class="stat-mini-valor">3</p>
+    </div>
+</section>
+
+
+<!-- ═══════════ TABLA ═══════════ -->
+<section class="caja tabla-caja">
+    <div class="table-responsive">
+        <table class="tabla" id="tablaUsuarios">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Contacto</th>
+                    <th>Rol</th>
+                    <th>Fecha Registro</th>
+                    <th>Pedidos</th>
+                    <th>Total Gastado</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>
+                        <div class="usuario-celda">
+                            <div class="avatar-letra">M</div>
+                            <div>
+                                <p class="usuario-nombre">María García</p>
+                                <p class="usuario-id">ID: 1</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contacto-celda">
+                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> maria.garcia@email.com</div>
+                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 123 4567</div>
+                        </div>
+                    </td>
+                    <td><span class="tag tag-cliente">Cliente</span></td>
+                    <td class="td-gris">2025-10-15</td>
+                    <td><div class="pedidos-badge">12</div></td>
+                    <td><strong>$5,400</strong></td>
+                    <td><span class="badge-estado badge-verde">Activo</span></td>
+                    <td>
+                        <div class="acciones-grupo">
+                            <button class="btn-accion-icono" title="Ver detalle"
+                                onclick="abrirModalUsuario('María García','maria.garcia@email.com','+52 555 123 4567','Cliente','2025-10-15')">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <div class="usuario-celda">
+                            <div class="avatar-letra">J</div>
+                            <div>
+                                <p class="usuario-nombre">Juan Pérez</p>
+                                <p class="usuario-id">ID: 2</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contacto-celda">
+                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> juan.perez@email.com</div>
+                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 234 5678</div>
+                        </div>
+                    </td>
+                    <td><span class="tag tag-cliente">Cliente</span></td>
+                    <td class="td-gris">2025-11-20</td>
+                    <td><div class="pedidos-badge">8</div></td>
+                    <td><strong>$3,040</strong></td>
+                    <td><span class="badge-estado badge-verde">Activo</span></td>
+                    <td>
+                        <div class="acciones-grupo">
+                            <button class="btn-accion-icono" title="Ver detalle"
+                                onclick="abrirModalUsuario('Juan Pérez','juan.perez@email.com','+52 555 234 5678','Cliente','2025-11-20')">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <div class="usuario-celda">
+                            <div class="avatar-letra">A</div>
+                            <div>
+                                <p class="usuario-nombre">Ana Rodríguez</p>
+                                <p class="usuario-id">ID: 3</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contacto-celda">
+                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> ana.rodriguez@email.com</div>
+                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 345 6789</div>
+                        </div>
+                    </td>
+                    <td><span class="tag tag-vendedor">Vendedor</span></td>
+                    <td class="td-gris">2025-12-05</td>
+                    <td><div class="pedidos-badge">15</div></td>
+                    <td><strong>$7,800</strong></td>
+                    <td><span class="badge-estado badge-verde">Activo</span></td>
+                    <td>
+                        <div class="acciones-grupo">
+                            <button class="btn-accion-icono" title="Ver detalle"
+                                onclick="abrirModalUsuario('Ana Rodríguez','ana.rodriguez@email.com','+52 555 345 6789','Vendedor','2025-12-05')">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <div class="usuario-celda">
+                            <div class="avatar-letra">S</div>
+                            <div>
+                                <p class="usuario-nombre">Sofía Martínez</p>
+                                <p class="usuario-id">ID: 4</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contacto-celda">
+                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> sofia.martinez@email.com</div>
+                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 567 8901</div>
+                        </div>
+                    </td>
+                    <td><span class="tag tag-cliente">Cliente</span></td>
+                    <td class="td-gris">2026-01-25</td>
+                    <td><div class="pedidos-badge">3</div></td>
+                    <td><strong>$1,290</strong></td>
+                    <td><span class="badge-estado badge-gris">Inactivo</span></td>
+                    <td>
+                        <div class="acciones-grupo">
+                            <button class="btn-accion-icono" title="Ver detalle"
+                                onclick="abrirModalUsuario('Sofía Martínez','sofia.martinez@email.com','+52 555 567 8901','Cliente','2026-01-25')">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <div class="usuario-celda">
+                            <div class="avatar-letra">E</div>
+                            <div>
+                                <p class="usuario-nombre">Elena Torres</p>
+                                <p class="usuario-id">ID: 5</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contacto-celda">
+                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> elena.torres@creart.com</div>
+                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 789 0123</div>
+                        </div>
+                    </td>
+                    <td><span class="tag tag-admin">Administrador</span></td>
+                    <td class="td-gris">2026-02-15</td>
+                    <td><div class="pedidos-badge">7</div></td>
+                    <td><strong>$3,150</strong></td>
+                    <td><span class="badge-estado badge-verde">Activo</span></td>
+                    <td>
+                        <div class="acciones-grupo">
+                            <button class="btn-accion-icono" title="Ver detalle"
+                                onclick="abrirModalUsuario('Elena Torres','elena.torres@creart.com','+52 555 789 0123','Administrador','2026-02-15')">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<!-- ═══════════ MODAL DETALLE USUARIO ═══════════ -->
+<div class="modal fade" id="modalUsuario" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-user"></i> Detalle de Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><span class="fw-semibold">Nombre:</span> <span id="mu-nombre" style="color:#612D53"></span></p>
+                <p><span class="fw-semibold">Correo:</span> <span id="mu-correo" style="color:#612D53"></span></p>
+                <p><span class="fw-semibold">Teléfono:</span> <span id="mu-telefono" style="color:#612D53"></span></p>
+                <p><span class="fw-semibold">Rol:</span> <span id="mu-rol" style="color:#612D53"></span></p>
+                <p><span class="fw-semibold">Registro:</span> <span id="mu-fecha" style="color:#612D53"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancelar" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    function filtrarUsuarios() {
+        var q = document.getElementById('buscadorUsuarios').value.toLowerCase();
+        document.querySelectorAll('#tablaUsuarios tbody tr').forEach(function(fila) {
+            fila.style.display = fila.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+
+    function abrirModalUsuario(nombre, correo, telefono, rol, fecha) {
+        document.getElementById('mu-nombre').textContent   = nombre;
+        document.getElementById('mu-correo').textContent   = correo;
+        document.getElementById('mu-telefono').textContent = telefono;
+        document.getElementById('mu-rol').textContent      = rol;
+        document.getElementById('mu-fecha').textContent    = fecha;
+        var modal = new bootstrap.Modal(document.getElementById('modalUsuario'));
+        modal.show();
+    }
+</script>
+{% endblock %}

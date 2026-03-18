@@ -1,0 +1,162 @@
+{% extends 'layout_header.html' %}
+{% load static %}
+{% block titulo %}Mi Perfil — Creart{% endblock %}
+
+{% block contenido %}
+
+<div class="perfil-layout">
+
+    <!-- ═══════════ TARJETA PERFIL ═══════════ -->
+    <div class="perfil-card">
+
+        <!-- Avatar -->
+        <div class="perfil-avatar-wrap">
+            <div class="perfil-avatar">
+                <i class="fa-solid fa-user fa-3x"></i>
+            </div>
+            <div>
+                <h2 class="perfil-nombre">{{ usuario.nombre }} {{ usuario.apellido }}</h2>
+                <p class="perfil-rol">
+                    <span class="tag tag-admin">
+                        <i class="fa-solid fa-shield-halved"></i> Administrador
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <hr class="perfil-sep">
+
+        <!-- Datos del perfil -->
+        <div class="perfil-datos">
+
+            <div class="perfil-campo">
+                <p class="perfil-clave">
+                    <i class="fa-solid fa-id-card"></i> Documento
+                </p>
+                <p class="perfil-valor">{{ usuario.documento }}</p>
+            </div>
+
+            <div class="perfil-campo">
+                <p class="perfil-clave">
+                    <i class="fa-solid fa-envelope"></i> Correo Electrónico
+                </p>
+                <p class="perfil-valor">{{ usuario.correo }}</p>
+            </div>
+
+            <div class="perfil-campo">
+                <p class="perfil-clave">
+                    <i class="fa-solid fa-phone"></i> Teléfono
+                </p>
+                <p class="perfil-valor">{{ usuario.numero }}</p>
+            </div>
+
+            <div class="perfil-campo">
+                <p class="perfil-clave">
+                    <i class="fa-solid fa-location-dot"></i> Dirección
+                </p>
+                <p class="perfil-valor">{{ usuario.direccion }}</p>
+            </div>
+
+        </div>
+
+        <button class="btn-editar-perfil"
+                onclick="document.getElementById('panelEditar').classList.toggle('abierto')">
+            <i class="fa-solid fa-pen-to-square"></i> Editar Perfil
+        </button>
+
+    </div>
+
+
+    <!-- ═══════════ PANEL EDITAR ═══════════ -->
+    <div class="perfil-editar" id="panelEditar">
+
+        <h3 class="editar-titulo">
+            <i class="fa-solid fa-gear"></i> Editar Información
+        </h3>
+
+        <form method="post" action="#">
+            {% csrf_token %}
+
+            <div class="campo">
+                <label class="campo-label">Nombre</label>
+                <input class="campo-input" type="text" name="nombre"
+                       value="{{ usuario.nombre }}" placeholder="Tu nombre"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Apellido</label>
+                <input class="campo-input" type="text" name="apellido"
+                       value="{{ usuario.apellido }}" placeholder="Tu apellido"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Correo Electrónico</label>
+                <input class="campo-input" type="email" name="correo"
+                       value="{{ usuario.correo }}" placeholder="correo@ejemplo.com"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Teléfono</label>
+                <input class="campo-input" type="text" name="numero"
+                       value="{{ usuario.numero }}" placeholder="+57 300 000 0000"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Dirección</label>
+                <input class="campo-input" type="text" name="direccion"
+                       value="{{ usuario.direccion }}" placeholder="Tu dirección"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Rol</label>
+                <input class="campo-input" value="Administrador" disabled/>
+                <span class="campo-ayuda">
+                    <i class="fa-solid fa-circle-info"></i>
+                    El rol no puede ser modificado
+                </span>
+            </div>
+
+            <hr class="perfil-sep">
+
+            <h4 class="editar-subtitulo">
+                <i class="fa-solid fa-lock"></i> Cambiar Contraseña
+            </h4>
+
+            <div class="campo">
+                <label class="campo-label">Contraseña Actual</label>
+                <input class="campo-input" type="password" name="contrasena_actual"
+                       placeholder="Ingresa tu contraseña actual"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Nueva Contraseña</label>
+                <input class="campo-input" type="password" name="nueva_contrasena"
+                       placeholder="Mínimo 8 caracteres"/>
+            </div>
+
+            <div class="campo">
+                <label class="campo-label">Confirmar Nueva Contraseña</label>
+                <input class="campo-input" type="password" name="confirmar_contrasena"
+                       placeholder="Repite la nueva contraseña"/>
+                <span class="campo-ayuda">
+                    Dejar en blanco si no deseas cambiar la contraseña
+                </span>
+            </div>
+
+            <div class="editar-acciones">
+                <button type="button" class="btn-cancelar-editar"
+                        onclick="document.getElementById('panelEditar').classList.remove('abierto')">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button type="submit" class="btn-guardar">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

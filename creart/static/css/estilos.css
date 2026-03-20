@@ -11,6 +11,13 @@ body{
 	width: 100%; /* Cambia vw por % para evitar saltos con el scroll */
     min-height: 100vh; /* Que al menos mida la pantalla, pero pueda crecer */
     background-color: #F3F4F4;
+<<<<<<< HEAD
+=======
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	justify-items: center;
+>>>>>>> 5e49df95f5e11975190813d018b8317677b9918a
 }
 
 header{

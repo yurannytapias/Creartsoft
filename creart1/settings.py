@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5e49df95f5e11975190813d018b8317677b9918a
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -76,11 +80,19 @@ WSGI_APPLICATION = 'creart1.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
+<<<<<<< HEAD
         'NAME': 'creart',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '3306',
+=======
+        'NAME': 'creart1',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3309',
+>>>>>>> 5e49df95f5e11975190813d018b8317677b9918a
     }
 }
 

@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://kit.fontawesome.com/2c4ce15497.js" crossorigin="anonymous"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Leckerli+One&display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" type="text/css" href="static/css/estilos.css">
+	<title>Slider de elementos</title>
+</head>
+<body>
+	<header>	
+		<center>
+			<h1>Creart</h1>
+		</center>
+		<ul>
+			<li><a href="#">Iniciar sesion</a></li>
+			<li><a href="#">Promesas</a></li>
+			<li><a href="#">Productos</a></li>
+			<li><a href="#">Historia</a></li>
+			<li><a href="#">Contacto</a></li>
+		</ul>
+	</header>
+	<main>
+		<section class="carousel">
+			<div class="list">
+				<article class="item">
+					<div class="main-content" style="background-color: #9c4d2f;">
+						<div class="content">
+							<h2>Con todo el amor de mamá</h2>
+							<p class="descuento">Con un 45%</p>
+							<p class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+							tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
+							<a href="#">Compra ya</a>
+						</div>
+					</div>
+					<figure class="image">
+						<img src="{% static 'imagenes/tres_leches.jpg' %}">
+						<figcaption>Torta tres leches</figcaption>
+					</figure>
+				</article>
+				<article class="item">
+					<div class="main-content" style="background-color: #f5bfaf;">
+						<div class="content">
+							<h2>Para un sanvalentin amoroso</h2>
+							<p class="descuento">Con un 45%</p>
+							<p class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+							tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
+							<a href="#">Compra ya</a>
+						</div>
+					</div>
+					<figure class="image">
+						<img src="{% static 'imagenes/combo3.jpg' %}">
+						<figcaption>torta de fresa</figcaption>
+					</figure>
+				</article>
+				<article class="item">
+					<div class="main-content" style="background-color: #dedfe1;">
+						<div class="content">
+							<h2>Para una feliz semana santa</h2>
+							<p class="descuento">Con un 55%</p>
+							<p class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+							tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
+							<a href="#">Compra ya</a>
+						</div>
+					</div>
+					<figure class="image">
+						<img src="{% static 'imagenes/pistacho.jpg' %}">
+						<figcaption>torta de pistacho</figcaption>
+					</figure>
+				</article>
+				<article class="item">
+					<div class="main-content" style="background-color: #853953;">
+						<div class="content">
+							<h2>Para un feliz cumpleaños</h2>
+							<p class="descuento">Con un 55%</p>
+							<p class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+							tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam</p>
+							<a href="#">Compra ya</a>
+						</div>
+					</div>
+					<figure class="image">
+						<img src="{% static 'imagenes/combo.jpg' %}">
+						<figcaption>Combo de pasteles</figcaption>
+					</figure>
+				</article>
+			</div>
+		</section>
+	</main>
+</body>
+<script src="ofertas.js"></script>
+</html>

@@ -1,0 +1,435 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Configura tu pastel — CreartSoft</title>
+<link rel="stylesheet" href="{% static 'css/estiloscliente.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.app { display: grid; grid-template-columns: 1fr 360px; min-height: calc(100vh - 0px); }
+.config-left { padding: 2rem; overflow-y: auto; }
+.config-left h1 { font-size: 20px; font-weight: 500; color: #2a1010; margin-bottom: 4px; }
+.config-left > p { font-size: 13px; color: #a07070; margin-bottom: 1.5rem; }
+.sec { margin-bottom: 1.25rem; }
+.sec-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #b08080; margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 8px 16px; border-radius: 999px; border: 1.5px solid #e8d8d8; font-size: 13px; cursor: pointer; transition: all .18s; background: #fff; color: #664444; user-select: none; }
+.chip:hover { border-color: #7a2d3e; color: #7a2d3e; background: #fdf0f2; }
+.chip.on { border-color: #7a2d3e; background: #7a2d3e; color: #fff; }
+.chip .extra { font-size: 10px; opacity: .75; margin-left: 3px; }
+.msg-box { margin-top: 10px; display: none; }
+.msg-box input { width: 100%; padding: 9px 14px; border: 1.5px solid #e8d0d0; border-radius: 10px; font-size: 13px; color: #333; outline: none; transition: border-color .2s; font-family: inherit; }
+.msg-box input:focus { border-color: #7a2d3e; }
+.msg-box small { font-size: 11px; color: #b08080; margin-top: 4px; display: block; }
+
+/* Invitado (sin registro) */
+.invitado-box { background: #fff8f8; border: 1.5px solid #f0d8d8; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.invitado-box h3 { font-size: 14px; font-weight: 500; color: #5a2020; margin-bottom: 12px; }
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: #888; margin-bottom: 5px; }
+.field input, .field select { width: 100%; padding: 9px 12px; border: 1.5px solid #e8d0d0; border-radius: 8px; font-size: 13px; color: #333; outline: none; font-family: inherit; transition: border-color .2s; }
+.field input:focus, .field select:focus { border-color: #7a2d3e; }
+
+/* Panel derecho */
+.config-right { background: #fff; border-left: 0.5px solid #f0e4e4; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: linear-gradient(160deg, #fdf6f6, #f5eaec); }
+canvas { max-width: 260px; width: 100%; }
+.summary { padding: 1.25rem; border-top: 0.5px solid #f0e4e4; }
+.sum-row { display: flex; justify-content: space-between; font-size: 12px; color: #888; padding: 3px 0; }
+.sum-row b { color: #444; }
+.time-pill { display: flex; align-items: center; gap: 6px; background: #faeeda; border-radius: 8px; padding: 7px 12px; font-size: 12px; color: #854f0b; margin: 10px 0; }
+.sum-total { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1.5px solid #f0e4e4; }
+.sum-total p { font-size: 12px; color: #a07070; }
+.sum-total span { font-size: 26px; font-weight: 600; color: #7a2d3e; }
+.btn-pay { width: 100%; padding: 13px; background: #009ee3; color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .2s; }
+.btn-pay:hover { background: #007bb5; }
+.btn-pay.evento { background: #7a2d3e; }
+.btn-pay.evento:hover { background: #5e2230; }
+.mp-logo { background: #fff; border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 800; color: #009ee3; }
+.usuario-pill { display: flex; align-items: center; gap: 8px; background: #f5eaec; border-radius: 10px; padding: 8px 12px; margin-bottom: 1rem; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: #7a2d3e; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.usuario-pill span { font-size: 13px; color: #5a2020; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo"><h2>CreartSoft</h2><p>Pasteles personalizados</p></div>
+    <ul class="menu">
+<li><a href="{% url 'index' %}"><i class="fa fa-home"></i> Inicio</a></li>
+      <li><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
+      <li class="active"><a href="#"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
+      <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
+      <li><a href="#"><i class="fa fa-user"></i> Perfil</a></li>
+    </ul>
+    <div class="logout"><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Cerrar Sesión</a></div>
+  </div>
+
+  <!-- CONFIGURADOR -->
+  <div class="contenido" style="padding:0;">
+    <form method="POST" action="{% url 'crear_solicitud' producto.id_producto %}" id="form-solicitud">
+      {% csrf_token %}
+
+      <!-- Campos ocultos que se llenan con JS -->
+      <input type="hidden" name="precio_total" id="f-precio">
+      <input type="hidden" name="pisos" id="f-pisos" value="1">
+      <input type="hidden" name="cobertura" id="f-cobertura" value="chantilly">
+      <input type="hidden" name="rellenos" id="f-rellenos" value="">
+      <input type="hidden" name="decoracion" id="f-decoracion" value="">
+      <input type="hidden" name="porciones" id="f-porciones" value="2">
+      <input type="hidden" name="mensaje_pastel" id="f-mensaje" value="">
+      <input type="hidden" name="tipo_entrega" id="f-entrega" value="tienda">
+
+      <div class="app">
+        <!-- IZQUIERDA -->
+        <div class="config-left">
+          <h1>Configura tu pastel 🎂</h1>
+          <p>Personalízalo y ve cómo queda en tiempo real</p>
+
+          <!-- Usuario logueado o invitado -->
+          {% if usuario %}
+          <div class="usuario-pill">
+            <div class="avatar">{{ usuario.nombre|slice:":1" }}{{ usuario.apellido|slice:":1" }}</div>
+            <span>{{ usuario.nombre }} {{ usuario.apellido }}</span>
+          </div>
+          {% else %}
+          <div class="invitado-box">
+            <h3>📦 Tus datos de entrega</h3>
+            <div class="field">
+              <label>Tu nombre</label>
+              <input type="text" name="nombre_invitado" placeholder="¿Cómo te llamamos?" required>
+            </div>
+            <div class="field">
+              <label>Dirección de entrega</label>
+              <input type="text" name="direccion_entrega" placeholder="Solo si eliges domicilio">
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Fecha evento (solo para categoría eventos) -->
+          {% if producto.categoria == 'eventos' %}
+          <div class="sec">
+            <div class="sec-label">Fecha del evento</div>
+            <div class="field">
+              <input type="date" name="fecha_evento" required>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="sec">
+            <div class="sec-label">Tamaño — personas</div>
+            <div class="chips">
+              <div class="chip on" data-g="size" data-val="2"  data-p="0"      data-t="1">2 pers. <span class="extra">base</span></div>
+              <div class="chip"    data-g="size" data-val="5"  data-p="15000"  data-t="1">5 pers. <span class="extra">+$15k</span></div>
+              <div class="chip"    data-g="size" data-val="10" data-p="35000"  data-t="1">10 pers. <span class="extra">+$35k</span></div>
+              <div class="chip"    data-g="size" data-val="20" data-p="75000"  data-t="2">20 pers. <span class="extra">+$75k</span></div>
+              <div class="chip"    data-g="size" data-val="30" data-p="120000" data-t="2">30 pers. <span class="extra">+$120k</span></div>
+              <div class="chip"    data-g="size" data-val="50" data-p="200000" data-t="3">50 pers. <span class="extra">+$200k</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-label">Pisos</div>
+            <div class="chips">
+              <div class="chip on" data-g="pisos" data-val="1" data-p="0"     data-t="0">1 piso <span class="extra">base</span></div>
+              <div class="chip"    data-g="pisos" data-val="2" data-p="25000" data-t="1">2 pisos <span class="extra">+$25k</span></div>
+              <div class="chip"    data-g="pisos" data-val="3" data-p="50000" data-t="2">3 pisos <span class="extra">+$50k</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-label">Cobertura</div>
+            <div class="chips">
+              <div class="chip on" data-g="cob" data-val="chantilly"   data-p="0"     data-t="0">Chantilly <span class="extra">base</span></div>
+              <div class="chip"    data-g="cob" data-val="buttercream" data-p="5000"  data-t="0">Buttercream <span class="extra">+$5k</span></div>
+              <div class="chip"    data-g="cob" data-val="fondant"     data-p="12000" data-t="1">Fondant <span class="extra">+$12k</span></div>
+              <div class="chip"    data-g="cob" data-val="ganache"     data-p="10000" data-t="0">Ganache <span class="extra">+$10k</span></div>
+              <div class="chip"    data-g="cob" data-val="redvelvet"   data-p="8000"  data-t="0">Red Velvet <span class="extra">+$8k</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-label">Relleno (puedes elegir varios)</div>
+            <div class="chips">
+              <div class="chip" data-g="fill" data-val="oreo"     data-p="4000" data-t="0">Oreo <span class="extra">+$4k</span></div>
+              <div class="chip" data-g="fill" data-val="maracuya" data-p="3000" data-t="0">Maracuyá <span class="extra">+$3k</span></div>
+              <div class="chip" data-g="fill" data-val="arequipe" data-p="3000" data-t="0">Arequipe <span class="extra">+$3k</span></div>
+              <div class="chip" data-g="fill" data-val="fresas"   data-p="5000" data-t="0">Fresas <span class="extra">+$5k</span></div>
+              <div class="chip" data-g="fill" data-val="limon"    data-p="3000" data-t="0">Limón <span class="extra">+$3k</span></div>
+              <div class="chip" data-g="fill" data-val="mora"     data-p="3000" data-t="0">Mora <span class="extra">+$3k</span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-label">Decoración (puedes elegir varios)</div>
+            <div class="chips">
+              <div class="chip" data-g="deco" data-val="flores"  data-p="5000"  data-t="1">Flores <span class="extra">+$5k</span></div>
+              <div class="chip" data-g="deco" data-val="velas"   data-p="3000"  data-t="0">Velas <span class="extra">+$3k</span></div>
+              <div class="chip" data-g="deco" data-val="topper"  data-p="5000"  data-t="1">Topper <span class="extra">+$5k</span></div>
+              <div class="chip" data-g="deco" data-val="perlas"  data-p="4000"  data-t="0">Perlas <span class="extra">+$4k</span></div>
+              <div class="chip" data-g="deco" data-val="figura"  data-p="15000" data-t="2">Figura personalizada <span class="extra">+$15k</span></div>
+              <div class="chip" data-g="deco" data-val="mensaje" data-p="3000"  data-t="0">Mensaje <span class="extra">+$3k</span></div>
+            </div>
+            <div class="msg-box" id="msg-box">
+              <input type="text" id="msg-input" maxlength="28" placeholder="Ej: Feliz cumpleaños Sofía ♥">
+              <small id="msg-count">0 / 28 caracteres</small>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-label">Entrega</div>
+            <div class="chips">
+              <div class="chip on" data-g="envio" data-val="tienda"    data-p="0"    data-t="0">Recoger en tienda <span class="extra">gratis</span></div>
+              <div class="chip"    data-g="envio" data-val="domicilio" data-p="8000" data-t="0">Domicilio <span class="extra">+$8k</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DERECHA — pastel + resumen -->
+        <div class="config-right">
+          <div class="canvas-wrap">
+            <canvas id="cake" width="260" height="300"></canvas>
+          </div>
+          <div class="summary">
+            <div class="sum-row"><span>{{ producto.nombre }}</span><b>$25.000</b></div>
+            <div id="sum-lines"></div>
+            <div class="time-pill">⏱ Tiempo estimado: <b id="t-val" style="margin-left:4px;">1 día</b></div>
+            <div class="sum-total"><p>Total a pagar</p><span id="s-total">$25.000</span></div>
+            {% if producto.categoria == 'eventos' %}
+            <button type="submit" class="btn-pay evento">
+              <i class="fa fa-paper-plane"></i> Enviar solicitud
+            </button>
+            {% else %}
+            <button type="submit" class="btn-pay">
+              <div class="mp-logo">MP</div> Pagar con MercadoPago
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const BASE = 25000;
+const st = {
+  size:  { val:'2',  p:0,      t:1 },
+  pisos: { val:'1',  p:0,      t:0 },
+  cob:   { val:'chantilly', p:0, t:0 },
+  envio: { val:'tienda', p:0,   t:0 },
+  fill: [], deco: [], mensaje: ''
+};
+
+const COB_COLORS  = {chantilly:'#ffe8e8',buttercream:'#fff8d0',fondant:'#edd5f7',ganache:'#4a2200',redvelvet:'#8a1a1a'};
+const COB_STROKE  = {chantilly:'#e8b0b0',buttercream:'#e8d880',fondant:'#c990e8',ganache:'#2a1000',redvelvet:'#5a0a0a'};
+const COB_TEXT    = {chantilly:'#7a2d3e',buttercream:'#6a5a00',fondant:'#4a1060',ganache:'#f5d0b0',redvelvet:'#ffd0d0'};
+const FILL_COLORS = {oreo:'#1a1a1a',maracuya:'#f5a000',arequipe:'#c47c2a',fresas:'#e8185a',limon:'#aacc00',mora:'#6a1a8a'};
+
+function drawCake(){
+  const cv  = document.getElementById('cake');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pisos = parseInt(st.pisos.val);
+  const col   = COB_COLORS[st.cob.val]  || '#ffe8e8';
+  const str   = COB_STROKE[st.cob.val]  || '#e8b0b0';
+  const txt   = COB_TEXT[st.cob.val]    || '#7a2d3e';
+  const hasDeco = k => st.deco.some(d=>d.val===k);
+  const configs = {
+    1:[{w:180,h:100,y:165}],
+    2:[{w:180,h:75,y:195},{w:130,h:65,y:122}],
+    3:[{w:180,h:65,y:210},{w:130,h:60,y:143},{w:88,h:55,y:82}]
+  };
+  const layers = configs[pisos];
+  const cx = 130;
+
+  ctx.save();
+  ctx.shadowColor='rgba(120,50,60,0.13)';
+  ctx.shadowBlur=16; ctx.shadowOffsetY=5;
+
+  layers.forEach((l,i)=>{
+    const x = cx - l.w/2;
+    ctx.beginPath(); ctx.roundRect(x,l.y,l.w,l.h,10);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.strokeStyle=str; ctx.lineWidth=1.5; ctx.stroke();
+
+    if(st.cob.val==='ganache'){
+      for(let j=0;j<4;j++){
+        const dx=x+18+j*((l.w-20)/3);
+        ctx.beginPath(); ctx.moveTo(dx,l.y+5);
+        ctx.bezierCurveTo(dx-3,l.y+18,dx+3,l.y+26,dx,l.y+33);
+        ctx.strokeStyle='rgba(0,0,0,0.45)'; ctx.lineWidth=7; ctx.lineCap='round'; ctx.stroke();
+      }
+      ctx.lineCap='butt'; ctx.lineWidth=1.5;
+    }
+    if(st.cob.val==='fondant'){
+      for(let j=0;j<4;j++){
+        ctx.beginPath(); ctx.arc(x+22+j*((l.w-30)/3),l.y+l.h*0.38,5,0,Math.PI*2);
+        ctx.fillStyle='rgba(160,80,210,0.18)'; ctx.fill();
+      }
+    }
+
+    if(st.fill.length>0){
+      const fc = FILL_COLORS[st.fill[0].val]||'#f0c0c0';
+      ctx.save();
+      ctx.beginPath(); ctx.roundRect(x,l.y,l.w,l.h,10); ctx.clip();
+      ctx.beginPath(); ctx.moveTo(x,l.y+l.h*0.52); ctx.lineTo(x+l.w,l.y+l.h*0.52);
+      ctx.strokeStyle=fc; ctx.lineWidth=4; ctx.setLineDash([7,5]); ctx.stroke(); ctx.setLineDash([]);
+      if(st.fill.length>1){
+        const fc2=FILL_COLORS[st.fill[1].val]||'#e0a0a0';
+        ctx.beginPath(); ctx.moveTo(x,l.y+l.h*0.65); ctx.lineTo(x+l.w,l.y+l.h*0.65);
+        ctx.strokeStyle=fc2; ctx.lineWidth=3; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.restore();
+      ctx.beginPath(); ctx.roundRect(x,l.y,l.w,l.h,10);
+      ctx.strokeStyle=str; ctx.lineWidth=1.5; ctx.stroke();
+    }
+
+    if(hasDeco('perlas')){
+      for(let p=0;p<7;p++){
+        const px=x+12+p*((l.w-18)/6);
+        ctx.beginPath(); ctx.arc(px,l.y+9,3.5,0,Math.PI*2);
+        ctx.fillStyle='#fff'; ctx.fill();
+        ctx.strokeStyle='#ddc0c0'; ctx.lineWidth=0.8; ctx.stroke();
+      }
+    }
+
+    if(i===0 && hasDeco('mensaje') && st.mensaje){
+      ctx.save();
+      ctx.beginPath(); ctx.roundRect(x,l.y,l.w,l.h,10); ctx.clip();
+      ctx.font='italic 500 11px Georgia,serif';
+      ctx.fillStyle=txt; ctx.textAlign='center';
+      ctx.fillText(st.mensaje.slice(0,22), cx, l.y+l.h*0.58);
+      ctx.restore();
+    }
+  });
+  ctx.restore();
+
+  // Plato
+  ctx.beginPath(); ctx.ellipse(cx,272,105,11,0,0,Math.PI*2);
+  ctx.fillStyle='#f0e0e0'; ctx.fill();
+  ctx.strokeStyle='#d4a0a0'; ctx.lineWidth=1; ctx.stroke();
+
+  // Crema
+  const top = layers[layers.length-1];
+  const tx  = cx - top.w/2;
+  for(let j=0;j<6;j++){
+    const bx=tx+14+j*(top.w-22)/5;
+    ctx.beginPath(); ctx.arc(bx,top.y,9,Math.PI,0);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle=str; ctx.lineWidth=1; ctx.stroke();
+  }
+
+  if(hasDeco('flores')){
+    [cx-35,cx,cx+35].forEach(fx=>{
+      ['#ff6b9d','#ff9ff3','#ff6b6b','#ffd700','#a29bfe'].forEach((c,p)=>{
+        const a=p*Math.PI*2/5;
+        ctx.beginPath(); ctx.arc(fx+Math.cos(a)*7,top.y-9+Math.sin(a)*7,5,0,Math.PI*2);
+        ctx.fillStyle=c; ctx.fill();
+      });
+      ctx.beginPath(); ctx.arc(fx,top.y-9,4,0,Math.PI*2); ctx.fillStyle='#fff700'; ctx.fill();
+    });
+  }
+
+  if(hasDeco('velas')){
+    const nv=parseInt(st.size.val)<=2?1:parseInt(st.size.val)<=5?2:parseInt(st.size.val)<=10?3:5;
+    const vc=['#ff6b6b','#4ecdc4','#ffe66d','#a29bfe','#fd79a8'];
+    for(let v=0;v<nv;v++){
+      const vx=cx-((nv-1)*13)+v*26;
+      ctx.beginPath(); ctx.rect(vx-3.5,top.y-30,7,23); ctx.fillStyle=vc[v%5]; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(vx,top.y-33,3.5,5,0,0,Math.PI*2); ctx.fillStyle='#ffd700'; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(vx,top.y-34,1.5,2.5,0,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    }
+  }
+
+  if(hasDeco('topper')){
+    ctx.beginPath(); ctx.moveTo(cx,top.y-55); ctx.lineTo(cx-20,top.y-28); ctx.lineTo(cx+20,top.y-28); ctx.closePath();
+    ctx.fillStyle='#7a2d3e'; ctx.fill();
+    ctx.font='bold 10px system-ui'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText('★',cx,top.y-36);
+  }
+
+  if(hasDeco('figura')){
+    ctx.font='22px system-ui'; ctx.textAlign='center'; ctx.fillText('🎁',cx,top.y-12);
+  }
+
+  ctx.font='500 11px system-ui'; ctx.fillStyle='rgba(120,60,70,0.45)'; ctx.textAlign='center';
+  ctx.fillText(`${st.size.val} personas · ${pisos} piso${pisos>1?'s':''}`,cx,289);
+}
+
+function fmt(n){ return '$'+n.toLocaleString('es-CO'); }
+
+function update(){
+  let total=BASE, tiempo=st.size.t+st.pisos.t+st.cob.t+st.envio.t;
+  total+=st.size.p+st.pisos.p+st.cob.p+st.envio.p;
+  const lines=[];
+  const push=(label,p)=>{ if(p>0) lines.push({label,val:'+'+fmt(p)}); };
+  push(`${st.size.val} personas`, st.size.p);
+  push(`${st.pisos.val} pisos`,   st.pisos.p);
+  if(st.cob.val!=='chantilly') push(st.cob.val, st.cob.p);
+  st.fill.forEach(f=>{ total+=f.p; tiempo+=f.t; push(f.val,f.p); });
+  st.deco.forEach(d=>{ total+=d.p; tiempo+=d.t; push(d.val,d.p); });
+  if(st.envio.p>0) push('Domicilio', st.envio.p);
+
+  document.getElementById('sum-lines').innerHTML = lines.map(l=>
+    `<div class="sum-row"><span>${l.label}</span><b>${l.val}</b></div>`).join('');
+  document.getElementById('s-total').textContent = fmt(total);
+  document.getElementById('t-val').textContent   = tiempo<=1?'1 día':tiempo<=2?'1–2 días':tiempo<=4?'2–3 días':'3–5 días';
+
+  // Sincronizar con campos hidden del form
+  document.getElementById('f-precio').value    = total;
+  document.getElementById('f-pisos').value     = st.pisos.val;
+  document.getElementById('f-cobertura').value = st.cob.val;
+  document.getElementById('f-rellenos').value  = st.fill.map(f=>f.val).join(',');
+  document.getElementById('f-decoracion').value= st.deco.map(d=>d.val).join(',');
+  document.getElementById('f-porciones').value = st.size.val;
+  document.getElementById('f-entrega').value   = st.envio.val;
+
+  drawCake();
+}
+
+// Single-select
+document.querySelectorAll('.chip[data-g="size"],.chip[data-g="pisos"],.chip[data-g="cob"],.chip[data-g="envio"]').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const g=el.dataset.g;
+    document.querySelectorAll(`.chip[data-g="${g}"]`).forEach(x=>x.classList.remove('on'));
+    el.classList.add('on');
+    st[g]={val:el.dataset.val,p:+el.dataset.p,t:+el.dataset.t};
+    update();
+  });
+});
+
+// Multi-select
+document.querySelectorAll('.chip[data-g="fill"],.chip[data-g="deco"]').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const g=el.dataset.g;
+    const isMensaje=el.dataset.val==='mensaje';
+    if(el.classList.contains('on')){
+      el.classList.remove('on');
+      st[g]=st[g].filter(x=>x.val!==el.dataset.val);
+      if(isMensaje){ document.getElementById('msg-box').style.display='none'; st.mensaje=''; }
+    } else {
+      el.classList.add('on');
+      st[g].push({val:el.dataset.val,p:+el.dataset.p,t:+el.dataset.t});
+      if(isMensaje) document.getElementById('msg-box').style.display='block';
+    }
+    update();
+  });
+});
+
+// Mensaje
+const msgInput=document.getElementById('msg-input');
+msgInput.addEventListener('input',()=>{
+  st.mensaje=msgInput.value;
+  document.getElementById('msg-count').textContent=`${msgInput.value.length} / 28 caracteres`;
+  document.getElementById('f-mensaje').value=msgInput.value;
+  drawCake();
+});
+
+update();
+</script>
+</body>
+</html>

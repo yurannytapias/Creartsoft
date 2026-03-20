@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Lista de Usuarios</h2>
+
+<style>
+
+.tabla-usuarios{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.tabla-usuarios th{
+    background:#853953;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+.tabla-usuarios td{
+    padding:12px;
+    border-bottom:1px solid #ddd;
+}
+
+.tabla-usuarios tr:hover{
+    background:#F3F4F4;
+}
+
+.btn{
+    padding:6px 12px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.editar{
+    background:#612D53;
+    color:white;
+}
+
+.eliminar{
+    background:#2C2C2C;
+    color:white;
+}
+
+</style>
+
+
+<table class="tabla-usuarios">
+
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Email</th>
+    <th>Acciones</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for usuario in usuarios %}
+
+<tr>
+    <td>{{ usuario.id }}</td>
+    <td>{{ usuario.username }}</td>
+    <td>{{ usuario.email }}</td>
+
+    <td>
+        <button class="btn editar">Editar</button>
+        <button class="btn eliminar">Eliminar</button>
+    </td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}

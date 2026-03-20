@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Checkout - CreartSoft</title>
+<link rel="stylesheet" href="{% static 'css/estiloscliente.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.page-back{font-size:13px;color:#888;margin-bottom:1.5rem;display:flex;align-items:center;gap:6px;text-decoration:none;}
+.page-back:hover{color:#7a2d3e;}
+.checkout-grid{display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start;}
+.card{background:#fff;border:0.5px solid #e8e0e0;border-radius:16px;padding:1.5rem;margin-bottom:1rem;}
+.card-title{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;}
+.resumen-row{display:flex;justify-content:space-between;font-size:13px;color:#666;padding:6px 0;border-bottom:0.5px solid #f5f0f0;}
+.resumen-row:last-child{border:none;}
+.resumen-row b{color:#333;}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:2px solid #f0e4e4;}
+.total-row p{font-size:13px;color:#888;}
+.total-row span{font-size:26px;font-weight:600;color:#7a2d3e;}
+.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;background:#f5eaec;color:#7a2d3e;margin-bottom:10px;}
+.producto-img{width:100%;height:160px;border-radius:10px;overflow:hidden;background:#f5eaec;display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin-bottom:1rem;}
+.producto-img img{width:100%;height:100%;object-fit:cover;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:12px;font-weight:500;color:#666;margin-bottom:6px;}
+.field input{width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:8px;font-size:13px;color:#333;outline:none;transition:border-color .2s;}
+.field input:focus{border-color:#7a2d3e;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.time-pill{display:flex;align-items:center;gap:6px;background:#faeeda;border-radius:8px;padding:8px 12px;font-size:13px;color:#854f0b;margin:1rem 0;}
+.config-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.config-tag{font-size:11px;padding:3px 10px;border-radius:6px;background:#f5f5f5;color:#666;}
+.divider{height:0.5px;background:#f0e4e4;margin:1rem 0;}
+
+/* Botón MP */
+.btn-mp{width:100%;padding:14px;background:#009ee3;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;}
+.btn-mp:hover{background:#007bb5;}
+.mp-logo{background:#fff;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:800;color:#009ee3;}
+
+/* Botón simulado */
+.btn-sim{width:100%;padding:14px;background:#7a2d3e;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;text-decoration:none;margin-top:8px;}
+.btn-sim:hover{background:#5e2230;}
+.sim-badge{background:#fff3;border-radius:4px;padding:2px 7px;font-size:10px;}
+.seguro{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#aaa;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="sidebar">
+    <div class="logo"><h2>CreartSoft</h2><p>Pasteles personalizados</p></div>
+    <ul class="menu">
+    <li><a href="{% url 'index' %}"><i class="fa fa-home"></i> Inicio</a></li>
+      <li><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
+      <li class="active"><a href="#"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
+      <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
+      <li><a href="#"><i class="fa fa-user"></i> Perfil</a></li>
+    </ul>
+    <div class="logout"><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Cerrar Sesión</a></div>
+  </div>
+
+  <div class="contenido">
+    <main class="main">
+      <div class="main__content">
+        <a href="{% url 'catalogo' %}" class="page-back"><i class="fa fa-arrow-left"></i> Volver al catálogo</a>
+        <p style="font-size:22px;font-weight:500;margin-bottom:4px;">Resumen del pedido</p>
+        <p style="font-size:13px;color:#888;margin-bottom:2rem;">Revisa tu configuración antes de pagar</p>
+
+        <div class="checkout-grid">
+
+          <!-- COLUMNA IZQUIERDA: resumen -->
+          <div>
+            <div class="card">
+              <p class="card-title">Tu pastel</p>
+              <div class="producto-img">
+                {% if solicitud.producto.imagen %}
+                  <img src="{{ solicitud.producto.imagen.url }}" alt="{{ solicitud.producto.nombre }}">
+                {% else %}🎂{% endif %}
+              </div>
+              <span class="tag">{{ solicitud.producto.categoria|capfirst }}</span>
+              <p style="font-size:16px;font-weight:500;margin-bottom:6px;">{{ solicitud.producto.nombre }}</p>
+
+              {% if solicitud.mensaje_pastel %}
+              <p style="font-size:13px;color:#888;margin-bottom:8px;">✍️ Mensaje: <b>{{ solicitud.mensaje_pastel }}</b></p>
+              {% endif %}
+
+              <div class="config-tags">
+                {% if solicitud.cobertura %}<span class="config-tag">🎨 {{ solicitud.cobertura }}</span>{% endif %}
+                {% if solicitud.pisos > 1 %}<span class="config-tag">🏗️ {{ solicitud.pisos }} pisos</span>{% endif %}
+                {% if solicitud.porciones %}<span class="config-tag">👥 {{ solicitud.porciones }} personas</span>{% endif %}
+                {% for r in solicitud.rellenos.split(',') %}{% if r %}<span class="config-tag">🍰 {{ r }}</span>{% endif %}{% endfor %}
+                {% for d in solicitud.decoracion.split(',') %}{% if d %}<span class="config-tag">✨ {{ d }}</span>{% endif %}{% endfor %}
+              </div>
+            </div>
+
+            <!-- Datos de entrega si no está registrado -->
+            {% if not solicitud.usuario %}
+            <div class="card">
+              <p class="card-title">Datos de entrega</p>
+              <div class="resumen-row"><span>Nombre</span><b>{{ solicitud.nombre_invitado }}</b></div>
+              <div class="resumen-row"><span>Entrega</span><b>{{ solicitud.tipo_entrega|capfirst }}</b></div>
+              {% if solicitud.direccion_entrega %}
+              <div class="resumen-row"><span>Dirección</span><b>{{ solicitud.direccion_entrega }}</b></div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- COLUMNA DERECHA: pago -->
+          <div>
+            <div class="card">
+              <p class="card-title">Detalle del pago</p>
+              <div class="resumen-row"><span>Pastel base</span><b>${{ solicitud.producto.precio|floatformat:0 }}</b></div>
+              {% if solicitud.pisos > 1 %}<div class="resumen-row"><span>{{ solicitud.pisos }} pisos</span><b>incluido</b></div>{% endif %}
+              {% if solicitud.cobertura %}<div class="resumen-row"><span>Cobertura {{ solicitud.cobertura }}</span><b>incluido</b></div>{% endif %}
+              {% if solicitud.tipo_entrega == 'domicilio' %}<div class="resumen-row"><span>Domicilio</span><b>+$8.000</b></div>{% endif %}
+
+              <div class="time-pill">
+                ⏱ Tiempo estimado:
+                <b>
+                  {% if solicitud.pisos == 1 %}1 día
+                  {% elif solicitud.pisos == 2 %}1–2 días
+                  {% else %}2–3 días{% endif %}
+                </b>
+              </div>
+
+              <div class="total-row">
+                <p>Total a pagar</p>
+                <span>${{ solicitud.precio_total|floatformat:0 }}</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <p class="card-title">Método de pago</p>
+
+              {% if mp_simulado %}
+                <!-- MODO SIMULADO: borrar este bloque cuando tengas MP -->
+                <div style="background:#fff8e1;border-radius:8px;padding:10px 12px;font-size:12px;color:#854f0b;margin-bottom:1rem;display:flex;gap:8px;">
+                  ⚠️ Modo simulado activo — el pago no es real
+                </div>
+                <a href="{% url 'simular_pago' solicitud.id_solicitud %}" class="btn-sim">
+                  <span class="sim-badge">SIM</span> Simular pago aprobado
+                </a>
+              {% else %}
+                <!-- MODO REAL: descomentar cuando tengas MP -->
+                {# <div id="mp-button"></div>
+                <script src="https://sdk.mercadopago.com/js/v2"></script>
+                <script>
+                  const mp = new MercadoPago('{{ mp_public_key }}', {locale:'es-CO'});
+                  mp.checkout({
+                    preference: { id: '{{ solicitud.mp_preference_id }}' },
+                    render: { container: '#mp-button', label: 'Pagar con MercadoPago' }
+                  });
+                </script> #}
+              {% endif %}
+
+              <p class="seguro"><i class="fa fa-lock"></i> Pago 100% seguro</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

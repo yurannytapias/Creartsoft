@@ -1,0 +1,117 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://kit.fontawesome.com/2c4ce15497.js" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Leckerli+One&display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" type="text/css" href="{% static 'css/estilos.css' %}">
+<title>Creart</title>
+
+</head>
+
+<body>
+<header>
+<center>
+<h1>Creart</h1>
+</center>
+<ul>
+<li><a href="{% url 'index' %}">Volver a inicio</a></li>
+</ul>
+</header>
+<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+<br><br><br>
+<div class="container__todo">
+    <div class="caja_trasera">
+
+        <div class="caja_trasera-login">
+            <h3>¿Ya tienes cuenta?</h3>
+            <p>¡Inicia sesión para entrar a la página!</p>
+            <button id="btn__iniciar">Iniciar sesión</button>
+        </div>
+
+        <div class="caja_trasera-register">
+            <h3>¿Aún no tienes cuenta?</h3>
+            <p>Regístrate</p>
+            <button id="btn__register">Crear cuenta</button>
+        </div>
+
+        <!-- FORMULARIOS -->
+        <div class="contenedor__form">
+
+            <!-- LOGIN -->
+            <form class="login" method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+
+                <h2>Iniciar sesión</h2>
+
+                <input type="email" name="correo" placeholder="Ingrese su correo">
+
+                <input type="password" name="contrasena" placeholder="Ingrese contraseña">
+
+                <button type="submit">Iniciar sesión</button>
+            </form>
+
+
+            <!-- REGISTRO -->
+            <form class="register" method="POST" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <h2>Crear cuenta</h2>
+
+                <input type="num" name="documento" placeholder="Ingrese su documento" required>
+                <input type="text"
+                       name="nombre"
+                       placeholder="Ingrese su nombre"
+                       required
+                       oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g,'');"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,30}"
+                       maxlength="30">
+
+                <input type="text"
+                       name="apellido"
+                       placeholder="Ingrese su apellido"
+                       required
+                       oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g,'');"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{4,30}"
+                       maxlength="20">
+
+                <input type="email"
+                       name="correo"
+                       placeholder="Ingrese su correo"
+                       required>
+
+                <input type="text"
+                       name="numero"
+                       placeholder="Ingrese su celular"
+                       required
+                       oninput="this.value = this.value.replace(/[^0-9]/g,'');"
+                       maxlength="10"
+                       pattern="[0-9]{10}">
+
+                <input type="text"
+                       name="direccion"
+                       placeholder="Ingrese su dirección"
+                       required
+                       minlength="5"
+                       maxlength="100">
+
+                <input type="password"
+                       name="contrasena"
+                       placeholder="Ingrese contraseña"
+                       required
+                       minlength="8">
+
+                <button type="submit">Crear cuenta</button>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/login_register.js' %}"></script>

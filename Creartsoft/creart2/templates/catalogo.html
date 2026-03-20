@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo - CreartSoft</title>
+    <link rel="stylesheet" href="{% static 'css/estiloscliente.css' %}">
+    <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <h2>CreartSoft</h2>
+            <p>Pasteles personalizados</p>
+        </div>
+        <ul class="menu">
+         <li><a href="{% url 'index' %}"><i class="fa fa-home"></i> Inicio</a></li>
+            <li class="active"><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
+            <li><a href="{% url 'mis_solicitudes' %}"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
+            <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
+            <li><a href="#"><i class="fa fa-chart-bar"></i> Reportes</a></li>
+           
+        </ul>
+       
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="contenido">
+
+        <div class="header">
+            <h1>Catálogo de Pasteles</h1>
+            <p>Explora todas nuestras opciones organizadas por categoría</p>
+        </div>
+
+        <div class="main__content">
+
+            <!-- FILTROS -->
+            <div class="filtros">
+                <a href="?categoria=todos"   class="filtro {% if categoria_activa == 'todos' %}activo{% endif %}">Todos</a>
+                <a href="?categoria=antojos" class="filtro {% if categoria_activa == 'antojos' %}activo{% endif %}">Antojos</a>
+                <a href="?categoria=eventos" class="filtro {% if categoria_activa == 'eventos' %}activo{% endif %}">Eventos</a>
+                <a href="?categoria=diarios" class="filtro {% if categoria_activa == 'diarios' %}activo{% endif %}">Diarios</a>
+            </div>
+
+            <p class="conteo">Mostrando <strong>{{ total }}</strong> pasteles</p>
+
+            <!-- GRID -->
+            <div class="catalogo__grid">
+                {% for pastel in pasteles %}
+                <div class="catalogo__card">
+                    <div class="catalogo__img__wrapper">
+                        <img src="{{ pastel.imagen.url }}" alt="{{ pastel.nombre }}">
+                        <span class="catalogo__categoria">{{ pastel.categoria|capfirst }}</span>
+                    </div>
+                    <div class="catalogo__info">
+                        <h3>{{ pastel.nombre }}</h3>
+                        <p>{{ pastel.descripcion }}</p>
+                       <div class="catalogo__footer">
+    <span class="catalogo__precio">${{ pastel.precio }}</span>
+    {% if pastel.categoria == 'eventos' %}
+        {% if request.session.usuario_id %}
+            <a href="{% url 'configurador' pastel.id_producto %}" class="btn__solicitar">🎂 Personalizar</a>
+        {% else %}
+            <a href="{% url 'inicio' %}" class="btn__solicitar">🔒 Inicia sesión</a>
+        {% endif %}
+    {% else %}
+        <a href="{% url 'compra_rapida' pastel.id_producto %}" class="btn__solicitar">🛒 Comprar</a>
+    {% endif %}
+</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

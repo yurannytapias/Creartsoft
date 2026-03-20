@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Lista de usuarios</title>
+</head>
+<body>
+	<table>
+  <tr>
+    <th>Nombre</th>
+    <th>Apellido</th>
+    <th>Documento</th>
+    <th>Correo</th>
+    <th>Numero</th>
+    <th>Fecha creacion</th>
+    <th>Fecha modificacion</th>
+    <th>Estado</th>
+    <th>Roles</th>
+  </tr>
+  {% for u in lista_usuarios %}
+  <tr>
+    <td>{{u.nombre}}</td>
+    <td>{{u.apellido}}</td>
+    <td>{{u.documento}}</td>
+    <td>{{u.correo}}</td>
+    <td>{{u.numero}}</td>
+    <td>{{u.fecha_creacion}}</td>
+    <td>{{u.fecha_modificacion}}</td>
+    <td>{{u.estado}}</td>
+    <td>{{u.rol}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+</body>
+</html>

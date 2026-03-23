@@ -1,37 +1,6 @@
+{% extends "layout_header.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://kit.fontawesome.com/2c4ce15497.js" crossorigin="anonymous"></script>
-	<link href="https://fonts.googleapis.com/css2?family=Leckerli+One&display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com">
-	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
-    <title>Inicio</title>
-</head>
-<body>
-	<!--inicio header-->
-	<header>	
-		<center>
-			<h1>Creart</h1>
-		</center>
-		<ul class="opciones">
-<<<<<<< HEAD
-			<li><a href="{% url 'index' %}">Iniciar</a></li>
-=======
-			<a href="{% url 'inicio' %}">Iniciar</a>
->>>>>>> 5e49df95f5e11975190813d018b8317677b9918a
-			<li><a href="#">Promesas</a></li>
-			<li><a href="#">Productos</a></li>
-			<li><a href="#">Historia</a></li>
-			<li><a href="#">Contacto</a></li>
-		</ul>
-	</header><br><br>	<br><br><br><br>	<br><br>
-	<!--fin header-->
-
-
+{% block content %}
 	<div class="container__todo">
             <div class="caja_trasera">
                  <div class="caja_trasera-login">
@@ -58,7 +27,6 @@
                     <form class="register" method="POST" action="{% url 'registro' %}">
                         {% csrf_token %}
                         <h2>Crear cuenta</h2>
-                        <input type="text" name="documento" placeholder="Ingrese su cedula" maxlength="10" minlength="6" inputmode="numeric" pattern="[0-9]*" title="Solo se permiten numeros" required>
                         <input type="text" name="nombre" placeholder="Ingrese su nombre" maxlength="20" min="3" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')" title="Solo letras" required>
                         <input type="text" name="apellido" placeholder="Ingrese su apellido" maxlength="20" min="3" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')" title="Solo letras" required>
                         <input type="email" name="correo" placeholder="Ingrese su correo electronico" maxlength="50" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com" title="El correo debe terminar en .com" required>
@@ -124,7 +92,5 @@ passwordInput.addEventListener('input', () => {
     fuerzaTexto.style.color = "green";
   }
 });
-
 </script>
-</body>
-</html>
+{% endblock %}

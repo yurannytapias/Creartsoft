@@ -1,0 +1,74 @@
+{% extends "layout_header.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="form_solicitud">
+
+	<div class="titulo_area">
+		<i class="fa-solid fa-file-circle-plus"></i>
+		<div class="texto_area">
+			<strong>Nueva solicitud</strong>
+			<p>Registrar pedido por llamada del cliente</p>
+		</div>
+	</div>
+
+	<form method="POST" class="formulario">
+		{% csrf_token %}
+
+		<div class="grid">
+
+			<!-- CLIENTE -->
+			<div class="campo">
+				<label>Cliente</label>
+				<select name="cliente" required>
+					{% for c in clientes %}
+						<option value="{{ c.id_usuario }}">
+							{{ c.nombre }} {{ c.apellido }} {{ c.correo }}
+						</option>
+					{% endfor %}
+				</select>
+			</div>
+
+			<!-- PRODUCTO -->
+			<div class="campo">
+				<label>Producto</label>
+				<select name="producto" required>
+					{% for p in productos %}
+						<option value="{{ p.id_producto }}">
+							{{ p.nombre }} - ${{ p.precio }} - {{p.categoria}}
+						</option>
+					{% endfor %}
+				</select>
+			</div>
+
+			<!-- CANTIDAD -->
+			<div class="campo">
+				<label>Cantidad</label>
+				<input type="number" name="cantidad" placeholder="Ej: 2" required>
+			</div>
+
+			<!-- DETALLES -->
+			<div class="campo full">
+				<label>Detalles del pedido</label>
+				<textarea name="detalles" placeholder="Ej: sin azúcar, entrega urgente..."></textarea>
+			</div>
+
+		</div>
+
+		<button type="submit" class="btn_guardar">
+			<i class="fa-solid fa-check"></i> Crear solicitud
+		</button>
+
+	</form>
+
+</section>
+<script>
+$(document).ready(function() {
+    $('select').select2({
+        placeholder: "Buscar...",
+        width: '100%'
+    });
+});
+</script>
+{% endblock %}

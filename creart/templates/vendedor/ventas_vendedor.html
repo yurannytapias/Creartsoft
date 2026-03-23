@@ -1,0 +1,59 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+	<section class="mis_ventas">
+		<div class="titulo_area">
+			<i class="fa-solid fa-chart-line"></i>
+			<div class="texto_area">
+				<strong>Mis ventas</strong>
+				<p>Historial y estado de tus ventas</p>
+			</div>
+		</div><br><br>
+		<div class="estadisticas">
+		<article class="card">
+			<i class="fa-solid fa-dollar-sign"></i>
+			<div class="detalles_card">
+				<p>Total ventas</p>
+				<p class="cifra">${{ total_ventas }}</p>
+			</div>
+		</article>
+		<article class="card">
+			<i class="fa-solid fa-box-open"></i>
+			<div class="detalles_card">
+				<p>Ventas hoy</p>
+				<p class="cifra">{{  ventas_hoy }}</p>
+			</div>
+		</article>
+		<article class="card">
+			<i class="fa-solid fa-chart-line"></i>
+			<div class="detalles_card">
+				<p>Total pedidos</p>
+				<p class="cifra">{{ total_pedidos }}</p>
+			</div>
+		</article>
+		</div>
+	</section><br><br><br>
+	<section class="historial_vendedor">
+		<strong>Historial de ventas</strong><br><br>
+		{% for v in ventas %}
+			<div class="card_venta">
+				<div class="izquierda">
+					<div class="numero_pedido">
+						<p>#{{ v.id_transaccion }}</p>
+					</div>
+					<div class="detalles">
+						<strong>{{ v.solicitud.cliente.nombre }} {{ v.solicitud.cliente.apellido }}</strong>
+						<p>{{ v.solicitud.producto.nombre }}</p>
+						<p><i class="fa-solid fa-calendar"></i> {{ v.fecha_creacion }}</p>
+					</div>
+				</div>
+				<div class="price_estado">
+					<p class="estado">Completado</p>
+					<p class="price">${{ v.importe_total }}</p>
+				</div>
+			</div>
+		{% empty %}
+			<p>No tienes ventas aún</p>
+		{% endfor %}
+	</section>
+{% endblock %}

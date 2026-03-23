@@ -1,0 +1,85 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+	<section class="solicitudes" id="solicitudes">
+		<div class="bandeja_solicitudes">
+			<div class="titulo_area">
+				<i class="fa-solid fa-envelope-open"></i>
+				<div class="texto_area">
+					<strong>Bandeja de solicitudes</strong>
+					<p>Gestiona las solicitudes de los clientes</p>
+				</div>
+			</div>
+		</div>
+		<div class="strong">
+			<strong><i class="fa-regular fa-envelope"></i> Nuevas (3)</strong>
+		</div>
+			<div class="elementos_varios">
+				{% for s in solicitudes %}
+					<article class="solicitud">
+
+						<div class="usuario">
+							<div class="foto_perfil">
+								<p>{{ s.cliente.nombre|first }}</p>
+							</div>
+							<p>Nuevo</p>
+						</div>
+
+						<div class="detalles">
+							<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong><br><br>
+							<p>{{ s.producto.nombre }}</p>
+							<p>
+								<i class="fa-solid fa-clock"></i> 
+								{{ s.fecha_creacion }}
+							</p>
+						</div>
+
+						<button class="boton">Ver más...</button>
+
+						<div class="mas">
+							<div class="usuario">
+								<div class="foto_perfil">
+									<p>{{ s.cliente.nombre|first }}</p>
+								</div>
+							</div>
+
+							<div class="texto">
+								<strong>{{ s.cliente.nombre }}</strong><br><br>
+								<p>{{ s.producto.nombre }}</p>
+								<p class="descripcion">{{ s.detalles }}</p>
+							</div>
+
+							<div class="fecha_price">
+								<p>{{ s.fecha_creacion }}</p>
+								<strong>${{ s.producto.precio }}</strong>
+							</div>
+
+							<div class="estado">
+								<button>Aceptar</button>
+							</div>
+						</div>
+					</article>
+				{% empty %}
+					<p>No tienes reportes sin responder</p>
+				{% endfor %}
+			</div>
+		<section class="procesadas">
+			<strong><i class="fa-regular fa-envelope"></i> Procesadas (1)</strong>
+			<div class="card_venta">
+				<div class="usuario">
+					<div class="foto_perfil">
+						<p>P</p>
+					</div>
+					<div class="detalles">
+						<strong>Pedro Sanchez</strong>
+						<p>Pastel de chocolate - 3 pisos</p>
+					</div>
+				</div>
+				<div class="price_estado">
+					<p class="price">$200</p>
+					<p class="estado">Aceptada</p>	
+				</div>
+			</div>
+		</section>
+	</section>
+{% endblock %}

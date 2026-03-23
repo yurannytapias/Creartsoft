@@ -1,0 +1,70 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+	<section class="clientes">
+		<div class="titulo_area">
+			<i class="fa-solid fa-people-line"></i>
+			<div class="texto_area">
+				<strong>Mis clientes</strong>
+				<p>Gestiona tu cartera de clientes</p>
+			</div>
+		</div><br><br><br>
+		<div class="display">
+			{% for c in clientes %}
+			<article class="usuario_cliente">
+				<div class="fondo"></div>
+
+				<center>
+				<div class="perfil_usuario">
+					<div class="foto_perfil">
+						<p>{{ c.nombre|first }}</p>
+					</div>
+					<p>{{ c.nombre }} {{ c.apellido }}</p>
+				</div>
+				</center>
+
+				<div class="detalles_contacto">
+					<p><i class="fa-regular fa-envelope"></i> {{ c.correo }}</p>
+					<p><i class="fa-solid fa-mobile"></i> {{ c.numero }}</p>
+				</div>
+
+				<div class="compras">
+					<div class="cifra">
+						<center>
+							<strong>{{ c.total_compras }}</strong>
+							<p>compras</p>
+						</center>
+					</div>
+				</div>
+			</article>
+			{% empty %}
+				<p>No tienes clientes aún </p>
+			{% endfor %}
+		</div>
+	</section><br><br><br>
+	<section class="historial_vendedor">
+		<strong>Otros clientes</strong><br>	<br>
+		{% for c in clientes %}
+			<div class="card_venta">
+				<div class="foto_perfil">
+					<p>C</p>
+				</div>
+				<div class="detalles">
+					<strong>{{ c.nombre }}</strong>
+					<p><i class="fa-solid fa-envelope-open"></i> {{ c.correo }} {{ c.numero }}</p>
+				</div>
+				<div class="compras">
+					<p><i class="fa-solid fa-bag-shopping"></i><strong>{{ c.total_compras }}</strong>
+					<p>compras</p></p>
+					<p>compras</p>
+				</div>
+				<div class="gastado">
+					<strong>${{ c.total_gastado }}</strong>
+					<p>Total gastado</p>
+				</div>
+			</div>
+		{% empty %}
+			<p>No tienes clientes aún </p>
+		{% endfor %}
+	</section>
+{% endblock %}

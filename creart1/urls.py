@@ -20,9 +20,25 @@ from creart import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.mi_vista, name='index'),
-    path('usuarios/', views.mi_lista_usuarios, name='usuarios'),
+    path('', views.index, name='index'),
     path('inicio/', views.inicio, name='inicio'),
+
+    #registrar, iniciar y cerrar sesion BACKEND ------------------------------------------
+    #registrar, iniciar y cerrar sesion BACKEND ------------------------------------------
+    #registrar, iniciar y cerrar sesion BACKEND ------------------------------------------
+
+    path('registro/', views.registrar_usuario, name='registro'),
+    path('login/', views.login_usuario, name='login'),
+    path('logout/', views.cerrar_sesion, name='logout'),
+
+    path('registro_vendedor/', views.registrar_vendedor, name='registro_vendedor'),
+
+    #admin -----------------------------------------------------------------------
+    #admin -----------------------------------------------------------------------
+    #admin -----------------------------------------------------------------------
+    path('administrador/', views.administrador, name='administrador'),
+
+
     path('vendedor/', views.vendedor, name='vendedor'),
     path('vendedor_solicitudes/', views.solicitudes_vendedor, name='vendedor_solicitudes'),
     path('vendedor_ventas/', views.ventas_vendedor, name='vendedor_ventas'),
@@ -31,7 +47,35 @@ urlpatterns = [
     path('vendedor_bonos/', views.bonos_vendedor, name='vendedor_bonos'),
     path('vendedor_perfil/', views.mi_perfil_vendedor, name='vendedor_perfil'),
     path('vendedor_reportes/', views.reportes_vendedor, name='vendedor_reportes'),
-    path('login/', views.login_usuario, name='login'),
-    path('registro/', views.registrar_usuario, name='registro'),
-    path('cerrar_sesion/', views.logout_usuario, name='cerrar_sesion')
+    path('vendedor_solicitud/', views.soli_vendedor, name='vendedor_solicitud'),
+    path('crear_solicitud_vededor/', views.crear_solicitud_vededor, name='crear_solicitud_vededor'),
+    path('crear_productos/', views.crear_productos, name='crear_producto'),
+    path('editar_perfil/', views.editar_perfil_vendedor, name='editar_perfil_vendedor'),
+    path('crear_reporte/', views.crear_reporte_vendedor, name='crear_reporte'),
+
+    #cliente --------------------------------------------------------------------------
+    #cliente --------------------------------------------------------------------------
+    #cliente --------------------------------------------------------------------------
+
+        path('catalogo/', views.catalogo, name='catalogo'),
+    path('compra/<int:producto_id>/', views.compra_rapida, name='compra_rapida'),
+    path('configurador/<int:producto_id>/', views.configurador, name='configurador'),
+    
+    # ─────────────────────────────────────────
+    # SOLICITUDES (CLIENTE)
+    # ─────────────────────────────────────────
+    path('solicitud/<int:producto_id>/', views.crear_solicitud, name='crear_solicitud'),
+    path('solicitud/pendiente/<int:solicitud_id>/', views.solicitud_pendiente, name='solicitud_pendiente'),
+    path('solicitud/detalle/<int:solicitud_id>/', views.detalle_solicitud, name='detalle_solicitud'),
+    path('solicitud/cancelar/<int:solicitud_id>/', views.cancelar_solicitud, name='cancelar_solicitud'),
+    path('solicitud/pagar-abono/<int:solicitud_id>/', views.pagar_abono, name='pagar_abono'),
+    path('mis-solicitudes/', views.mis_solicitudes, name='mis_solicitudes'),
+
+    # ─────────────────────────────────────────
+    # MERCADOPAGO
+    # ─────────────────────────────────────────
+    path('webhook/mp/', views.webhook_mp, name='webhook_mp'),
+    path('pago/exitoso/<int:solicitud_id>/', views.pago_exitoso, name='pago_exitoso'),
+    path('pago/fallido/<int:solicitud_id>/', views.pago_fallido, name='pago_fallido'),
+    path('pago/pendiente/<int:solicitud_id>/', views.pago_pendiente, name='pago_pendiente'),
 ]

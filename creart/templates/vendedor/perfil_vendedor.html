@@ -1,0 +1,105 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+	<section class="perfil">
+		<div class="titulo_area">
+			<i class="fa-solid fa-box"></i>
+			<div class="texto_area">
+				<strong>Mi perfil</strong>
+				<p>Información personal y estadísticas</p>
+			</div>
+		</div><br><br>
+		<div class="display">
+			<article class="perfil_vendedor">
+				<div class="fondo">
+					<img src=""> V
+				</div><br><br>
+				<center>	
+					<strong>{{ usuario.nombre }}</strong><br><br>
+				</center>
+				<p><i class="fa-regular fa-envelope"></i>{{ usuario.mail }}</p><br>
+				<p><i class="fa-solid fa-mobile"></i> {{ usuario.numero }} </p><br>
+				<p><i class="fa-solid fa-location-dot"></i> {{usuario.direccion}} </p><br>
+				<p><i class="fa-regular fa-calendar"></i> {{usuario.fecha_creacion}}</p>
+				<button class="boton" id="openModal">Editar perfil</button>
+				<section class="modal" id="modal">
+					<div class="modal_content">
+						<strong>Editar informacion</strong><br><br>
+						<form method="POST" action="{% url 'editar_perfil_vendedor' %}" class="form">
+							{% csrf_token %}
+							<div>
+								<div class="input-group flex-nowrap">
+									<label for="correo">Nombre:</label>
+									<span class="input-group-text" id="addon-wrapping"><i class="fa-regular fa-user"></i></span>
+									<input type="text" class="form-control" value="{{ usuario.nombre }}" name="correo" namearia-label="Username" aria-describedby="addon-wrapping"><br>
+								</div>
+								<div class="input-group flex-nowrap">
+									<label for="correo">Apellido:</label>
+									<span class="input-group-text" id="addon-wrapping">@</span>
+									<input type="text" class="form-control" value="{{ usuario.apellido }}" name="correo" namearia-label="Username" aria-describedby="addon-wrapping"><br>
+								</div>
+								<div class="input-group flex-nowrap">
+									<label for="correo">Correo:</label>
+									<span class="input-group-text" id="addon-wrapping">@</span>
+									<input type="text" class="form-control" value="{{ usuario.correo }}" name="correo" namearia-label="Username" aria-describedby="addon-wrapping"><br>
+								</div>
+								<div class="input-group flex-nowrap">
+									<label for="correo">Numero:</label>
+									<span class="input-group-text" id="addon-wrapping"><i class="fa-solid fa-phone"></i></span>
+									<input type="text" class="form-control" value="{{ usuario.numero }}" name="correo" namearia-label="Username" aria-describedby="addon-wrapping"><br>
+								</div>
+								<div class="input-group flex-nowrap">
+									<label for="correo">Direccion:</label>
+									<span class="input-group-text" id="addon-wrapping">Tv</span>
+									<input type="text" class="form-control" value="{{ usuario.direccion }}" name="correo" namearia-label="Username" aria-describedby="addon-wrapping"><br>
+								</div>
+							</div><br>
+							<button class="button" type="submit">Enviar</button><br><br><br>
+						</form>
+						<button class="button" id="close_modal">Cerra modal</button>
+					</div>
+			</section>
+			</article>
+
+			<div class="vendedor">
+			<strong>Mis estadisticas</strong><br><br>
+				<div class="estadisticas">
+					<article class="perso">
+						<i class="fa-solid fa-dollar-sign"></i>
+						<div class="detalles_perso">
+							<p>Total ventas</p>
+							<p class="cifra">${{ total_ventas }}</p>
+						</div>
+					</article>
+					<article class="perso">
+						<i class="fa-solid fa-dollar-sign"></i>
+						<div class="detalles_perso">
+							<p>Clientes atendidos</p>
+							<p class="cifra">{{ clientes }}</p>
+						</div>
+					</article>
+					<article class="perso">
+						<i class="fa-solid fa-dollar-sign"></i>
+						<div class="detalles_perso">
+							<p>Productos aprobados</p>
+							<p class="cifra">{{ productos_aprobados }}</p>
+						</div>
+					</article>
+					<article class="perso">
+						<i class="fa-solid fa-dollar-sign"></i>
+						<div class="detalles_perso">
+							<p>Total de pedidos</p>
+							<p class="cifra">{{ total_pedidos }}</p>
+						</div>
+					</article>
+				</div>
+				<br>	<br><br><br><br>
+				<div class="consejo">
+					<strong>Tip del día</strong><br><br>
+					<p>Los clientes frecuentes generan el 60% de tus ingresos. Mantén una comunicación activa con ellos y ofréceles promociones especiales para fidelizarlos aún más.</p><br>
+				</div>
+			</div>
+		</div>
+	</section>
+
+{% endblock %}

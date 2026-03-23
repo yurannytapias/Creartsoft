@@ -1,0 +1,43 @@
+# Archivos compilados de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Entorno virtual
+venv/
+ENV/
+env/
+.venv/
+
+# Archivos de configuración local
+*.env
+settings.py
+settings_local.py
+
+# Archivos de base de datos locales
+db.sqlite3
+
+# Migraciones (si quieres ignorarlas, opcional)
+creart/migrations/*.pyc
+creart/migrations/__pycache__/
+creart/migrations/*.py
+
+# Archivos estáticos generados
+/staticfiles/
+media/
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db

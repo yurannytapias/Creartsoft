@@ -12,55 +12,143 @@ class ModeloBase(models.Model):
         
 class Roles(ModeloBase):
     id_rol = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=225)
-    descripcion = models.CharField(max_length=225)
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=200)
 
 class Permisos(ModeloBase):
     id_permiso = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=225)
-    descripcion = models.CharField(max_length=225)
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=255)
     rol = models.ForeignKey(Roles, on_delete=models.CASCADE)
     
 class Usuarios(ModeloBase):
     id_usuario = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=225)
-    documento = models.CharField(max_length=225)
-    apellido = models.CharField(max_length=225)
-    correo = models.CharField(max_length=225)
-    numero = models.CharField(max_length=225)
-    contrasena = models.CharField(max_length=255)
+    nombre = models.CharField(max_length=50)
+    apellido = models.CharField(max_length=50)
+    correo = models.CharField(max_length=100)
+    numero = models.CharField(max_length=20)
+    contrasena = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=100, null=True, blank=True)
     rol = models.ForeignKey(Roles, on_delete=models.CASCADE)
 
 class Productos(ModeloBase):
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('diarios', 'Diarios'), 
+    ]
+    
+    CATEGORIA = [
+        ('antojos', 'Antojos'),
+        ('eventos', 'Eventos'),
+    ]
+    
     id_producto = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=225)
-    descripcion = models.CharField(max_length=225)
-    precio = models.CharField(max_length=225)
-    imagen = models.CharField(max_length=225)
+    nombre = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=200)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    imagen = models.ImageField(upload_to='productos/')
     vendedor = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIA,
+        default='diarios'
+    )
+
+    estado_aprobacion = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='pendiente'
+    )
     
 class Solicitudes(ModeloBase):
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('aceptada', 'Aceptada'),
+        ('rechazada', 'Rechazada'),
+        ('pagada', 'Pagada'),
+    ]
+
     id_solicitud = models.AutoField(primary_key=True)
-    detalles = models.CharField(max_length=225)
-    cantidad = models.CharField(max_length=225)
-    cliente = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE, null=True, blank=True)
     producto = models.ForeignKey(Productos, on_delete=models.CASCADE)
 
-class Transaccion(ModeloBase):
-    id_pedido = models.AutoField(primary_key=True)
-    id_transaccion = models.IntegerField(unique=True) 
+    # Datos comprador sin registro
+    nombre_invitado = models.CharField(max_length=100, blank=True)
+    direccion_entrega = models.CharField(max_length=200, blank=True)
+    tipo_entrega = models.CharField(max_length=20, default='tienda')
+
+    # Personalización
+    descripcion = models.TextField(blank=True)
+    mensaje_pastel = models.CharField(max_length=28, blank=True)
+    cobertura = models.CharField(max_length=50, blank=True)
+    rellenos = models.CharField(max_length=200, blank=True)
+    decoracion = models.CharField(max_length=200, blank=True)
+    pisos = models.IntegerField(default=1)
+    porciones = models.IntegerField(null=True, blank=True)
+    fecha_evento = models.DateField(null=True, blank=True)
+
+    # Precio y estado
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    abono = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+
+    # MercadoPago
+    mp_preference_id = models.CharField(max_length=200, blank=True)
+    mp_payment_id = models.CharField(max_length=200, blank=True)
+
+
+class Transacciones(ModeloBase):
+    ESTADOS_ABONO = [
+        ('abonado', 'Abonado'),
+        ('terminado', 'Terminado')
+    ]
+
+
+    id_transaccion = models.AutoField(primary_key=True)
     hora = models.TimeField()
-    importe_total  = models.DecimalField(max_digits=10, decimal_places=2)
+    importe_total  = models.DecimalField(max_digits=10, decimal_places=2) #e el pago total
     moneda = models.CharField(max_length=225)
-    comisiones  = models.DecimalField(max_digits=10, decimal_places=2)
-    metodo_pago = models.CharField(max_length=225)
-    token = models.CharField(max_length=225)
-    ip_cliente = models.CharField(max_length=225)
-    solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE)
+    comisiones  = models.DecimalField(max_digits=10, decimal_places=2) #son pagos adicionales como iva,lo que se lleva el banco, etc
+    metodo_pago = models.CharField(max_length=225, blank=True)
+    token = models.CharField(max_length=225)  #tarjeta de credito cifrada e incompleta
+    ip_cliente = models.CharField(max_length=225) #seguridad o actividad fraudulenta
+    solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE, blank=True)
+    mp_payment_id = models.CharField(max_length=200, blank=True)
+
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS_ABONO,
+        default='abonado'
+    )
     
 class PQRS(ModeloBase):
+    ESTADO_CHOICES = [
+        ('sin_respuesta', 'Sin_respuesta'),
+        ('respondido', 'Respondido'),
+    ]
+
+    CATEGORIA = [
+        ('pregunta', 'Pregunta'),
+        ('queja', 'Queja'),
+        ('reporte', 'Reporte'),
+        ('solicitud', 'Solicitud')
+    ]
+
     id_pqrs = models.AutoField(primary_key=True)
-    causa_problema = models.CharField(max_length=225)
-    mensaje = models.CharField(max_length=225)
+    asunto = models.CharField(max_length=225)
+    mensaje = models.TextField()
     usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
 
+    estado_respuesta = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='sin_respuesta'
+    )
+
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIA,
+        default='pregunta'
+    )

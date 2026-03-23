@@ -1,29 +1,6 @@
+{% extends "layout_header.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="https://kit.fontawesome.com/2c4ce15497.js" crossorigin="anonymous"></script>
-	<link href="https://fonts.googleapis.com/css2?family=Leckerli+One&display=swap" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com">
-	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="stylesheet" type="text/css" href="static/css/estilos.css">
-	<title>Slider de elementos</title>
-</head>
-<body>
-	<header>	
-		<center>
-			<h1>Creart</h1>
-		</center>
-		<ul>
-			<li><a href="#">Iniciar sesion</a></li>
-			<li><a href="#">Promesas</a></li>
-			<li><a href="#">Productos</a></li>
-			<li><a href="#">Historia</a></li>
-			<li><a href="#">Contacto</a></li>
-		</ul>
-	</header>
+{% block content %}
 	<main>
 		<section class="carousel">
 			<div class="list">
@@ -90,6 +67,4 @@
 			</div>
 		</section>
 	</main>
-</body>
-<script src="ofertas.js"></script>
-</html>
+{% endblock %}

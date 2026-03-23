@@ -1,0 +1,58 @@
+*{
+	margin: 0;
+	padding: 0;
+	font-family: "Plus Jakarta Sans", sans-serif;
+  	font-optical-sizing: auto;
+  	font-weight: <weight>;
+  	font-style: normal;	
+  	box-sizing: border-box;
+}
+
+body{
+	width: 100%; /* Cambia vw por % para evitar saltos con el scroll */
+    min-height: 100vh; /* Que al menos mida la pantalla, pero pueda crecer */
+    background-color: #F3F4F4;
+}
+
+header{
+	background: #853953;
+	width: 100%;
+	height: 20vh;
+	color: #F3F4F4;
+	align-content: center;
+}
+
+header h1{
+	font-family: "Leckerli One", cursive;
+  	font-weight: 400;
+  	font-style: normal;
+  	font-size:  100px;
+}
+
+header ul{
+	display: flex;
+	list-style: none;
+	justify-content: right;
+}
+
+header ul li{
+	padding: 20px;
+	text-decoration: 1px 0 0 0  solid #F3F4F4;
+}
+
+header	ul li a{
+	color: #F3F4F4;
+	text-decoration: none;
+	font-family: "Leckerli One", cursive;
+  	font-weight: 400;
+  	font-style: normal;
+  	font-size: 20px;
+  	border-left: 1px solid #F3F4F4;
+  	padding: 20px;
+  	transition: 0.3s ease;
+}
+
+header	ul li a:hover{
+	background-color: #612D53;
+}
+

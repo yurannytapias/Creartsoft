@@ -1,0 +1,93 @@
+{% extends "layout_header.html" %}
+
+{% block content %}
+	<section class="bandeja" id="bandeja">
+		<div class="estadistica">
+			<article class="card">
+				<i class="fa-solid fa-chart-line"></i>
+				<div class="detalles_card">
+					<p>Ventas hoy</p>
+					<p class="cifra">{{ ventas_hoy }}</p>
+				</div>
+			</article>
+			<article class="card">
+				<i class="fa-solid fa-envelope-open"></i>
+				<div class="detalles_card">
+					<p>Solicitudes nuevas</p>
+					<p class="cifra">{{ ventas_hoy }}</p>
+				</div>
+			</article>
+			<article class="card">
+				<i class="fa-regular fa-user"></i>
+				<div class="detalles_card">
+					<p>Clientes activos</p>
+					<p class="cifra">{{ clietes_activos }}</p>
+				</div>
+			</article>
+		</div>
+
+		<div class="solicitudes_nuevas">
+			<div class="normal">
+				<div class="presentacion">
+					<i class="fa-regular fa-envelope"></i>
+					<h3>Solicitudes nuevas</h3>
+				</div>
+				<div class="ver">
+					<a href="">Ver todas</a>
+					<i class="fa-regular fa-eye"></i>
+				</div>
+			</div>
+			<div class="display">
+				{% for s in solicitudes_nuevas %}
+					<article class="solicitud_nueva">
+						<div class="linea"></div>
+
+						<div class="usuario">
+							<div class="foto_perfil">
+								<p>{{ s.cliente.nombre|first }}</p>
+							</div>
+							<p>Nuevo</p>
+						</div>
+
+						<div class="detalles">
+							<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong><br><br>
+							<p>{{ s.producto.nombre }}</p>
+							<p class="hora">{{ s.fecha_creacion }}</p>
+						</div>
+
+						<button class="boton">Ver detalles</button>
+					</article>
+				{% empty %}
+					<p>No hay solicitudes recientes</p>
+				{% endfor %}
+			</div>
+		</div>
+		<br><br><br><br>
+		<div class="ventas_recientes">
+			<div class="display">
+				<i class="fa-solid fa-chart-line"></i>
+				<h3>Ventas Recientes</h3>
+			</div>
+			<div class="ventas">
+				{% for v in ventas %}
+					<div class="venta">
+							<div class="venta-info">
+								<i class="fa-regular fa-clock"></i>
+								<div class="tex">
+									<h4>Pedido #{{ v.id_solicitud }}</h4>
+									<p>Cliente: {{ v.cliente.nombre }}</p>
+								</div>
+							</div>
+
+							<div class="venta-derecha">
+								<span class="precio">${{ v.producto.precio }}</span>
+								<span class="estado enviado">Pendiente</span>
+							</div>
+						</div>
+				{% empty%}
+					<p>Hoy no se han hecho ventas</p>
+				{% endfor %}
+			</div>
+		</div>
+	</section>
+{% endblock %}

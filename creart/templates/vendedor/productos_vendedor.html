@@ -1,0 +1,101 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+	<section class="productos">
+		<div class="display">
+			<div class="titulo_area">
+				<i class="fa-solid fa-box"></i>
+				<div class="texto_area">
+					<strong>Mis Productos</strong>
+					<p>Gestiona tu catálogo de productos</p>
+				</div>
+			</div>
+			<button class="button" id="openModal"><i class="fa-solid fa-plus"></i> Crear producto</button>
+		</div><br><br><br>
+		<section class="modal" id="modal">
+			<div class="modal_content">
+				<strong>Crear nuevo producto</strong><br><br>
+				<form method="POST" action="{% url 'crear_producto' %}" class="form">
+					{% csrf_token %}
+					<div class="display">
+						<div class="input">
+							<label>Nombre del producto</label><br><br>
+							<input type="text" name="nombre" placeholder="Ej: Pastel de chocolate">
+						</div>
+						<div class="input">
+							<label>Categoria del producto</label><br><br>
+							<select name="categoria">
+								<option id="antojos">Antojos</option>
+								<option id="eventos">Eventos</option>
+							</select>
+						</div>
+					</div><br>
+					<label>Descripcion</label><br><br>
+					<textarea name="descripcion"></textarea><br><br>
+					<label>Precio</label><br><br>
+					<input type="text" name="precio" placeholder="Ej: 500"><br><br>
+					<p>Tu producto sera evaluado por administracion</p><br><br>
+					<button class="button" type="submit">Enviar</button><br><br>
+				</form>
+				<button class="button" id="close_modal">Cerra modal</button>
+			</div>
+		</section><br><br><br>
+		<strong><i class="fa-regular fa-clock"></i> Pendientes de Aprobación (2)</strong><br><br>
+		<div class="pendiente">
+			{% for p in pendientes %}
+				<article class="card_productos producto_pendiente">
+					<div class="img">
+						<img src="{{ p.imagen }}">
+					</div>
+					<div class="top">
+						<div class="icon">
+							<i class="fa-solid fa-box"></i>
+						</div>
+						<span class="badge">{{ p.estado_aprobacion }}</span>
+					</div>
+
+					<h3>{{ p.nombre }}</h3>
+					<p class="descripcion">{{ p.descripcion }}</p>
+
+					<hr>
+
+					<div class="footer">
+						<span>{{ p.categoria }}</span>
+						<strong>{{ p.precio }}</strong>
+					</div>
+				</article>
+			{% empty %}
+				<p>No tienes productos pendientes</p>
+			{% endfor %}
+		</div><br><br>
+		<strong><i class="fa-regular fa-clock"></i> Productos aprobados (3)</strong><br><br>
+		<div class="listas">
+			{% for a in aprobados %}
+				<article class="card_productos producto_aceptado">
+					<div class="img">
+						<img src="{{ a.imagen }}">
+					</div>
+					<div class="top">
+						<div class="icon">
+							<i class="fa-solid fa-box"></i>
+						</div>
+						<span class="badge">{{ a.estado_aprobacion }}</span>
+					</div>
+
+					<h3>{{ a.nombre }}</h3>
+					<p class="descripcion">{{ a.descripcion }}</p>
+
+					<hr>
+
+					<div class="footer">
+						<span>{{ a.categoria }}</span>
+						<strong>{{ a.precio }}</strong>
+					</div>
+				</article>
+			{% empty %}
+				<p>No tienes productos aprobados aún</p>
+			{% endfor %}
+		</div>
+	</section>
+<script src="{% static 'js/modal.js' %}"></script>
+{% endblock %}

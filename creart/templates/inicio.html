@@ -1,0 +1,96 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+	<div class="container__todo">
+            <div class="caja_trasera">
+                 <div class="caja_trasera-login">
+                    <h3>¿Ya tienes cuenta?</h3>
+                    <p>¡Inicia sesion para entrar a la pagina!</p>
+                    <button id="btn__iniciar">Iniciar sesion</button>
+                </div>
+                 <div class="caja_trasera-register">
+                    <h3>¿Aún no tienes cuenta?</h3>
+                    <p>Registrate</p>
+                    <button id="btn__register">Crear cuenta</button>
+                </div>
+                 <!--caja trasera-->
+                 <!--formularios-->
+                <div class="contenedor__form">
+                    <form class="login" method="POST" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <h2>Iniciar sesion</h2>
+                        <input type="email" name="correo" placeholder="Ingrese su correo">
+                        <input type="password" name="contrasena" placeholder="Ingrese contraseña">
+                        <button type="submit">Iniciar sesion</button>
+                    </form>
+
+                    <form class="register" method="POST" action="{% url 'registro' %}">
+                        {% csrf_token %}
+                        <h2>Crear cuenta</h2>
+                        <input type="text" name="nombre" placeholder="Ingrese su nombre" maxlength="20" min="3" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')" title="Solo letras" required>
+                        <input type="text" name="apellido" placeholder="Ingrese su apellido" maxlength="20" min="3" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')" title="Solo letras" required>
+                        <input type="email" name="correo" placeholder="Ingrese su correo electronico" maxlength="50" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com" title="El correo debe terminar en .com" required>
+                        <input type="text" name="numero" placeholder="Ingrese su numero celular" maxlength="10" minlength="10" inputmode="numeric" pattern="[0-9]*" title="Solo se permiten numeros" required>
+                        <input type="text" name="direccion" placeholder="Ingrese su direccion" maxlength="60" required>
+                        <input type="password" name="contrasena" id="password" required pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}" title="Debe contener: minúscula, mayúscula, número, carácter especial y mínimo 8 caracteres." placeholder="Contrasena">
+  							<div id="mensaje-fuerza">Fuerza: <span id="fuerza-texto">Esperando...</span></div>
+                        <button type="submit">Crear cuenta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+<br><br>	<br><br><br><br>	<br><br><br><br>	<br><br><br><br>	<br><br><br><br>	<br><br>
+	<!-- inicio footer -->
+<footer>
+	<div class="publicidad">
+		<div class="creart">
+			<strong>Creart</strong>
+			<p>Pasteles artesanales hechos con amor desde 2020</p>
+		</div>
+		<div class="enlaces">
+			<strong>Enlaces rapidos</strong><br><br>
+			<a href="#">Inicio</a><br><br>
+			<a href="#">Productos</a><br><br>
+			<a href="#">Nosotros</a><br><br>
+			<a href="#">Contactos</a><br><br>
+		</div>
+		<div class="horario">
+			<strong>Horarios</strong>
+			<p>Lunes - Viernes: 9:00 AM - 7:00 PM</p>
+			<p>Sábado: 10:00 AM - 6:00 PM</p>
+			<p>Domingo: 11:00 AM - 4:00 PM</p>
+		</div>
+	</div>
+	<div class="derechos">
+		<p>© 2026 Creart. Todos los derechos reservados.</p>
+	</div>
+</footer>
+	<!--fin footer -->
+<script src="{% static 'js/login_register.js' %}"></script>
+<script>
+	const passwordInput = document.getElementById('password');
+const fuerzaTexto = document.getElementById('fuerza-texto');
+
+passwordInput.addEventListener('input', () => {
+  const pass = passwordInput.value;
+  let puntos = 0;
+
+  if (pass.length >= 8) puntos++;
+  if (/[A-Z]/.test(pass)) puntos++;
+  if (/[a-z]/.test(pass)) puntos++;
+  if (/[0-9]/.test(pass)) puntos++;
+  if (/[!@#$%^&*]/.test(pass)) puntos++;
+
+  if (puntos <= 2) {
+    fuerzaTexto.textContent = "Débil";
+    fuerzaTexto.style.color = "red";
+  } else if (puntos <= 4) {
+    fuerzaTexto.textContent = "Media";
+    fuerzaTexto.style.color = "orange";
+  } else {
+    fuerzaTexto.textContent = "Fuerte";
+    fuerzaTexto.style.color = "green";
+  }
+});
+</script>
+{% endblock %}

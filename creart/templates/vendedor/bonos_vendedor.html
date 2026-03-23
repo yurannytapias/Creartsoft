@@ -1,0 +1,98 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+		<strong><i class="fa-solid fa-gift"></i> Bonos disponibles (2)</strong><br><br>
+		<div class="disponibles">
+			<div class="bono_dispo">
+				<div class="top">
+					<div class="icon">
+						<i class="fa-solid fa-gift"></i>
+					</div>
+					<span class="estado activo">Activo</span>
+				</div>
+
+				<h3>Bono de Ventas Mensuales</h3>
+
+				<p class="desc">
+					Has superado las 20 ventas este mes. ¡Felicidades!
+				</p>
+
+				<div class="valor_box">
+					<span>Valor del bono</span>
+					<strong>$150</strong>
+				</div>
+
+				<p class="fecha">Válido hasta 30/05/2024</p>
+
+				<button>Canjear bono</button>
+			</div>
+			<div class="bono_dispo">
+				<div class="top">
+					<div class="icon">
+						<i class="fa-solid fa-gift"></i>
+					</div>
+					<span class="estado activo">Activo</span>
+				</div>
+
+				<h3>Bono de Ventas Mensuales</h3>
+
+				<p class="desc">
+					Has superado las 20 ventas este mes. ¡Felicidades!
+				</p>
+
+				<div class="valor_box">
+					<span>Valor del bono</span>
+					<strong>$150</strong>
+				</div>
+
+				<p class="fecha">Válido hasta 30/05/2024</p>
+
+				<button>Canjear bono</button>
+			</div>
+		</div>
+		<br><br>
+		<div class="bonos_canjeados">
+			<strong><i class="fa-solid fa-gift"></i> Bonos canjeados</strong><br><br>
+			<article class="card_bono">
+				<div class="left">
+					<div class="icon">
+						<i class="fa-solid fa-gift"></i>
+					</div>
+
+					<div class="info">
+						<strong>Bono de excelencia</strong>
+						<p>Calificación por 5 estrellas</p>
+						<span>Canjeado el 30/12/2024</span>
+					</div>
+				</div>
+
+				<div class="right">
+					<strong>$120</strong>
+					<span class="estado ok">Canjeado</span>
+				</div>
+			</article>
+		</div>
+		<br><br>
+		<strong><i class="fa-solid fa-gift"></i> Expirados (1)</strong><br><br>
+		<div class="expirados">
+			<article class="card_bono">
+				<div class="left">
+					<div class="icon">
+						<i class="fa-solid fa-gift"></i>
+					</div>
+
+					<div class="info">
+						<strong>Bono de excelencia</strong>
+						<p>Calificación por 5 estrellas</p>
+						<span>Canjeado el 30/12/2024</span>
+					</div>
+				</div>
+
+				<div class="right">
+					<strong>$120</strong>
+					<span class="estado ok">Canjeado</span>
+				</div>
+			</article>
+		</div>
+	</section>
+{% endblock %}

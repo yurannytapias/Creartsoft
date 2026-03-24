@@ -1,0 +1,181 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+<style>
+.page-back{font-size:13px;color:#888;margin-bottom:1.5rem;display:flex;align-items:center;gap:6px;text-decoration:none;}
+.page-back:hover{color:#7a2d3e;}
+.page-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:14px;color:#a07070;margin-bottom:2rem;}
+.compra-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
+.card{background:#fff;border:0.5px solid #e8d8d8;border-radius:16px;padding:1.5rem;}
+.card-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#b08080;margin-bottom:1rem;}
+.producto-img{width:100%;height:200px;border-radius:10px;overflow:hidden;margin-bottom:1rem;background:#f5eaec;display:flex;align-items:center;justify-content:center;font-size:4rem;}
+.producto-img img{width:100%;height:100%;object-fit:cover;}
+.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;background:#f5eaec;color:#7a2d3e;margin-bottom:10px;}
+.producto-nombre{font-size:17px;font-weight:500;margin-bottom:6px;color:#2a1010;}
+.producto-desc{font-size:13px;color:#888;line-height:1.6;margin-bottom:1rem;}
+.producto-precio{font-size:24px;font-weight:600;color:#7a2d3e;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:12px;font-weight:500;color:#888;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:8px;font-size:13px;color:#333;background:#fff;outline:none;transition:border-color .2s;font-family:inherit;}
+.field input:focus,.field select:focus{border-color:#7a2d3e;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.usuario-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f9f5f5;border-radius:10px;margin-bottom:1.2rem;}
+.avatar{width:36px;height:36px;border-radius:50%;background:#f5eaec;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#7a2d3e;flex-shrink:0;}
+.usuario-info p{font-size:13px;font-weight:500;margin:0;color:#333;}
+.usuario-info span{font-size:11px;color:#999;}
+.entrega-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.entrega-opt{border:1.5px solid #e8d8d8;border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;text-align:center;}
+.entrega-opt:hover{border-color:#7a2d3e;}
+.entrega-opt.sel{border-color:#7a2d3e;background:#fdf0f2;}
+.entrega-opt input{display:none;}
+.entrega-opt .opt-icon{font-size:22px;margin-bottom:4px;}
+.entrega-opt .opt-label{font-size:13px;font-weight:500;color:#444;}
+.entrega-opt .opt-sub{font-size:11px;color:#aaa;}
+.entrega-opt.sel .opt-label{color:#7a2d3e;}
+.direccion-box{display:none;margin-top:4px;}
+.resumen-box{background:#f9f5f5;border-radius:10px;padding:1rem;margin-bottom:1rem;}
+.res-row{display:flex;justify-content:space-between;font-size:13px;color:#888;padding:4px 0;}
+.res-row b{color:#333;}
+.res-row.total{border-top:0.5px solid #e0d0d0;margin-top:6px;padding-top:10px;}
+.res-row.total b{color:#7a2d3e;font-size:17px;}
+.btn-pay{width:100%;padding:13px;background:#009ee3;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;margin-top:4px;}
+.btn-pay:hover{background:#007bb5;}
+.mp-logo{background:#fff;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:800;color:#009ee3;}
+.btn-cancel{width:100%;padding:11px;background:transparent;color:#888;border:0.5px solid #ddd;border-radius:10px;font-size:14px;cursor:pointer;margin-top:8px;text-decoration:none;display:block;text-align:center;}
+.btn-cancel:hover{background:#f5f5f5;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo"><h2>CreartSoft</h2><p>Pasteles personalizados</p></div>
+    <ul class="menu">
+      <li><a href="{% url 'catalogo' %}"><i class="fa fa-home"></i> Inicio</a></li>
+      <li class="active"><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
+      <li><a href="{% url 'mis_solicitudes' %}"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
+      <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
+    </ul>
+    <div class="logout"><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Cerrar Sesión</a></div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div class="contenido">
+    <main class="main">
+      <div class="main__content">
+
+        <a href="{% url 'catalogo' %}" class="page-back">
+          <i class="fa fa-arrow-left"></i> Volver al catálogo
+        </a>
+        <p class="page-title">Confirmar compra</p>
+        <p class="page-sub">Revisa tu pedido y completa los datos de entrega</p>
+
+        <form method="POST" action="{% url 'crear_solicitud' producto.id_producto %}" id="form-compra">
+          {% csrf_token %}
+          <input type="hidden" name="precio_total" value="{{ producto.precio }}">
+          <input type="hidden" name="pisos" value="1">
+          <input type="hidden" name="cobertura" value="original">
+          <input type="hidden" name="rellenos" value="">
+          <input type="hidden" name="decoracion" value="">
+          <input type="hidden" name="porciones" value="2">
+          <input type="hidden" name="mensaje_pastel" value="">
+          <input type="hidden" name="tipo_entrega" id="f-entrega" value="tienda">
+
+          <div class="compra-grid">
+
+            <!-- PRODUCTO -->
+            <div class="card">
+              <p class="card-title">Tu pedido</p>
+              <div class="producto-img">
+                {% if producto.imagen %}
+                  <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                {% else %}🎂{% endif %}
+              </div>
+              <span class="tag">{{ producto.categoria|capfirst }}</span>
+              <p class="producto-nombre">{{ producto.nombre }}</p>
+              <p class="producto-desc">{{ producto.descripcion }}</p>
+              <p class="producto-precio">${{ producto.precio }}</p>
+            </div>
+
+            <!-- FORMULARIO -->
+            <div class="card">
+              <p class="card-title">Datos del pedido</p>
+
+              {% if usuario %}
+              <div class="usuario-row">
+                <div class="avatar">{{ usuario.nombre|slice:":1" }}{{ usuario.apellido|slice:":1" }}</div>
+                <div class="usuario-info">
+                  <p>{{ usuario.nombre }} {{ usuario.apellido }}</p>
+                  <span>{{ usuario.correo }}</span>
+                </div>
+              </div>
+              {% else %}
+              <div class="field">
+                <label>Tu nombre</label>
+                <input type="text" name="nombre_invitado" placeholder="¿Cómo te llamamos?" required>
+              </div>
+              {% endif %}
+
+              <!-- Método de entrega -->
+              <div class="field">
+                <label>Método de entrega</label>
+                <div class="entrega-opts">
+                  <div class="entrega-opt sel" id="opt-tienda" onclick="selEntrega('tienda')">
+                    <input type="radio" name="entrega_visual" value="tienda" checked>
+                    <div class="opt-icon">🏪</div>
+                    <div class="opt-label">Recoger</div>
+                    <div class="opt-sub">en tienda · gratis</div>
+                  </div>
+                  <div class="entrega-opt" id="opt-domicilio" onclick="selEntrega('domicilio')">
+                    <input type="radio" name="entrega_visual" value="domicilio">
+                    <div class="opt-icon">🚚</div>
+                    <div class="opt-label">Domicilio</div>
+                    <div class="opt-sub">+$8.000</div>
+                  </div>
+                </div>
+                <div class="direccion-box" id="direccion-box">
+                  <input type="text" name="direccion_entrega" id="direccion-input" placeholder="Dirección de entrega">
+                </div>
+              </div>
+
+              <!-- Resumen de precio -->
+              <div class="resumen-box">
+                <div class="res-row"><span>{{ producto.nombre }}</span><b>${{ producto.precio }}</b></div>
+                <div class="res-row" id="row-domicilio" style="display:none;"><span>Domicilio</span><b>+$8.000</b></div>
+                <div class="res-row total"><span>Total</span><b id="total-val">${{ producto.precio }}</b></div>
+              </div>
+
+              <input type="hidden" name="precio_total" id="precio-final" value="{{ producto.precio }}">
+
+              <button type="submit" class="btn-pay">
+                <div class="mp-logo">MP</div> Pagar con MercadoPago
+              </button>
+              <a href="{% url 'catalogo' %}" class="btn-cancel">Cancelar</a>
+            </div>
+
+          </div>
+        </form>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const precioBase = {{ producto.precio }};
+
+function selEntrega(tipo) {
+  document.getElementById('f-entrega').value = tipo;
+  document.getElementById('opt-tienda').classList.toggle('sel', tipo === 'tienda');
+  document.getElementById('opt-domicilio').classList.toggle('sel', tipo === 'domicilio');
+  document.getElementById('direccion-box').style.display = tipo === 'domicilio' ? 'block' : 'none';
+  document.getElementById('row-domicilio').style.display = tipo === 'domicilio' ? 'flex' : 'none';
+  const total = tipo === 'domicilio' ? precioBase + 8000 : precioBase;
+  document.getElementById('total-val').textContent = '$' + total.toLocaleString('es-CO');
+  document.getElementById('precio-final').value = total;
+}
+</script>
+</body>
+</html>

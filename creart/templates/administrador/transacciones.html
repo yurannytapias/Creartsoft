@@ -1,0 +1,269 @@
+{% extends 'layout_header.html' %}
+{% load static %}
+{% block titulo %}Transacciones — Creart{% endblock %}
+
+{% block contenido %}
+
+<!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
+<section class="tarjetas-tx-grid">
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-verde">
+            <i class="fa-solid fa-circle-check fa-lg"></i>
+        </div>
+        <div>
+            <p class="tx-numero">7</p>
+            <p class="tx-etiqueta">Completadas</p>
+        </div>
+    </div>
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-amarillo">
+            <i class="fa-solid fa-clock fa-lg"></i>
+        </div>
+        <div>
+            <p class="tx-numero">2</p>
+            <p class="tx-etiqueta">Pendientes</p>
+        </div>
+    </div>
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-rojo">
+            <i class="fa-solid fa-circle-xmark fa-lg"></i>
+        </div>
+        <div>
+            <p class="tx-numero">1</p>
+            <p class="tx-etiqueta">Devueltas</p>
+        </div>
+    </div>
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-morado">
+            <i class="fa-solid fa-credit-card fa-lg"></i>
+        </div>
+        <div>
+            <p class="tx-numero">10</p>
+            <p class="tx-etiqueta">Total Transacciones</p>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- ═══════════ BUSCADOR + FILTROS ═══════════ -->
+<div class="barra-herramientas">
+    <div class="busqueda-caja">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="busqueda-input" id="buscadorTx"
+               placeholder="Buscar por ID, cliente o producto..."
+               oninput="filtrarTabla()"/>
+    </div>
+    <div class="filtros-tabs">
+        <button class="tab activo" onclick="cambiarTab(this,'todos')">Todos</button>
+        <button class="tab" onclick="cambiarTab(this,'completado')">Completadas</button>
+        <button class="tab" onclick="cambiarTab(this,'pendiente')">Pendientes</button>
+        <button class="tab" onclick="cambiarTab(this,'devuelto')">Devueltas</button>
+    </div>
+</div>
+
+
+<!-- ═══════════ TABLA ═══════════ -->
+<section class="caja tabla-caja">
+    <div class="table-responsive">
+        <table class="tabla" id="tablaTx">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Producto</th>
+                    <th>Monto</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-estado="completado">
+                    <td class="td-id">T001</td>
+                    <td>María García</td>
+                    <td>Pastel de Cherry Pie</td>
+                    <td><strong>$450</strong></td>
+                    <td class="td-gris">2026-03-07</td>
+                    <td><span class="badge-estado badge-verde">Completado</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T001','María García','Pastel de Cherry Pie','$450')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr data-estado="completado">
+                    <td class="td-id">T002</td>
+                    <td>Juan Pérez</td>
+                    <td>Tarta de Manzana</td>
+                    <td><strong>$380</strong></td>
+                    <td class="td-gris">2026-03-07</td>
+                    <td><span class="badge-estado badge-verde">Completado</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T002','Juan Pérez','Tarta de Manzana','$380')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr data-estado="pendiente">
+                    <td class="td-id">T003</td>
+                    <td>Ana Rodríguez</td>
+                    <td>Pastel de Chocolate</td>
+                    <td><strong>$520</strong></td>
+                    <td class="td-gris">2026-03-06</td>
+                    <td><span class="badge-estado badge-amarillo">Pendiente</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T003','Ana Rodríguez','Pastel de Chocolate','$520')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr data-estado="completado">
+                    <td class="td-id">T004</td>
+                    <td>Carlos López</td>
+                    <td>Cherry Pie Especial</td>
+                    <td><strong>$680</strong></td>
+                    <td class="td-gris">2026-03-06</td>
+                    <td><span class="badge-estado badge-verde">Completado</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T004','Carlos López','Cherry Pie Especial','$680')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr data-estado="completado">
+                    <td class="td-id">T005</td>
+                    <td>Sofía Martínez</td>
+                    <td>Cupcakes Cherry</td>
+                    <td><strong>$290</strong></td>
+                    <td class="td-gris">2026-03-05</td>
+                    <td><span class="badge-estado badge-verde">Completado</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T005','Sofía Martínez','Cupcakes Cherry','$290')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr data-estado="devuelto">
+                    <td class="td-id">T006</td>
+                    <td>Elena Torres</td>
+                    <td>Tarta de Manzana</td>
+                    <td><strong>$380</strong></td>
+                    <td class="td-gris">2026-03-04</td>
+                    <td><span class="badge-estado badge-rosado">Devuelto</span></td>
+                    <td><span class="td-gris">—</span></td>
+                </tr>
+                <tr data-estado="completado">
+                    <td class="td-id">T007</td>
+                    <td>Luis Hernández</td>
+                    <td>Pastel de Cherry Pie</td>
+                    <td><strong>$450</strong></td>
+                    <td class="td-gris">2026-03-05</td>
+                    <td><span class="badge-estado badge-verde">Completado</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T007','Luis Hernández','Pastel de Cherry Pie','$450')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+                <tr data-estado="pendiente">
+                    <td class="td-id">T008</td>
+                    <td>Roberto Sánchez</td>
+                    <td>Pastel de Chocolate</td>
+                    <td><strong>$520</strong></td>
+                    <td class="td-gris">2026-03-04</td>
+                    <td><span class="badge-estado badge-amarillo">Pendiente</span></td>
+                    <td>
+                        <button class="btn-cancelar"
+                            onclick="abrirModalCancelar('T008','Roberto Sánchez','Pastel de Chocolate','$520')">
+                            <i class="fa-solid fa-circle-xmark"></i> Cancelar
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<!-- ═══════════ MODAL CANCELAR VENTA ═══════════ -->
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancelar Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">
+                    ¿Estás seguro de que deseas marcar la venta <strong id="mc-id"></strong> como devuelta?
+                </p>
+                <p><span class="fw-semibold">Cliente:</span> <span id="mc-cliente" style="color:#612D53"></span></p>
+                <p><span class="fw-semibold">Producto:</span> <span id="mc-producto" style="color:#612D53"></span></p>
+                <p><span class="fw-semibold">Monto:</span> <span id="mc-monto" style="color:#612D53"></span></p>
+                <div class="mt-3">
+                    <label class="form-label fw-semibold">Motivo de la devolución:</label>
+                    <select class="form-select">
+                        <option>Producto defectuoso</option>
+                        <option>Pedido incorrecto</option>
+                        <option>No llegó a tiempo</option>
+                        <option>El cliente no lo recibió</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn-modal-confirmar" data-bs-dismiss="modal">Confirmar Devolución</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    var tabActual = 'todos';
+
+    function cambiarTab(btn, tab) {
+        document.querySelectorAll('.filtros-tabs .tab').forEach(function(b) {
+            b.classList.remove('activo');
+        });
+        btn.classList.add('activo');
+        tabActual = tab;
+        filtrarTabla();
+    }
+
+    function filtrarTabla() {
+        var q = document.getElementById('buscadorTx').value.toLowerCase();
+        document.querySelectorAll('#tablaTx tbody tr').forEach(function(fila) {
+            var texto  = fila.textContent.toLowerCase();
+            var estado = fila.dataset.estado;
+            var okTab  = (tabActual === 'todos' || estado === tabActual);
+            var okQ    = (!q || texto.includes(q));
+            fila.style.display = (okTab && okQ) ? '' : 'none';
+        });
+    }
+
+    function abrirModalCancelar(id, cliente, producto, monto) {
+        document.getElementById('mc-id').textContent       = id;
+        document.getElementById('mc-cliente').textContent  = cliente;
+        document.getElementById('mc-producto').textContent = producto;
+        document.getElementById('mc-monto').textContent    = monto;
+        var modal = new bootstrap.Modal(document.getElementById('modalCancelar'));
+        modal.show();
+    }
+</script>
+{% endblock %}

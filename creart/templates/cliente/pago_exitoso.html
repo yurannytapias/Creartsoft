@@ -1,0 +1,54 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+<style>
+.resultado-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f7f3f3;}
+.card{background:#fff;border-radius:20px;padding:3rem 2.5rem;max-width:480px;width:100%;text-align:center;border:0.5px solid #e0e0e0;}
+.icono{width:72px;height:72px;border-radius:50%;background:#eaf3de;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:32px;}
+h1{font-size:22px;font-weight:500;color:#2a1010;margin-bottom:8px;}
+.sub{font-size:14px;color:#888;margin-bottom:2rem;line-height:1.6;}
+.orden{background:#f5f0f0;border-radius:10px;padding:1rem 1.5rem;margin-bottom:1.5rem;text-align:left;}
+.orden-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#666;}
+.orden-row b{color:#333;}
+.orden-row.total{border-top:0.5px solid #e0d0d0;margin-top:8px;padding-top:8px;}
+.orden-row.total b{color:#7a2d3e;font-size:16px;}
+.tiempo-pill{display:inline-flex;align-items:center;gap:6px;background:#faeeda;border-radius:8px;padding:8px 14px;font-size:13px;color:#854f0b;margin-bottom:1.5rem;}
+.btn{display:block;width:100%;padding:12px;background:#7a2d3e;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:8px;}
+.btn:hover{background:#5e2230;}
+.btn-sec{display:block;width:100%;padding:12px;background:transparent;color:#888;border:0.5px solid #ddd;border-radius:10px;font-size:14px;text-decoration:none;text-align:center;}
+</style>
+</head>
+<body>
+<div class="resultado-wrap">
+  <div class="card">
+    <div class="icono">✅</div>
+    <h1>¡Pago exitoso!</h1>
+    <p class="sub">Tu pedido fue confirmado. Estamos preparando tu pastel con mucho amor.</p>
+
+    <div class="orden">
+      <div class="orden-row"><span>Número de orden</span><b>#CRT-{{ solicitud.id_solicitud }}</b></div>
+      <div class="orden-row"><span>Producto</span><b>{{ solicitud.producto.nombre }}</b></div>
+      {% if solicitud.cobertura %}<div class="orden-row"><span>Cobertura</span><b>{{ solicitud.cobertura|capfirst }}</b></div>{% endif %}
+      {% if solicitud.rellenos %}<div class="orden-row"><span>Rellenos</span><b>{{ solicitud.rellenos }}</b></div>{% endif %}
+      {% if solicitud.mensaje_pastel %}<div class="orden-row"><span>Mensaje</span><b>"{{ solicitud.mensaje_pastel }}"</b></div>{% endif %}
+      <div class="orden-row"><span>Porciones</span><b>{{ solicitud.porciones }} personas</b></div>
+      <div class="orden-row"><span>Entrega</span><b>{{ solicitud.tipo_entrega|capfirst }}</b></div>
+      {% if solicitud.direccion_entrega %}<div class="orden-row"><span>Dirección</span><b>{{ solicitud.direccion_entrega }}</b></div>{% endif %}
+      <div class="orden-row total"><span>Total pagado</span><b>${{ solicitud.precio_total|floatformat:0 }}</b></div>
+    </div>
+
+    <div class="tiempo-pill">
+      ⏱ Tu pastel estará listo en
+      {% with p=solicitud.pisos d=solicitud.decoracion %}
+        {% if p >= 3 or 'figura' in d %}3–5 días
+        {% elif p >= 2 or 'flores' in d or 'topper' in d %}1–2 días
+        {% else %}1 día
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <a href="{% url 'mis_solicitudes' %}" class="btn">Ver mis solicitudes</a>
+    <a href="{% url 'catalogo' %}" class="btn-sec">Seguir comprando</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,6 +1,7 @@
 {% extends "layout_header.html" %}
 {% load static %}
 {% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 	<section class="productos">
 		<div class="display">
 			<div class="titulo_area">
@@ -10,9 +11,9 @@
 					<p>Gestiona tu catálogo de productos</p>
 				</div>
 			</div>
-			<button class="button" id="openModal"><i class="fa-solid fa-plus"></i> Crear producto</button>
+			<button class="button" id="openModalMio"><i class="fa-solid fa-plus"></i> Crear producto</button>
 		</div><br><br><br>
-		<section class="modal" id="modal">
+		<section class="modal_mio" id="modal_mio">
 			<div class="modal_content">
 				<strong>Crear nuevo producto</strong><br><br>
 				<form method="POST" action="{% url 'crear_producto' %}" class="form">
@@ -25,8 +26,9 @@
 						<div class="input">
 							<label>Categoria del producto</label><br><br>
 							<select name="categoria">
-								<option id="antojos">Antojos</option>
-								<option id="eventos">Eventos</option>
+								<option id="antojos" value="antojos">Antojos</option>
+								<option id="eventos" value="eventos">Eventos</option>
+								<option id="diarios" value="diarios">Diarios</option>
 							</select>
 						</div>
 					</div><br>
@@ -34,16 +36,17 @@
 					<textarea name="descripcion"></textarea><br><br>
 					<label>Precio</label><br><br>
 					<input type="text" name="precio" placeholder="Ej: 500"><br><br>
-					<p>Tu producto sera evaluado por administracion</p><br><br>
+					<input type="file" name="imagen" placeholder="Coloca tu archivo aquí. Se aceptan PNG y JPG"><br><br>
+					<p>Tu producto sera evaluado por administracion</p><br>
 					<button class="button" type="submit">Enviar</button><br><br>
 				</form>
-				<button class="button" id="close_modal">Cerra modal</button>
+				<button class="button" id="close_modalMio">Cerra modal</button>
 			</div>
-		</section><br><br><br>
+		</section>
 		<strong><i class="fa-regular fa-clock"></i> Pendientes de Aprobación (2)</strong><br><br>
-		<div class="pendiente">
+		<div class="listas">
 			{% for p in pendientes %}
-				<article class="card_productos producto_pendiente">
+				<article class="card_productos producto_pendiente card-click" id="verBotones">
 					<div class="img">
 						<img src="{{ p.imagen }}">
 					</div>
@@ -54,7 +57,7 @@
 						<span class="badge">{{ p.estado_aprobacion }}</span>
 					</div>
 
-					<h3>{{ p.nombre }}</h3>
+					<h3 class="nombre">{{ p.nombre }}</h3>
 					<p class="descripcion">{{ p.descripcion }}</p>
 
 					<hr>
@@ -63,7 +66,67 @@
 						<span>{{ p.categoria }}</span>
 						<strong>{{ p.precio }}</strong>
 					</div>
+					
+					<div class="none">
+						<div class="none_content" id="botones" >
+							<button class="EditarProducto"
+									data-bs-toggle="modal"
+									data-bs-target="#modalEditar{{ p.id_producto }}">
+								Editar
+							</button>
+							<form method="POST" action="{% url 'cambiar_estado_producto_vendedor' p.id_producto %}">
+								{% csrf_token %}
+								
+								<button type="submit" class="elimina_producto">
+									{% if p.estado %}
+										Inactivar
+									{% else %}
+										Activar
+									{% endif %}
+								</button>
+							</form>
+						</div>
+					</div>
 				</article>
+					<div class="modal fade" id="modalEditar{{ p.id_producto }}" tabindex="-1">
+  						<div class="modal-dialog modal-dialog-centered">
+   							 <div class="modal-content">
+								<form method="POST" action="{% url 'editar_producto_vendedor' p.id_producto %}">
+   									{% csrf_token %}
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" name="id" id="floatingInput" value="{{ p.id_producto }}" readonly>
+										<label for="floatingInput">ID del producto</label>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" id="floatingInput" name="nombre" value="{{ p.nombre }}">
+										<label for="floatingInput">Nombre del producto</label>
+									</div>
+									<div class="form-floating">
+										<textarea class="form-control" id="floatingTextarea" name="descripcion">{{ p.descripcion }}</textarea>
+										<label for="floatingTextarea">Descripcion</label>
+									</div><br>
+									<div class="form-floating mb-3">
+										<input type="text" class="form-control" name="precio" id="floatingInput" value="{{ p.precio }}">
+										<label for="floatingInput">Precio</label>
+									</div>
+									<div class="form-floating">
+										<select class="form-select" id="floatingSelect" name="categoria" aria-label="Floating label select example">
+											<p>{{ p.categoria }}</p>
+											<option value="diarios">Diarios</option>
+											<option value="antojos">Antojos</option>
+											<option value="eventos">Eventos</option>
+										</select>
+										<label for="floatingSelect">Categoria</label>
+									</div><br>
+									<div class="form-floating mb-3">
+										<input type="file" class="form-control"name="imagen" id="floatingInput" value="{{ p.imagen }}">
+										<label for="floatingInput">Imagen</label>
+									</div>
+									<button type="submit" class="EditarProducto">Actualizar</button>
+								</form>						
+    						</div>
+  						</div>
+					</div>
 			{% empty %}
 				<p>No tienes productos pendientes</p>
 			{% endfor %}
@@ -71,7 +134,7 @@
 		<strong><i class="fa-regular fa-clock"></i> Productos aprobados (3)</strong><br><br>
 		<div class="listas">
 			{% for a in aprobados %}
-				<article class="card_productos producto_aceptado">
+				<article class="card_productos producto_aceptado card-click" id="verBotones">
 					<div class="img">
 						<img src="{{ a.imagen }}">
 					</div>
@@ -82,7 +145,7 @@
 						<span class="badge">{{ a.estado_aprobacion }}</span>
 					</div>
 
-					<h3>{{ a.nombre }}</h3>
+					<h3 class="nombre">{{ a.nombre }}</h3>
 					<p class="descripcion">{{ a.descripcion }}</p>
 
 					<hr>
@@ -91,11 +154,83 @@
 						<span>{{ a.categoria }}</span>
 						<strong>{{ a.precio }}</strong>
 					</div>
+					<div class="none" id="botones">
+					</div>
+				</article>
+			{% empty %}
+				<p>No tienes productos aprobados aún</p>
+			{% endfor %}
+		</div>
+		<strong><i class="fa-regular fa-clock"></i> Productos rechazados (3)</strong><br><br>
+		<div class="listas">
+			{% for a in rechazados %}
+				<article class="card_productos producto_rechazado card-click" id="verBotones">
+					<div class="img">
+						<img src="{{ a.imagen }}">
+					</div>
+					<div class="top">
+						<div class="icon">
+							<i class="fa-solid fa-box"></i>
+						</div>
+						<span class="badge">{{ a.estado_aprobacion }}</span>
+					</div>
+
+					<h3 class="nombre">{{ a.nombre }}</h3>
+					<p class="descripcion">{{ a.descripcion }}</p>
+
+					<div class="footer">
+						<span>{{ a.categoria }}</span>
+						<strong>{{ a.precio }}</strong>
+					</div>
+					<div class="none" id="botones">
+						<strong>Motivo rechazo</strong>
+						<p>{{ a.motivo_rechazo }}</p>
+						<div class="none_content">
+							<form method="POST" action="{% url 'cambiar_estado_producto_vendedor' a.id_producto %}">
+								{% csrf_token %}
+								
+								<button type="submit" class="elimina_producto">
+									{% if p.estado %}
+										Inactivar
+									{% else %}
+										Activar
+									{% endif %}
+								</button>
+							</form>
+						</div>
+					</div>
 				</article>
 			{% empty %}
 				<p>No tienes productos aprobados aún</p>
 			{% endfor %}
 		</div>
 	</section>
+<script>
+	const myModal = document.getElementById('myModal')
+	const myInput = document.getElementById('myInput')
+
+	myModal.addEventListener('shown.bs.modal', () => {
+	myInput.focus()
+	})
+</script>
+<script>	
+	document.querySelectorAll('.card-click').forEach(card => {
+		card.addEventListener('click', () => {
+
+			document.querySelectorAll('.card-click').forEach(c => {
+				if(c !== card) c.classList.remove('active');
+			});
+
+			card.classList.toggle('active');
+		});
+	});
+
+	document.querySelectorAll('textarea').forEach(textarea => {
+		textarea.addEventListener('input', function () {
+			this.style.height = "auto";
+			this.style.height = this.scrollHeight + "px";
+		});
+	});
+</script>
 <script src="{% static 'js/modal.js' %}"></script>
 {% endblock %}

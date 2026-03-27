@@ -1,7 +1,7 @@
 {% extends "layout_header.html" %}
 {% load static %}
 {% block content %}
-	<div class="container__todo">
+	      <div class="container__todo">
             <div class="caja_trasera">
                  <div class="caja_trasera-login">
                     <h3>¿Ya tienes cuenta?</h3>
@@ -33,38 +33,13 @@
                         <input type="text" name="numero" placeholder="Ingrese su numero celular" maxlength="10" minlength="10" inputmode="numeric" pattern="[0-9]*" title="Solo se permiten numeros" required>
                         <input type="text" name="direccion" placeholder="Ingrese su direccion" maxlength="60" required>
                         <input type="password" name="contrasena" id="password" required pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}" title="Debe contener: minúscula, mayúscula, número, carácter especial y mínimo 8 caracteres." placeholder="Contrasena">
-  							<div id="mensaje-fuerza">Fuerza: <span id="fuerza-texto">Esperando...</span></div>
+  							  <div id="mensaje-fuerza">Fuerza: <span id="fuerza-texto">Esperando...</span></div>
                         <button type="submit">Crear cuenta</button>
                     </form>
                 </div>
             </div>
         </div>
-<br><br>	<br><br><br><br>	<br><br><br><br>	<br><br><br><br>	<br><br><br><br>	<br><br>
-	<!-- inicio footer -->
-<footer>
-	<div class="publicidad">
-		<div class="creart">
-			<strong>Creart</strong>
-			<p>Pasteles artesanales hechos con amor desde 2020</p>
-		</div>
-		<div class="enlaces">
-			<strong>Enlaces rapidos</strong><br><br>
-			<a href="#">Inicio</a><br><br>
-			<a href="#">Productos</a><br><br>
-			<a href="#">Nosotros</a><br><br>
-			<a href="#">Contactos</a><br><br>
-		</div>
-		<div class="horario">
-			<strong>Horarios</strong>
-			<p>Lunes - Viernes: 9:00 AM - 7:00 PM</p>
-			<p>Sábado: 10:00 AM - 6:00 PM</p>
-			<p>Domingo: 11:00 AM - 4:00 PM</p>
-		</div>
-	</div>
-	<div class="derechos">
-		<p>© 2026 Creart. Todos los derechos reservados.</p>
-	</div>
-</footer>
+<br><br>	<br><br><br><br>
 	<!--fin footer -->
 <script src="{% static 'js/login_register.js' %}"></script>
 <script>

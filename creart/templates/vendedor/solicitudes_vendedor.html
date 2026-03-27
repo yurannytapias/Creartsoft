@@ -16,33 +16,26 @@
 		</div>
 			<div class="elementos_varios">
 				{% for s in solicitudes %}
-					<article class="solicitud">
-
-						<div class="usuario">
-							<div class="foto_perfil">
-								<p>{{ s.cliente.nombre|first }}</p>
-							</div>
-							<p>Nuevo</p>
-						</div>
-
-						<div class="detalles">
-							<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong><br><br>
-							<p>{{ s.producto.nombre }}</p>
-							<p>
-								<i class="fa-solid fa-clock"></i> 
-								{{ s.fecha_creacion }}
-							</p>
-						</div>
-
-						<button class="boton">Ver más...</button>
-
-						<div class="mas">
+					<article class="flip-card">
+						<div class="flip-card-inner">
+							<!-- FRONT -->
+							<div class="flip-card-front">
 							<div class="usuario">
 								<div class="foto_perfil">
-									<p>{{ s.cliente.nombre|first }}</p>
+								<p>{{ s.cliente.nombre|first }}</p>
 								</div>
+								<p>Nuevo</p>
+							</div>
+							<div class="detalles">
+								<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong>
+								<p>{{ s.producto.nombre }}</p>
+								<p><i class="fa-solid fa-clock"></i> {{ s.fecha_creacion }}</p>
+							</div>
+							<button class="flip-btn">Ver más...</button>
 							</div>
 
+							<!-- BACK -->
+							<div class="flip-card-back">
 							<div class="texto">
 								<strong>{{ s.cliente.nombre }}</strong><br><br>
 								<p>{{ s.producto.nombre }}</p>
@@ -55,10 +48,12 @@
 							</div>
 
 							<div class="estado">
-								<button>Aceptar</button>
+								<button class="flip-btn back-btn">Aceptar</button>
+							</div>
+							<button class="flip-btn back-btn">Volver</button>
 							</div>
 						</div>
-					</article>
+						</article>
 				{% empty %}
 					<p>No tienes reportes sin responder</p>
 				{% endfor %}
@@ -82,4 +77,12 @@
 			</div>
 		</section>
 	</section>
+<script>
+  document.querySelectorAll('.flip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.flip-card');
+      card.classList.toggle('flip');
+    });
+  });
+</script>
 {% endblock %}

@@ -1,8 +1,7 @@
-{% extends 'layout_header.html' %}
+{% extends "layout_header.html" %}
 {% load static %}
-{% block titulo %}Transacciones — Creart{% endblock %}
+{% block content %}
 
-{% block contenido %}
 
 <!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
 <section class="tarjetas-tx-grid">
@@ -229,11 +228,6 @@
         </div>
     </div>
 </div>
-
-{% endblock %}
-
-
-{% block extra_js %}
 <script>
     var tabActual = 'todos';
 

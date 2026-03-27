@@ -1,0 +1,277 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+
+<!-- ═══════════ SIDEBAR INHABILITADOS ═══════════ -->
+<!-- Botón y Sidebar -->
+<button class="mySidebar" id="activarSidebar" title="ver inhabilitados">
+    <i class="fa-regular fa-eye"></i>
+</button>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar_content">
+        <h3 class="sidebar_titulo">Inhabilitados</h3>
+        {% for i in inactivos %}
+            <div class="pqrs-info">
+                <div class="izquierda">
+                    <span class="tag tag-categoria">{{ i.categoria }}</span>
+                    <p class="pqrs-titulo">{{ i.nombre }}</p>
+                    <p class="pqrs-precio">{{ i.precio }}</p>
+                </div>
+                <div class="derecha">
+                    <p class="pqrs-fecha">{{i.fecha_creacion }}</p>
+                    <p class="pqrs-vendedor">{{ i.vendedor.nombre }} {{ i.vendedor.apellido }}</p>
+                    <p class="pqrs-estado">Inactivo</p>
+                </div>
+            </div>
+        {% empty %}
+            <p>No hay productos inactivos.</p>
+        {% endfor %}
+    </div>
+</div>
+<!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
+<section class="tarjetas-tx-grid">
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-morado">
+            <i class="fa-solid fa-box"></i>
+        </div>
+        <div>
+            <p class="tx-numero">{{ total_tx }}</p>
+            <p class="tx-etiqueta">Total Productos</p>
+        </div>
+    </div>
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-amarillo">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+            <p class="tx-numero">{{ pendientes }}</p>
+            <p class="tx-etiqueta">Pendientes</p>
+        </div>
+    </div>
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-verde">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p class="tx-numero">{{ aprobados }}</p>
+            <p class="tx-etiqueta">Aprobados</p>
+        </div>
+    </div>
+
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-rojo">
+            <i class="fa-solid fa-xmark"></i>
+        </div>
+        <div>
+            <p class="tx-numero">{{ rechazados }}</p>
+            <p class="tx-etiqueta">Rechazados</p>
+        </div>
+    </div>
+
+</section>
+
+<!-- ═══════════ FILTROS ═══════════ -->
+<div class="filtros-tabs">
+    <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
+    <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
+    <button class="tab" onclick="filtrarPQRS(this,'aprobado')">Aprobados</button>
+    <button class="tab" onclick="filtrarPQRS(this,'rechazado')">Rechazados</button>
+</div>
+
+<!-- ═══════════ LAYOUT ═══════════ -->
+<div class="pqrs-layout">
+
+    <!-- LISTA -->
+    <div class="pqrs-lista">
+
+        <!-- TARJETA PRODUCTO -->
+        {% for p in productos %}
+            <div class="pqrs-tarjeta" data-estado="{{ p.estado_aprobacion }}"
+                onclick="abrirDetalle(
+                    this,
+                    '{{ p.id_producto }}',
+                    '{{ p.estado_aprobacion }}',
+                    '{{ p.categoria }}',
+                    '{{ p.vendedor.nombre }} {{ p.vendedor.apellido }}',
+                    '{{ p.nombre }}',
+                    '{{ p.descripcion }}',
+                    '{{ p.precio }}',
+                    '{{ p.fecha_creacion }}'
+                )">
+
+                <div class="pqrs-contenido">
+
+                    <!-- IMAGEN <img src="" class="pqrs-img"> -->
+                    
+
+                    <!-- INFO -->
+                    <div class="pqrs-info">
+                        <div class="pqrs-cabecera">
+                            <span class="tag tag-categoria">{{ p.categoria }}</span>
+
+                            {% if p.estado_aprobacion == "pendiente" %}
+                                <span class="badge-estado  badge-amarillo">Pendiente</span>
+                            {% elif p.estado_aprobacion == "aprobado" %}
+                                <span class="badge-estado badge-verde">Aprobado</span>
+                            {% else %}
+                                <span class="badge-estado badge-rojo">Rechazado</span>
+                            {% endif %}
+                        </div>
+
+                        <p class="pqrs-titulo">{{ p.nombre }}</p>
+                        <p class="pqrs-mensaje">{{ p.descripcion }}</p>
+
+                        <div class="pqrs-footer">
+                            <span class="pqrs-precio">${{ p.precio }}</span>
+                            <span class="pqrs-usuario">
+                                {{ p.vendedor.nombre }} {{ p.vendedor.apellido }}
+                            </span>
+                        </div>
+
+                        <p class="pqrs-fecha">
+                            {{ p.fecha_creacion|date:"Y-m-d" }} · PROD{{ p.id_producto }}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+            {% empty %}
+            <p>No hay productos.</p>
+            {% endfor %}
+
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="pqrs-panel">
+
+        <div class="panel-vacio" id="panelVacio">
+            <i class="fa-solid fa-box fa-2x"></i>
+            <p>Selecciona un producto para ver los detalles</p>
+        </div>
+
+        <div id="panelDetalle" style="display:none">
+            <div class="panel-header">
+                <span class="panel-titulo">Detalle del producto</span>
+                    <span class="badge-estado" id="pd-estado"></span>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">ID</p>
+                <p class="pqrs-nombre" id="pd-ID"></p>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">Nombre</p>
+                <p class="pqrs-nombre" id="pd-nombre"></p>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">Descripción</p>
+                <p class="pqrs-mensaje" id="pd-mensaje"></p>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">Precio</p>
+                <p class="pqrs-precio" id="pd-precio"></p>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">Categoría</p>
+                <p class="pqrs-categoria" id="pd-tipo"></p>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">Propuesto por</p>
+                <p class="pqrs-categoria" id="pd-vendedor"></p>
+            </div>
+
+            <div class="panel-campo">
+                <p class="panel-clave">Fecha</p>
+                <p class="pqrs-categoria" id="pd-fecha"></p>
+            </div>
+
+            <form method="POST" id="formEstado" action="">
+                {% csrf_token %}
+                
+                <input type="hidden" name="accion" id="accionInput">
+                
+                <button class="aprobar"  type="button" onclick="aprobarProducto()">
+                    <i class="fa-solid fa-check"></i>
+                    Aprobar producto
+                </button>
+
+                <div class="motivo_area">
+                    <p>Motivo del rechazo (opcional)</p>
+                    <textarea name="motivo" id="motivo"></textarea>
+                    <button class="rechazo" id="rechazo" type="submit" onclick="rechazarProducto()">
+                        <i class="fa-solid fa-x"></i>
+                        Rechazar producto
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+<script>
+    function filtrarPQRS(btn, estado) {
+        document.querySelectorAll('.filtros-tabs .tab').forEach(function(b) { b.classList.remove('activo'); });
+        btn.classList.add('activo');
+        document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) {
+            t.style.display = (estado === 'todos' || t.dataset.estado === estado) ? '' : 'none';
+        });
+    }
+
+    function abrirDetalle(tarjeta, id, estado_aprobacion, categoria, vendedor, nombre, descripcion, precio, fecha) {
+
+        document.getElementById('formEstado').action = `/producto/${id}/estado/`;
+        
+        document.querySelectorAll('.pqrs-tarjeta').forEach(t => t.classList.remove('seleccionada'));
+        tarjeta.classList.add('seleccionada');
+
+        document.getElementById('panelVacio').style.display = 'none';
+        document.getElementById('panelDetalle').style.display = '';
+        
+
+        document.getElementById('pd-ID').textContent = id;
+        let estadoEl = document.getElementById('pd-estado');
+        estadoEl.textContent = estado_aprobacion;
+
+        estadoEl.className = 'badge-estado'; // reset
+
+        if (estado_aprobacion === 'pendiente') {
+            estadoEl.classList.add('badge-amarillo');
+        } else if (estado_aprobacion === 'aprobado') {
+            estadoEl.classList.add('badge-verde');
+        } else {
+            estadoEl.classList.add('badge-rojo');
+        }
+
+        document.getElementById('pd-nombre').textContent = nombre;
+        document.getElementById('pd-mensaje').textContent = descripcion;
+        document.getElementById('pd-precio').textContent = "$" + precio;
+        document.getElementById('pd-tipo').textContent = categoria;
+        document.getElementById('pd-vendedor').textContent = vendedor;
+        document.getElementById('pd-fecha').textContent = fecha;
+    }
+
+    function aprobarProducto() {
+        document.getElementById('accionInput').value = "aprobar";
+        document.getElementById('formEstado').submit();
+    }
+
+    function rechazarProducto() {
+        document.getElementById('accionInput').value = "rechazar";
+        document.getElementById('formEstado').submit();
+    }
+
+    document.getElementById("activarSidebar").onclick = function() {
+        document.getElementById("sidebar").classList.toggle("activo");
+    }
+    
+</script>
+{% endblock %}

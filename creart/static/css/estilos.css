@@ -1,3 +1,7 @@
+.container > * {
+    margin-bottom: 25px;
+}
+
 *{
 	margin: 0;
 	padding: 0;
@@ -11,6 +15,13 @@ body{
 	width: 100%; /* Cambia vw por % para evitar saltos con el scroll */
     min-height: 100vh; /* Que al menos mida la pantalla, pero pueda crecer */
     background-color: #F3F4F4;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto; /* centra horizontalmente */
+    padding: 30px;
+	padding: 24px 20px;
 }
 
 .carta {
@@ -452,4 +463,3 @@ display: none;
     background-color: transparent;
     border: 2px solid #612D53;
 }
-

@@ -43,7 +43,7 @@ def get_usuario_sesion(request):
     usuario_id = request.session.get('usuario_id')
     if usuario_id:
         try:
-            return Usuarios.objects.select_related('Roles').get(pk=usuario_id)
+            return Usuarios.objects.select_related('rol').get(pk=usuario_id)
         except Usuarios.DoesNotExist:
             pass
     return None
@@ -90,7 +90,7 @@ def registrar_vendedor(request):
 
 
 def login_usuario(request):
-    """Autentica al usuario por correo y contraseña hasheada."""
+    #Autentica al usuario por correo y contraseña hasheada.
     if request.method != "POST":
         return render(request, "inicio.html")
 
@@ -107,12 +107,12 @@ def login_usuario(request):
         request.session['usuario_nombre'] = usuario.nombre
 
         rol = usuario.rol.nombre
-        if rol == "admin":
+        if rol == "administrador":
             return redirect("administrador")
         if rol == "vendedor":
             return redirect("vendedor")
         if rol == "cliente":
-            return redirect("cliente")
+            return redirect("catalogo")
 
     except Usuarios.DoesNotExist:
         return render(request, 'inicio.html', {'error': 'Usuario no existe'})
@@ -133,19 +133,19 @@ def administrador(request):
 
     ventas_totales = Transacciones.objects.aggregate(
         total=Sum('importe_total'))['total'] or 0
-
+ 
     pedidos_total = Transacciones.objects.count()
 
     clientes_total = Usuarios.objects.filter(
-        Roles__nombre__iexact='cliente').count()
+        rol__nombre__iexact='cliente').count()
 
     promedio_venta = Transacciones.objects.aggregate(
         prom=Avg('importe_total'))['prom'] or 0
 
     transacciones_recientes = (
         Transacciones.objects
-        .select_related('solicitud__Usuarios')
-        .order_by('-fecha')[:5]
+        .select_related('solicitud__usuarios')
+        .order_by('-fecha_creacion')[:5]
     )
 
     hoy = timezone.now()
@@ -159,11 +159,13 @@ def administrador(request):
         mes_fin = siguiente.replace(day=1) if i != 0 else hoy
 
         total = Transacciones.objects.filter(
-            fecha__gte=mes_inicio, fecha__lt=mes_fin
+            fecha_creacion__gte=mes_inicio,
+            fecha_creacion__lt=mes_fin
         ).aggregate(total=Sum('importe_total'))['total'] or 0
 
         count = Transacciones.objects.filter(
-            fecha__gte=mes_inicio, fecha__lt=mes_fin
+            fecha_creacion__gte=mes_inicio,
+            fecha_creacion__lt=mes_fin
         ).count()
 
         ventas_mensuales.append({'mes': fecha.strftime('%b'), 'total': float(total)})
@@ -171,16 +173,16 @@ def administrador(request):
 
     productos_top = (
         Productos.objects
-        .annotate(total_vendido=Sum('Solicitud__cantidad'))
+        .annotate(total_vendido=Sum('solicitudes__porciones'))
         .order_by('-total_vendido')[:5]
     )
 
     clientes_top = (
         Usuarios.objects
-        .filter(Roles__nombre__iexact='cliente')
+        .filter(rol__nombre__iexact='cliente')
         .annotate(
-            num_pedidos=Count('solicitud'),
-            total_gastado=Sum('solicitud__transaccion__importe_total')
+            num_pedidos=Count('solicitudes'),
+            total_gastado=Sum('solicitudes__transacciones__importe_total')
         )
         .order_by('-num_pedidos')[:5]
     )
@@ -223,7 +225,7 @@ def usuarios(request):
         )
 
     if rol_filtro:
-        qs = qs.filter(Roles__nombre__iexact=rol_filtro)
+        qs = qs.filter(rol__nombre__iexact=rol_filtro)
 
     context = {
         'usuario': usuario,
@@ -248,8 +250,104 @@ def transacciones(request):
     q = request.GET.get('q', '').strip()
 
     qs = Transacciones.objects.select_related(
-        'solicitud__Usuarios'
-    ).order_by('-fecha')
+        'solicitud__usuarios'
+    ).order_by('-fecha_creacion')
+
+    if q:
+        qs = qs.filter(
+            Q(id_pedido__icontains=q) |
+            Q(solicitud__Usuarios__nombre__icontains=q) |
+            Q(solicitud__Usuarios__apellido__icontains=q)
+        )
+
+    total_tx = Transacciones.objects.count()
+
+    context = {
+        'usuario': usuario,
+        'transacciones': qs,
+        'completadas': total_tx,
+        'pendientes': 0,
+        'devueltas': 0,
+        'total_tx': total_tx,
+        'q': q,
+        'pagina_activa': 'transacciones',
+    }
+    return render(request, 'administrador/transacciones.html', context)
+
+# ═══════════════════════════════════════════════════════════════════
+#  PRODUCTOS (ADMIN)
+# ═══════════════════════════════════════════════════════════════════
+
+@login_requerido
+def productos(request):
+    usuarios = get_usuario_sesion(request)
+
+    q = request.GET.get('q', '').strip()
+
+    qs = Productos.objects.select_related('vendedor')\
+    .filter(estado=True)\
+    .order_by('-fecha_creacion')
+
+    if q:
+        qs = qs.filter(
+            Q(id_producto__icontains=q) |
+            Q(vendedor__nombre__icontains=q) |
+            Q(vendedor__apellido__icontains=q)
+        )
+
+    pendientes = Productos.objects.filter(estado_aprobacion='pendiente').count()
+    aprobados = Productos.objects.filter(estado_aprobacion='aprobado').count()
+    rechazados = Productos.objects.filter(estado_aprobacion='rechazado').count()
+    inactivos = Productos.objects.filter(estado=False).order_by('-fecha_creacion')
+    total_tx = Productos.objects.count()
+
+    context = {
+        'usuario': usuarios,
+        'inactivos': inactivos,
+        'productos': qs,
+        'pendientes': pendientes,
+        'aprobados': aprobados,
+        'rechazados': rechazados,
+        'total_tx': total_tx,
+    }
+
+    return render(request, 'administrador/productos.html', context)
+
+#acciones ------------------------------>
+#acciones ------------------------------>
+
+@login_requerido
+def cambiar_estado_producto(request, id_producto):
+    if request.method == "POST":
+        producto = Productos.objects.get(id_producto=id_producto)
+
+        accion = request.POST.get("accion")
+
+        if accion == "aprobar":
+            producto.estado_aprobacion = "aprobado"
+
+        elif accion == "rechazar":
+            producto.estado_aprobacion = "rechazado"
+            producto.motivo_rechazo = request.POST.get("motivo", "")
+
+        producto.save()
+
+    return redirect("productos")
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  SOLICITUDES (ADMIN)
+# ═══════════════════════════════════════════════════════════════════
+
+@login_requerido
+def solicitudes(request):
+    usuario = get_usuario_sesion(request)
+
+    q = request.GET.get('q', '').strip()
+
+    qs = Solicitudes.objects.select_related(
+        'solicitudes__usuarios'
+    ).order_by('-fecha_creacion')
 
     if q:
         qs = qs.filter(
@@ -439,7 +537,7 @@ def ventas_vendedor(request):
     # Traer ventas del vendedor
     ventas = Transacciones.objects.filter(
         solicitud__producto__vendedor=vendedor
-    ).select_related('solicitud__cliente', 'solicitud__producto')
+    ).select_related('solicitud__usuario', 'solicitud__producto')
 
     # Estadísticas
     total_ventas = ventas.aggregate(total=Sum('importe_total'))['total'] or 0
@@ -489,24 +587,34 @@ def productos_vendedor(request):
             nombre=request.POST.get("nombre"),
             descripcion=request.POST.get("descripcion"),
             precio=request.POST.get("precio"),
+            imagen=request.POST.get("imagen"),
             vendedor=usuario,
             estado_aprobacion='pendiente',
         )
 
     pendientes = Productos.objects.filter(
         vendedor=usuario,
-        estado_aprobacion='pendiente'
+        estado_aprobacion='pendiente',
+        estado=True
     )
 
     aprobados = Productos.objects.filter(
         vendedor=usuario,
-        estado_aprobacion='aprobado'
+        estado_aprobacion='aprobado',
+        estado=True
+    )
+
+    rechazados = Productos.objects.filter(
+        vendedor=usuario,
+        estado_aprobacion='rechazado',
+        estado=True
     )
 
     return render(request, "vendedor/productos_vendedor.html", {
         "usuario": usuario,
         "pendientes": pendientes,
-        "aprobados": aprobados
+        "aprobados": aprobados,
+        "rechazados": rechazados
     })
 
 
@@ -567,6 +675,38 @@ def soli_vendedor(request):
         'usuario': usuario
     })
 
+#acciones ---------------------------------------------------------------------->
+#acciones ---------------------------------------------------------------------->
+#acciones ---------------------------------------------------------------------->
+
+@login_requerido
+def cambiar_estado_producto_vendedor(request, id_producto):
+    if request.method == "POST":
+        producto = Productos.objects.get(id_producto=id_producto)
+
+        # invertir el estado
+        producto.estado = not producto.estado
+
+        producto.save()
+
+    return redirect("vendedor_productos")
+
+@login_requerido
+def editar_producto_vendedor(request, id_producto):
+    producto = get_object_or_404(Productos, id_producto=id_producto)
+
+    if request.method == "POST":
+        producto.nombre = request.POST.get("nombre")
+        producto.descripcion = request.POST.get("descripcion")
+        producto.precio = request.POST.get("precio")
+        producto.categoria = request.POST.get("categoria")
+        if request.FILES.get("imagen"):
+            producto.imagen = request.FILES.get("imagen")
+        producto.save()
+
+        return redirect('vendedor_productos')  # tu vista principal
+
+    return redirect('vendedor_productos')
 
 @login_requerido
 def crear_solicitud_vendedor(request):
@@ -600,25 +740,13 @@ def crear_productos(request):
             nombre=request.POST.get("nombre"),
             descripcion=request.POST.get("descripcion"),
             precio=request.POST.get("precio"),
+            imagen=request.POST.get("imagen"),
             vendedor=vendedor,
+            categoria=request.POST.get("categoria"),
             estado_aprobacion='pendiente'
         )
 
-    # Separar productos
-    pendientes = Productos.objects.filter(
-        vendedor=vendedor,
-        estado_aprobacion='pendiente'
-    )
-
-    aprobados = Productos.objects.filter(
-        vendedor=vendedor,
-        estado_aprobacion='aprobado'
-    )
-
-    return render(request, "vendedor/productos_vendedor.html", {
-        "pendientes": pendientes,
-        "aprobados": aprobados
-    })
+    return redirect("vendedor_productos")
 
 
 @login_requerido
@@ -706,17 +834,12 @@ def crear_reporte_vendedor(request):
 #  CLIENTE
 # ═══════════════════════════════════════════════════════════════════
 
-def inicio_cliente(request):
-    pasteles = Productos.objects.all()[:6]
-    return render(request, "cliente/inicio_cliente.html", {"pasteles": pasteles})
-
-
 def catalogo(request):
     categoria = request.GET.get("categoria", "todos")
     pasteles = (
-        Productos.objects.filter(categoria=categoria)
+        Productos.objects.filter(categoria=categoria, estado=True)
         if categoria != "todos"
-        else Productos.objects.all()
+        else Productos.objects.filter(estado=True)
     )
     return render(request, "cliente/catalogo.html", {
         "pasteles": pasteles,

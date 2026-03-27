@@ -1,8 +1,7 @@
-{% extends 'layout_header.html' %}
+{% extends "layout_header.html" %}
 {% load static %}
-{% block titulo %}PQRS — Creart{% endblock %}
+{% block content %}
 
-{% block contenido %}
 
 <!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
 <section class="tarjetas-tx-grid">
@@ -180,11 +179,6 @@
 
     </div>
 </div>
-
-{% endblock %}
-
-
-{% block extra_js %}
 <script>
     function filtrarPQRS(btn, estado) {
         document.querySelectorAll('.filtros-tabs .tab').forEach(function(b) { b.classList.remove('activo'); });

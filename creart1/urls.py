@@ -31,14 +31,20 @@ urlpatterns = [
     path('administrador/', views.administrador, name='administrador'),
     path('administrador/usuarios/', views.usuarios, name='usuarios'),
     path('administrador/transacciones/', views.transacciones, name='transacciones'),
+    path('administrador/productos/', views.productos, name='productos'),
+    path('administrador/solicitudes/', views.solicitudes, name='solicitudes'),
     path('administrador/pqrs/', views.pqrs, name='pqrs'),
     path('administrador/pqrs/responder/<int:pk>/', views.pqrs_responder, name='pqrs_responder'),
     path('administrador/perfil/', views.administrador_perfil, name='administrador_perfil'),
 
+    #acciones -------->
+    #acciones -------->
+
+    path('producto/<int:id_producto>/estado/', views.cambiar_estado_producto, name='cambiar_estado_producto'),
+
     # ═══════════════════════════════════════════════════════════════════
     # CLIENTE
     # ═══════════════════════════════════════════════════════════════════
-    path('cliente/', views.inicio_cliente, name='cliente'),
     path('catalogo/', views.catalogo, name='catalogo'),
     path('compra/<int:producto_id>/', views.compra_rapida, name='compra_rapida'),
     path('configurador/<int:producto_id>/', views.configurador, name='configurador'),
@@ -71,11 +77,15 @@ urlpatterns = [
     path('vendedor/ventas/', views.ventas_vendedor, name='vendedor_ventas'),
     path('vendedor/clientes/', views.clientes_vendedor, name='vendedor_clientes'),
     path('vendedor/productos/', views.productos_vendedor, name='vendedor_productos'),
-    path('vendedor/productos/crear/', views.crear_productos, name='crear_productos'),
     path('vendedor/bonos/', views.bonos_vendedor, name='vendedor_bonos'),
     path('vendedor/perfil/', views.mi_perfil_vendedor, name='vendedor_perfil'),
     path('vendedor/perfil/editar/', views.editar_perfil_vendedor, name='editar_perfil_vendedor'),
     path('vendedor/reportes/', views.reportes_vendedor, name='vendedor_reportes'),
-    path('vendedor/reportes/crear/', views.crear_reporte_vendedor, name='crear_reporte_vendedor'),
+    
 
+    #acciones --------------------------------------------------------
+    path('vendedor/productos/crear/', views.crear_productos, name='crear_producto'),
+    path('vendedor/productos/<int:id_producto>/editar/', views.editar_producto_vendedor, name='editar_producto_vendedor'),
+    path('vendedor/reportes/crear/', views.crear_reporte_vendedor, name='crear_reporte_vendedor'),
+    path('vendedor/producto/<int:id_producto>/estado/', views.cambiar_estado_producto_vendedor, name='cambiar_estado_producto_vendedor'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

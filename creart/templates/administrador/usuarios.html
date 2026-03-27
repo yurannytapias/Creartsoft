@@ -1,8 +1,6 @@
-{% extends 'layout_header.html' %}
+{% extends "layout_header.html" %}
 {% load static %}
-{% block titulo %}Usuarios — Creart{% endblock %}
-
-{% block contenido %}
+{% block content %}
 
 <!-- ═══════════ BUSCADOR ═══════════ -->
 <div class="barra-herramientas">
@@ -236,10 +234,6 @@
     </div>
 </div>
 
-{% endblock %}
-
-
-{% block extra_js %}
 <script>
     function filtrarUsuarios() {
         var q = document.getElementById('buscadorUsuarios').value.toLowerCase();

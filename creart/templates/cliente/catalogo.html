@@ -1,6 +1,34 @@
-{% extends "layout_header.html" %}
 {% load static %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo - CreartSoft</title>
+    <link rel="stylesheet" href="{% static 'css/estiloscliente.css' %}">
+    <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <h2>CreartSoft</h2>
+            <p>Pasteles personalizados</p>
+        </div>
+        <ul class="menu">
+         <li><a href="{% url 'index' %}"><i class="fa fa-home"></i> Inicio</a></li>
+            <li class="active"><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
+            <li><a href="{% url 'mis_solicitudes' %}"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
+            <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
+            <li><a href="#"><i class="fa fa-chart-bar"></i> Reportes</a></li>
+           
+        </ul>
+       
+    </div>
+
     <!-- CONTENIDO -->
     <div class="contenido">
 
@@ -26,9 +54,8 @@
                 {% for pastel in pasteles %}
                 <div class="catalogo__card">
                     <div class="catalogo__img__wrapper">
-
                         <span class="catalogo__categoria">{{ pastel.categoria|capfirst }}</span>
-                    </div>
+                    </div><br><br>
                     <div class="catalogo__info">
                         <h3>{{ pastel.nombre }}</h3>
                         <p>{{ pastel.descripcion }}</p>
@@ -52,4 +79,6 @@
         </div>
     </div>
 </div>
-{% endblock %}
+
+</body>
+</html>

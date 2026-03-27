@@ -1,18 +1,18 @@
-const OpenModal = document.getElementById('openModal');
-const Modal = document.getElementById('modal')
-const CloseModal = document.getElementById('close_modal');
+const OpenModalMio = document.getElementById('openModalMio');
+const ModalMio = document.getElementById('modal_mio')
+const CloseModalMio = document.getElementById('close_modalMio');
 
-OpenModal.addEventListener('click', () =>  {
-    Modal.classList.add('active');
+OpenModalMio.addEventListener('click', () =>  {
+    ModalMio.classList.add('active');
 })
 
-CloseModal.addEventListener('click', () => {
-    Modal.classList.remove('active');
+CloseModalMio.addEventListener('click', () => {
+    ModalMio.classList.remove('active');
 })
 
 // Cerrar al hacer clic fuera del modal
-modalOverlay.addEventListener('click', (e) => {
-  if (e.target === modalOverlay) {
-    modalOverlay.classList.remove('active');
+CloseModalMio.addEventListener('click', (e) => {
+  if (e.target === CloseModalMio) {
+    ModalMio.classList.remove('active');
   }
 });

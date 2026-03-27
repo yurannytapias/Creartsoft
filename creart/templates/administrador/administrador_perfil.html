@@ -1,8 +1,7 @@
-{% extends 'layout_header.html' %}
+{% extends "layout_header.html" %}
 {% load static %}
-{% block titulo %}Mi Perfil — Creart{% endblock %}
+{% block content %}
 
-{% block contenido %}
 
 <div class="perfil-layout">
 
@@ -18,7 +17,7 @@
                 <h2 class="perfil-nombre">{{ usuario.nombre }} {{ usuario.apellido }}</h2>
                 <p class="perfil-rol">
                     <span class="tag tag-admin">
-                        <i class="fa-solid fa-shield-halved"></i> Administrador
+                        <i class="fa-solid fa-shield-halved"></i> {{ usuario.rol.nombre }}
                     </span>
                 </p>
             </div>

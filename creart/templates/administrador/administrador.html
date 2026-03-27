@@ -1,237 +1,235 @@
-{% extends 'layout_header.html' %}
+{% extends "layout_header.html" %}
 {% load static %}
-{% block titulo %}Dashboard — Creart{% endblock %}
+{% block content %}
 
-{% block contenido %}
+    <!-- ═══════════ TARJETAS ESTADÍSTICAS ═══════════ -->
+    <section class="tarjetas-grid">
 
-<!-- ═══════════ TARJETAS ESTADÍSTICAS ═══════════ -->
-<section class="tarjetas-grid">
+        <div class="tarjeta">
+            <div class="tarjeta-info">
+                <p class="tarjeta-etiqueta">Ventas Totales</p>
+                <p class="tarjeta-valor">$34,600</p>
+                <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +12% vs mes anterior</p>
+            </div>
+            <div class="tarjeta-icono">
+                <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+        </div>
 
-    <div class="tarjeta">
-        <div class="tarjeta-info">
-            <p class="tarjeta-etiqueta">Ventas Totales</p>
-            <p class="tarjeta-valor">$34,600</p>
-            <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +12% vs mes anterior</p>
+        <div class="tarjeta">
+            <div class="tarjeta-info">
+                <p class="tarjeta-etiqueta">Pedidos</p>
+                <p class="tarjeta-valor">346</p>
+                <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +8% vs mes anterior</p>
+            </div>
+            <div class="tarjeta-icono">
+                <i class="fa-solid fa-bag-shopping"></i>
+            </div>
         </div>
-        <div class="tarjeta-icono">
-            <i class="fa-solid fa-dollar-sign"></i>
-        </div>
-    </div>
 
-    <div class="tarjeta">
-        <div class="tarjeta-info">
-            <p class="tarjeta-etiqueta">Pedidos</p>
-            <p class="tarjeta-valor">346</p>
-            <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +8% vs mes anterior</p>
+        <div class="tarjeta">
+            <div class="tarjeta-info">
+                <p class="tarjeta-etiqueta">Clientes</p>
+                <p class="tarjeta-valor">284</p>
+                <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +15% vs mes anterior</p>
+            </div>
+            <div class="tarjeta-icono">
+                <i class="fa-solid fa-people-line"></i>
+            </div>
         </div>
-        <div class="tarjeta-icono">
-            <i class="fa-solid fa-bag-shopping"></i>
-        </div>
-    </div>
 
-    <div class="tarjeta">
-        <div class="tarjeta-info">
-            <p class="tarjeta-etiqueta">Clientes</p>
-            <p class="tarjeta-valor">284</p>
-            <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +15% vs mes anterior</p>
+        <div class="tarjeta">
+            <div class="tarjeta-info">
+                <p class="tarjeta-etiqueta">Promedio Venta</p>
+                <p class="tarjeta-valor">$100</p>
+                <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +3% vs mes anterior</p>
+            </div>
+            <div class="tarjeta-icono">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
         </div>
-        <div class="tarjeta-icono">
-            <i class="fa-solid fa-people-line"></i>
-        </div>
-    </div>
 
-    <div class="tarjeta">
-        <div class="tarjeta-info">
-            <p class="tarjeta-etiqueta">Promedio Venta</p>
-            <p class="tarjeta-valor">$100</p>
-            <p class="tarjeta-cambio"><i class="fa-solid fa-arrow-trend-up"></i> +3% vs mes anterior</p>
-        </div>
-        <div class="tarjeta-icono">
-            <i class="fa-solid fa-chart-line"></i>
-        </div>
-    </div>
-
-</section>
+    </section>
 
 
-<!-- ═══════════ GRÁFICAS ═══════════ -->
-<section class="grilla-2">
+    <!-- ═══════════ GRÁFICAS ═══════════ -->
+    <section class="grilla-2">
 
-    <!-- Ventas Mensuales -->
-    <div class="caja">
-        <p class="caja-titulo">Ventas Mensuales</p>
-        <div class="grafica-linea-wrap">
-            <svg id="graficaLinea" viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;width:100%;height:100%">
-                <line x1="50" y1="10"  x2="490" y2="10"  stroke="#ececec" stroke-dasharray="4"/>
-                <line x1="50" y1="47"  x2="490" y2="47"  stroke="#ececec" stroke-dasharray="4"/>
-                <line x1="50" y1="84"  x2="490" y2="84"  stroke="#ececec" stroke-dasharray="4"/>
-                <line x1="50" y1="120" x2="490" y2="120" stroke="#ececec" stroke-dasharray="4"/>
-                <polyline fill="none" stroke="#612D53" stroke-width="2.5" stroke-linejoin="round"
-                    points="70,90 142,80 214,85 286,55 358,35 430,40"/>
-                <circle cx="70"  cy="90" r="4" fill="#612D53"/>
-                <circle cx="142" cy="80" r="4" fill="#612D53"/>
-                <circle cx="214" cy="85" r="4" fill="#612D53"/>
-                <circle cx="286" cy="55" r="4" fill="#612D53"/>
-                <circle cx="358" cy="35" r="4" fill="#612D53"/>
-                <circle cx="430" cy="40" r="4" fill="#612D53"/>
-                <text x="70"  y="138" text-anchor="middle" font-size="10" fill="#aaa">Ene</text>
-                <text x="142" y="138" text-anchor="middle" font-size="10" fill="#aaa">Feb</text>
-                <text x="214" y="138" text-anchor="middle" font-size="10" fill="#aaa">Mar</text>
-                <text x="286" y="138" text-anchor="middle" font-size="10" fill="#aaa">Abr</text>
-                <text x="358" y="138" text-anchor="middle" font-size="10" fill="#aaa">May</text>
-                <text x="430" y="138" text-anchor="middle" font-size="10" fill="#aaa">Jun</text>
-            </svg>
+        <!-- Ventas Mensuales -->
+        <div class="caja">
+            <p class="caja-titulo">Ventas Mensuales</p>
+            <div class="grafica-linea-wrap">
+                <svg id="graficaLinea" viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;width:100%;height:100%">
+                    <line x1="50" y1="10"  x2="490" y2="10"  stroke="#ececec" stroke-dasharray="4"/>
+                    <line x1="50" y1="47"  x2="490" y2="47"  stroke="#ececec" stroke-dasharray="4"/>
+                    <line x1="50" y1="84"  x2="490" y2="84"  stroke="#ececec" stroke-dasharray="4"/>
+                    <line x1="50" y1="120" x2="490" y2="120" stroke="#ececec" stroke-dasharray="4"/>
+                    <polyline fill="none" stroke="#612D53" stroke-width="2.5" stroke-linejoin="round"
+                        points="70,90 142,80 214,85 286,55 358,35 430,40"/>
+                    <circle cx="70"  cy="90" r="4" fill="#612D53"/>
+                    <circle cx="142" cy="80" r="4" fill="#612D53"/>
+                    <circle cx="214" cy="85" r="4" fill="#612D53"/>
+                    <circle cx="286" cy="55" r="4" fill="#612D53"/>
+                    <circle cx="358" cy="35" r="4" fill="#612D53"/>
+                    <circle cx="430" cy="40" r="4" fill="#612D53"/>
+                    <text x="70"  y="138" text-anchor="middle" font-size="10" fill="#aaa">Ene</text>
+                    <text x="142" y="138" text-anchor="middle" font-size="10" fill="#aaa">Feb</text>
+                    <text x="214" y="138" text-anchor="middle" font-size="10" fill="#aaa">Mar</text>
+                    <text x="286" y="138" text-anchor="middle" font-size="10" fill="#aaa">Abr</text>
+                    <text x="358" y="138" text-anchor="middle" font-size="10" fill="#aaa">May</text>
+                    <text x="430" y="138" text-anchor="middle" font-size="10" fill="#aaa">Jun</text>
+                </svg>
+            </div>
+            <div class="leyenda">
+                <span class="leyenda-punto"></span> Ventas ($)
+            </div>
         </div>
-        <div class="leyenda">
-            <span class="leyenda-punto"></span> Ventas ($)
-        </div>
-    </div>
 
-    <!-- Pedidos por Mes -->
-    <div class="caja">
-        <p class="caja-titulo">Pedidos por Mes</p>
-        <div class="grafica-barras">
-            <div class="barra-grupo"><div class="barra" style="height:60%"></div><span class="barra-label">Ene</span></div>
-            <div class="barra-grupo"><div class="barra" style="height:68%"></div><span class="barra-label">Feb</span></div>
-            <div class="barra-grupo"><div class="barra" style="height:62%"></div><span class="barra-label">Mar</span></div>
-            <div class="barra-grupo"><div class="barra" style="height:78%"></div><span class="barra-label">Abr</span></div>
-            <div class="barra-grupo"><div class="barra" style="height:95%"></div><span class="barra-label">May</span></div>
-            <div class="barra-grupo"><div class="barra" style="height:88%"></div><span class="barra-label">Jun</span></div>
+        <!-- Pedidos por Mes -->
+        <div class="caja">
+            <p class="caja-titulo">Pedidos por Mes</p>
+            <div class="grafica-barras">
+                <div class="barra-grupo"><div class="barra" style="height:60%"></div><span class="barra-label">Ene</span></div>
+                <div class="barra-grupo"><div class="barra" style="height:68%"></div><span class="barra-label">Feb</span></div>
+                <div class="barra-grupo"><div class="barra" style="height:62%"></div><span class="barra-label">Mar</span></div>
+                <div class="barra-grupo"><div class="barra" style="height:78%"></div><span class="barra-label">Abr</span></div>
+                <div class="barra-grupo"><div class="barra" style="height:95%"></div><span class="barra-label">May</span></div>
+                <div class="barra-grupo"><div class="barra" style="height:88%"></div><span class="barra-label">Jun</span></div>
+            </div>
+            <div class="leyenda">
+                <span class="leyenda-punto"></span> Pedidos
+            </div>
         </div>
-        <div class="leyenda">
-            <span class="leyenda-punto"></span> Pedidos
-        </div>
-    </div>
 
-</section>
-
-
-<!-- ═══════════ PRODUCTOS + CLIENTES ═══════════ -->
-<section class="grilla-2">
-
-    <div class="caja">
-        <p class="caja-titulo"><i class="fa-solid fa-star"></i> Productos Más Vendidos</p>
-        <div class="item-lista">
-            <div class="item-rank">1</div>
-            <div class="item-info"><p class="item-nombre">Pastel de Cherry Pie</p><p class="item-sub">156 unidades vendidas</p></div>
-            <span class="item-monto">$7,020</span>
-        </div>
-        <div class="item-lista">
-            <div class="item-rank">2</div>
-            <div class="item-info"><p class="item-nombre">Tarta de Manzana</p><p class="item-sub">128 unidades vendidas</p></div>
-            <span class="item-monto">$4,864</span>
-        </div>
-        <div class="item-lista">
-            <div class="item-rank">3</div>
-            <div class="item-info"><p class="item-nombre">Pastel de Chocolate</p><p class="item-sub">98 unidades vendidas</p></div>
-            <span class="item-monto">$5,096</span>
-        </div>
-        <div class="item-lista">
-            <div class="item-rank">4</div>
-            <div class="item-info"><p class="item-nombre">Cherry Pie Especial</p><p class="item-sub">85 unidades vendidas</p></div>
-            <span class="item-monto">$5,780</span>
-        </div>
-        <div class="item-lista">
-            <div class="item-rank">5</div>
-            <div class="item-info"><p class="item-nombre">Cupcakes Cherry</p><p class="item-sub">142 unidades vendidas</p></div>
-            <span class="item-monto">$4,118</span>
-        </div>
-    </div>
-
-    <div class="caja">
-        <p class="caja-titulo"><i class="fa-solid fa-star"></i> Clientes Más Activos</p>
-        <div class="item-lista">
-            <div class="avatar-letra">M</div>
-            <div class="item-info"><p class="item-nombre">María García</p><p class="item-sub">12 pedidos</p></div>
-            <span class="item-monto">$5,400</span>
-        </div>
-        <div class="item-lista">
-            <div class="avatar-letra">A</div>
-            <div class="item-info"><p class="item-nombre">Ana Rodríguez</p><p class="item-sub">15 pedidos</p></div>
-            <span class="item-monto">$7,800</span>
-        </div>
-        <div class="item-lista">
-            <div class="avatar-letra">L</div>
-            <div class="item-info"><p class="item-nombre">Luis Hernández</p><p class="item-sub">10 pedidos</p></div>
-            <span class="item-monto">$4,500</span>
-        </div>
-        <div class="item-lista">
-            <div class="avatar-letra">J</div>
-            <div class="item-info"><p class="item-nombre">Juan Pérez</p><p class="item-sub">8 pedidos</p></div>
-            <span class="item-monto">$3,040</span>
-        </div>
-        <div class="item-lista">
-            <div class="avatar-letra">E</div>
-            <div class="item-info"><p class="item-nombre">Elena Torres</p><p class="item-sub">7 pedidos</p></div>
-            <span class="item-monto">$3,150</span>
-        </div>
-    </div>
-
-</section>
+    </section>
 
 
-<!-- ═══════════ TRANSACCIONES RECIENTES ═══════════ -->
-<section class="caja">
-    <p class="caja-titulo">Transacciones Recientes</p>
-    <div class="table-responsive">
-        <table class="tabla">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Producto</th>
-                    <th>Monto</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="td-id">T001</td>
-                    <td>María García</td>
-                    <td>Pastel de Cherry Pie</td>
-                    <td><strong>$450</strong></td>
-                    <td class="td-gris">2026-03-07</td>
-                    <td><span class="badge-estado badge-verde">Completado</span></td>
-                </tr>
-                <tr>
-                    <td class="td-id">T002</td>
-                    <td>Juan Pérez</td>
-                    <td>Tarta de Manzana</td>
-                    <td><strong>$380</strong></td>
-                    <td class="td-gris">2026-03-07</td>
-                    <td><span class="badge-estado badge-verde">Completado</span></td>
-                </tr>
-                <tr>
-                    <td class="td-id">T003</td>
-                    <td>Ana Rodríguez</td>
-                    <td>Pastel de Chocolate</td>
-                    <td><strong>$520</strong></td>
-                    <td class="td-gris">2026-03-06</td>
-                    <td><span class="badge-estado badge-amarillo">Pendiente</span></td>
-                </tr>
-                <tr>
-                    <td class="td-id">T004</td>
-                    <td>Carlos López</td>
-                    <td>Cherry Pie Especial</td>
-                    <td><strong>$680</strong></td>
-                    <td class="td-gris">2026-03-06</td>
-                    <td><span class="badge-estado badge-verde">Completado</span></td>
-                </tr>
-                <tr>
-                    <td class="td-id">T005</td>
-                    <td>Sofía Martínez</td>
-                    <td>Cupcakes Cherry</td>
-                    <td><strong>$290</strong></td>
-                    <td class="td-gris">2026-03-05</td>
-                    <td><span class="badge-estado badge-verde">Completado</span></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <a href="{% url 'transacciones' %}" class="btn-ver-todas">
-        <i class="fa-solid fa-arrow-right"></i> Ver Todas las Transacciones
-    </a>
-</section>
+    <!-- ═══════════ PRODUCTOS + CLIENTES ═══════════ -->
+    <section class="grilla-2">
+
+        <div class="caja">
+            <p class="caja-titulo"><i class="fa-solid fa-star"></i> Productos Más Vendidos</p>
+            <div class="item-lista">
+                <div class="item-rank">1</div>
+                <div class="item-info"><p class="item-nombre">Pastel de Cherry Pie</p><p class="item-sub">156 unidades vendidas</p></div>
+                <span class="item-monto">$7,020</span>
+            </div>
+            <div class="item-lista">
+                <div class="item-rank">2</div>
+                <div class="item-info"><p class="item-nombre">Tarta de Manzana</p><p class="item-sub">128 unidades vendidas</p></div>
+                <span class="item-monto">$4,864</span>
+            </div>
+            <div class="item-lista">
+                <div class="item-rank">3</div>
+                <div class="item-info"><p class="item-nombre">Pastel de Chocolate</p><p class="item-sub">98 unidades vendidas</p></div>
+                <span class="item-monto">$5,096</span>
+            </div>
+            <div class="item-lista">
+                <div class="item-rank">4</div>
+                <div class="item-info"><p class="item-nombre">Cherry Pie Especial</p><p class="item-sub">85 unidades vendidas</p></div>
+                <span class="item-monto">$5,780</span>
+            </div>
+            <div class="item-lista">
+                <div class="item-rank">5</div>
+                <div class="item-info"><p class="item-nombre">Cupcakes Cherry</p><p class="item-sub">142 unidades vendidas</p></div>
+                <span class="item-monto">$4,118</span>
+            </div>
+        </div>
+
+        <div class="caja">
+            <p class="caja-titulo"><i class="fa-solid fa-star"></i> Clientes Más Activos</p>
+            <div class="item-lista">
+                <div class="avatar-letra">M</div>
+                <div class="item-info"><p class="item-nombre">María García</p><p class="item-sub">12 pedidos</p></div>
+                <span class="item-monto">$5,400</span>
+            </div>
+            <div class="item-lista">
+                <div class="avatar-letra">A</div>
+                <div class="item-info"><p class="item-nombre">Ana Rodríguez</p><p class="item-sub">15 pedidos</p></div>
+                <span class="item-monto">$7,800</span>
+            </div>
+            <div class="item-lista">
+                <div class="avatar-letra">L</div>
+                <div class="item-info"><p class="item-nombre">Luis Hernández</p><p class="item-sub">10 pedidos</p></div>
+                <span class="item-monto">$4,500</span>
+            </div>
+            <div class="item-lista">
+                <div class="avatar-letra">J</div>
+                <div class="item-info"><p class="item-nombre">Juan Pérez</p><p class="item-sub">8 pedidos</p></div>
+                <span class="item-monto">$3,040</span>
+            </div>
+            <div class="item-lista">
+                <div class="avatar-letra">E</div>
+                <div class="item-info"><p class="item-nombre">Elena Torres</p><p class="item-sub">7 pedidos</p></div>
+                <span class="item-monto">$3,150</span>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ═══════════ TRANSACCIONES RECIENTES ═══════════ -->
+    <section class="caja">
+        <p class="caja-titulo">Transacciones Recientes</p>
+        <div class="table-responsive">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Producto</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="td-id">T001</td>
+                        <td>María García</td>
+                        <td>Pastel de Cherry Pie</td>
+                        <td><strong>$450</strong></td>
+                        <td class="td-gris">2026-03-07</td>
+                        <td><span class="badge-estado badge-verde">Completado</span></td>
+                    </tr>
+                    <tr>
+                        <td class="td-id">T002</td>
+                        <td>Juan Pérez</td>
+                        <td>Tarta de Manzana</td>
+                        <td><strong>$380</strong></td>
+                        <td class="td-gris">2026-03-07</td>
+                        <td><span class="badge-estado badge-verde">Completado</span></td>
+                    </tr>
+                    <tr>
+                        <td class="td-id">T003</td>
+                        <td>Ana Rodríguez</td>
+                        <td>Pastel de Chocolate</td>
+                        <td><strong>$520</strong></td>
+                        <td class="td-gris">2026-03-06</td>
+                        <td><span class="badge-estado badge-amarillo">Pendiente</span></td>
+                    </tr>
+                    <tr>
+                        <td class="td-id">T004</td>
+                        <td>Carlos López</td>
+                        <td>Cherry Pie Especial</td>
+                        <td><strong>$680</strong></td>
+                        <td class="td-gris">2026-03-06</td>
+                        <td><span class="badge-estado badge-verde">Completado</span></td>
+                    </tr>
+                    <tr>
+                        <td class="td-id">T005</td>
+                        <td>Sofía Martínez</td>
+                        <td>Cupcakes Cherry</td>
+                        <td><strong>$290</strong></td>
+                        <td class="td-gris">2026-03-05</td>
+                        <td><span class="badge-estado badge-verde">Completado</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <a href="{% url 'transacciones' %}" class="btn-ver-todas">
+            <i class="fa-solid fa-arrow-right"></i> Ver Todas las Transacciones
+        </a>
+    </section>
 
 {% endblock %}

@@ -35,12 +35,13 @@ class Productos(ModeloBase):
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('aprobado', 'Aprobado'),
-        ('diarios', 'Diarios'), 
+        ('rechazado', 'Rechazado')
     ]
     
     CATEGORIA = [
         ('antojos', 'Antojos'),
         ('eventos', 'Eventos'),
+        ('diarios', 'Diarios'), 
     ]
     
     id_producto = models.AutoField(primary_key=True)
@@ -48,6 +49,7 @@ class Productos(ModeloBase):
     descripcion = models.CharField(max_length=200)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen = models.ImageField(upload_to='productos/')
+    motivo_rechazo = models.TextField(blank=True, null=True)
     vendedor = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
 
     categoria = models.CharField(
@@ -88,7 +90,7 @@ class Solicitudes(ModeloBase):
     pisos = models.IntegerField(default=1)
     porciones = models.IntegerField(null=True, blank=True)
     fecha_evento = models.DateField(null=True, blank=True)
-
+    
     # Precio y estado
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0)

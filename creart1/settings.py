@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -25,7 +26,11 @@ SECRET_KEY = 'django-insecure-x5j86f^p0^xdqkddoq!b*0q7(c-ckqzcs(6dl3i^bg#*hul825
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'python-creartsoft.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition
@@ -42,6 +47,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -72,12 +79,14 @@ WSGI_APPLICATION = 'creart1.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -110,27 +119,30 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+# ===================== STATIC FILES =====================
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-# ===================== MERCADOPAGO =====================
-# Cuando tengas tu cuenta, reemplaza estos valores y descomenta:
-# MERCADOPAGO_ACCESS_TOKEN = 'TEST-xxxxxxxxxxxxxxxxxxxx'
-# MERCADOPAGO_PUBLIC_KEY = 'TEST-xxxxxxxxxxxxxxxxxxxx'
 
-# Por ahora usamos modo simulado
-MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-7756347471270828-031815-63ad9159bc545ef0ed6cd8c620ef4ddf-3275706265'
-MERCADOPAGO_PUBLIC_KEY = 'APP_USR-383f7c20-62de-4242-b3ee-af214f709acb'
-MERCADOPAGO_SIMULADO = True  # cambiar a False cuando tengas credenciales
-# =======================================================
+# ========================================================
+
 
 # ===================== MERCADOPAGO =====================
+
 MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-7756347471270828-031815-63ad9159bc545ef0ed6cd8c620ef4ddf-3275706265'
+
 MERCADOPAGO_PUBLIC_KEY = 'APP_USR-383f7c20-62de-4242-b3ee-af214f709acb'
-MERCADOPAGO_SIMULADO = False  
+
+MERCADOPAGO_SIMULADO = False
+
 # =======================================================
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

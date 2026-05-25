@@ -1,0 +1,202 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+.page-title{font-size:22px;font-weight:500;color:#2a1010;margin-bottom:4px;}
+.page-sub{font-size:14px;color:#a07070;margin-bottom:2rem;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:#fff;border-radius:14px;padding:1.25rem;border:0.5px solid #e8d8d8;text-align:center;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#7a2d3e;}
+.stat-card label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;}
+.stat-card .valor{font-size:26px;font-weight:700;color:#7a2d3e;}
+.stat-card .sub{font-size:11px;color:#ccc;margin-top:3px;}
+.stat-card .icon{font-size:2rem;margin-bottom:.5rem;display:block;}
+
+/* Grid de receipts */
+.receipts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;}
+
+/* Receipt card */
+.receipt{background:#fff;border-radius:16px;border:0.5px solid #e8d8d8;overflow:hidden;transition:box-shadow .2s;}
+.receipt:hover{box-shadow:0 6px 24px rgba(120,50,60,0.10);}
+
+.receipt-top{background:linear-gradient(135deg,#7a2d3e,#a84460);padding:1.25rem;color:#fff;position:relative;}
+.receipt-top .r-id{font-size:11px;opacity:.75;margin-bottom:4px;}
+.receipt-top .r-producto{font-size:16px;font-weight:600;margin-bottom:2px;}
+.receipt-top .r-solicitud{font-size:11px;opacity:.7;}
+.receipt-top .r-estado{position:absolute;top:1rem;right:1rem;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;}
+.badge-abonado{background:rgba(255,255,255,0.2);color:#fff;}
+.badge-terminado{background:rgba(100,220,100,0.25);color:#d4ffcc;}
+
+/* Borde dentado entre top y body */
+.receipt-zigzag{height:16px;background:#fff;position:relative;}
+.receipt-zigzag::before{
+  content:'';position:absolute;top:-8px;left:0;right:0;height:16px;
+  background:radial-gradient(circle at 50% 0%, #fff 8px, transparent 8px),
+             repeating-linear-gradient(90deg, transparent 0, transparent 16px, #fff 16px, #fff 32px);
+  background-size:32px 16px;
+}
+.receipt-zigzag-top{height:16px;background:linear-gradient(135deg,#7a2d3e,#a84460);position:relative;}
+.receipt-zigzag-top::after{
+  content:'';position:absolute;bottom:-8px;left:0;right:0;height:16px;
+  background:radial-gradient(circle at 50% 100%, linear-gradient(135deg,#7a2d3e,#a84460) 8px, transparent 8px);
+  background:repeating-radial-gradient(circle at 16px 100%, transparent 0, transparent 8px, #fff 8px, #fff 9px) -16px 0 / 32px 100%;
+}
+
+/* Body del recibo */
+.receipt-body{padding:1rem 1.25rem;}
+.r-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px dashed #f0e8e8;font-size:13px;}
+.r-row:last-child{border-bottom:none;}
+.r-row .r-label{color:#aaa;font-size:12px;}
+.r-row .r-val{color:#2a1010;font-weight:500;}
+.r-row .r-val.monto{color:#7a2d3e;font-weight:700;font-size:15px;}
+.r-row .r-val.comision{color:#e67e22;font-size:12px;}
+
+/* Total */
+.receipt-total{background:#fdf5f5;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid #f0e0e0;}
+.receipt-total .t-label{font-size:13px;color:#7a2d3e;font-weight:600;}
+.receipt-total .t-monto{font-size:22px;font-weight:700;color:#7a2d3e;}
+
+/* Footer del recibo */
+.receipt-footer{padding:.75rem 1.25rem;background:#fafafa;border-top:0.5px solid #f5eaec;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
+.r-meta{font-size:11px;color:#ccc;display:flex;align-items:center;gap:5px;}
+.r-token{font-family:monospace;background:#f5f0f0;padding:3px 8px;border-radius:6px;font-size:11px;color:#885050;letter-spacing:2px;}
+
+/* Security badge */
+.r-ip{display:inline-flex;align-items:center;gap:4px;font-size:10px;background:#f0f5ff;color:#4a6fa5;padding:3px 8px;border-radius:6px;}
+
+/* Empty */
+.empty{text-align:center;padding:4rem;color:#b08080;background:#fff;border-radius:16px;border:0.5px solid #e8d8d8;}
+.empty-icon{font-size:3rem;margin-bottom:1rem;}
+
+@media(max-width:700px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .receipts-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<div class="main__content">
+
+  <p class="page-title">Mis Transacciones</p>
+  <p class="page-sub">Historial detallado de todos tus pagos</p>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <span class="icon"></span>
+      <label>Total pagado</label>
+      <span class="valor">${{ total_pagado|floatformat:0 }}</span>
+      <span class="sub">pesos colombianos</span>
+    </div>
+    <div class="stat-card">
+      <span class="icon"></span>
+      <label>Transacciones</label>
+      <span class="valor">{{ total_tx }}</span>
+      <span class="sub">pagos realizados</span>
+    </div>
+    <div class="stat-card">
+      <span class="icon"></span>
+      <label>Completadas</label>
+      <span class="valor">{{ terminadas }}</span>
+      <span class="sub">de {{ total_tx }} totales</span>
+    </div>
+    <div class="stat-card">
+      <span class="icon"></span>
+      <label>Abonadas</label>
+      <span class="valor">{{ abonadas }}</span>
+      <span class="sub">pagos parciales</span>
+    </div>
+  </div>
+
+  <!-- Receipts -->
+  {% if transacciones %}
+  <div class="receipts-grid">
+    {% for t in transacciones %}
+    <div class="receipt">
+
+      <!-- Top degradado -->
+      <div class="receipt-top">
+        <p class="r-id">TXN-{{ t.id_transaccion }}</p>
+        <p class="r-producto">{{ t.solicitud.producto.nombre }}</p>
+        <p class="r-solicitud">Solicitud #CRT-{{ t.solicitud.id_solicitud }}</p>
+        <span class="r-estado">
+          <span class="badge badge-{{ t.estado }}">
+            {% if t.estado == 'terminado' %}{% else %}{% endif %}
+            {{ t.estado|capfirst }}
+          </span>
+        </span>
+      </div>
+
+      <!-- Borde tipo recibo -->
+      <div style="height:12px;background:linear-gradient(135deg,#7a2d3e,#a84460);position:relative;">
+        <div style="position:absolute;bottom:-1px;left:0;right:0;height:12px;background:#fff;border-radius:50% 50% 0 0 / 100% 100% 0 0;"></div>
+      </div>
+
+      <!-- Cuerpo -->
+      <div class="receipt-body">
+        <div class="r-row">
+          <span class="r-label">Fecha</span>
+          <span class="r-val">{{ t.fecha_creacion|date:"d M Y" }}</span>
+        </div>
+        <div class="r-row">
+          <span class="r-label"> Hora</span>
+          <span class="r-val">{{ t.hora|time:"H:i" }}</span>
+        </div>
+        <div class="r-row">
+          <span class="r-label"> Método de pago</span>
+          <span class="r-val">
+            {% if t.metodo_pago %}{{ t.metodo_pago|capfirst }}{% else %}—{% endif %}
+          </span>
+        </div>
+        <div class="r-row">
+          <span class="r-label"> Moneda</span>
+          <span class="r-val">{{ t.moneda }}</span>
+        </div>
+        <div class="r-row">
+          <span class="r-label"> Comisiones / IVA</span>
+          <span class="r-val comision">
+            {% if t.comisiones %}+${{ t.comisiones|floatformat:0 }}{% else %}$0{% endif %}
+          </span>
+        </div>
+        <div class="r-row">
+          <span class="r-label"> Subtotal</span>
+          <span class="r-val">${{ t.importe_total|floatformat:0 }}</span>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="receipt-total">
+        <span class="t-label">TOTAL PAGADO</span>
+        <span class="t-monto">${{ t.importe_total|floatformat:0 }} <small style="font-size:12px;font-weight:400;color:#aaa;">{{ t.moneda }}</small></span>
+      </div>
+
+      <!-- Footer seguridad -->
+      <div class="receipt-footer">
+        {% if t.token %}
+        <span class="r-token">•••• •••• {{ t.token|slice:"-4:" }}</span>
+        {% endif %}
+        {% if t.ip_cliente %}
+        <span class="r-ip">🔒 IP: {{ t.ip_cliente }}</span>
+        {% endif %}
+        {% if t.mp_payment_id %}
+        <span class="r-meta"><i class="fa-solid fa-link" style="font-size:9px;"></i> MP: {{ t.mp_payment_id }}</span>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">🧾</div>
+    <p style="font-size:15px;margin-bottom:.5rem;">Aún no tienes transacciones.</p>
+    <p style="font-size:13px;color:#ccc;">Tus pagos aparecerán aquí una vez realices tu primer pedido.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

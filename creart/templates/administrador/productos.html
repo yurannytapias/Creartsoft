@@ -3,7 +3,6 @@
 {% block content %}
 
 <!-- ═══════════ SIDEBAR INHABILITADOS ═══════════ -->
-<!-- Botón y Sidebar -->
 <button class="mySidebar" id="activarSidebar" title="ver inhabilitados">
     <i class="fa-regular fa-eye"></i>
 </button>
@@ -18,7 +17,7 @@
                     <p class="pqrs-precio">{{ i.precio }}</p>
                 </div>
                 <div class="derecha">
-                    <p class="pqrs-fecha">{{i.fecha_creacion }}</p>
+                    <p class="pqrs-fecha">{{ i.fecha_creacion }}</p>
                     <p class="pqrs-vendedor">{{ i.vendedor.nombre }} {{ i.vendedor.apellido }}</p>
                     <p class="pqrs-estado">Inactivo</p>
                 </div>
@@ -28,9 +27,9 @@
         {% endfor %}
     </div>
 </div>
+
 <!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
 <section class="tarjetas-tx-grid">
-
     <div class="tarjeta-tx">
         <div class="tx-icono tx-icono-morado">
             <i class="fa-solid fa-box"></i>
@@ -40,7 +39,6 @@
             <p class="tx-etiqueta">Total Productos</p>
         </div>
     </div>
-
     <div class="tarjeta-tx">
         <div class="tx-icono tx-icono-amarillo">
             <i class="fa-solid fa-clock"></i>
@@ -50,7 +48,6 @@
             <p class="tx-etiqueta">Pendientes</p>
         </div>
     </div>
-
     <div class="tarjeta-tx">
         <div class="tx-icono tx-icono-verde">
             <i class="fa-solid fa-check"></i>
@@ -60,7 +57,6 @@
             <p class="tx-etiqueta">Aprobados</p>
         </div>
     </div>
-
     <div class="tarjeta-tx">
         <div class="tx-icono tx-icono-rojo">
             <i class="fa-solid fa-xmark"></i>
@@ -70,15 +66,140 @@
             <p class="tx-etiqueta">Rechazados</p>
         </div>
     </div>
-
+    <div class="tarjeta-tx">
+        <div class="tx-icono" style="background:#DBEAFE;">
+            <i class="fa-solid fa-dollar-sign" style="color:#1E3A8A;"></i>
+        </div>
+        <div>
+            <p class="tx-numero">${{ ingresos_totales|floatformat:0 }}</p>
+            <p class="tx-etiqueta">Ingresos Totales</p>
+        </div>
+    </div>
+    {% if top1 %}
+    <div class="tarjeta-tx">
+        <div class="tx-icono tx-icono-amarillo">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+            <p class="tx-numero" style="font-size:14px; line-height:1.3;">{{ top1.nombre }}</p>
+            <p class="tx-etiqueta">Producto #1</p>
+        </div>
+    </div>
+    {% endif %}
 </section>
 
-<!-- ═══════════ FILTROS ═══════════ -->
-<div class="filtros-tabs">
-    <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
-    <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
-    <button class="tab" onclick="filtrarPQRS(this,'aprobado')">Aprobados</button>
-    <button class="tab" onclick="filtrarPQRS(this,'rechazado')">Rechazados</button>
+<!-- ═══════════ REPORTE: GRÁFICA + RANKING ═══════════ -->
+<section class="caja" style="padding:20px 24px; margin-bottom:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <p style="font-weight:600; color:#2a1010; font-size:15px; margin:0;">
+            <i class="fa-solid fa-chart-bar" style="color:#7a2d3e; margin-right:6px;"></i>
+            Top 10 — Ventas pagadas por producto
+        </p>
+        <div style="display:flex; gap:8px;">
+            <a href="{% url 'reporte_productos_excel' %}"
+               style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px;
+                      background:#1d6f42; color:#fff; border-radius:8px; font-size:13px;
+                      text-decoration:none; font-weight:500;">
+                <i class="fa-solid fa-file-excel"></i> Excel
+            </a>
+            <a href="{% url 'reporte_productos_pdf' %}"
+               style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px;
+                      background:#c0392b; color:#fff; border-radius:8px; font-size:13px;
+                      text-decoration:none; font-weight:500;">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+            </a>
+        </div>
+    </div>
+    <canvas id="barProductos" height="90"></canvas>
+</section>
+
+<!-- Tabla ranking -->
+<section class="caja tabla-caja" style="margin-bottom:20px;">
+    <p style="font-weight:600; color:#2a1010; font-size:15px; margin:0 0 14px; padding:20px 24px 0;">
+        <i class="fa-solid fa-ranking-star" style="color:#7a2d3e; margin-right:6px;"></i>
+        Ranking completo de productos por ventas y solicitudes
+    </p>
+    <div class="table-responsive">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Vendedor</th>
+                    <th>Total solicitudes</th>
+                    <th>Ventas pagadas</th>
+                    <th>Ingresos generados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos_ranking %}
+                <tr {% if forloop.counter == 1 %}style="background:#FEF9C3; font-weight:600;"
+                    {% elif forloop.counter == 2 %}style="background:#F9FAFB;"
+                    {% elif forloop.counter == 3 %}style="background:#FEF3E2;"
+                    {% endif %}>
+                    <td style="text-align:center;">
+                        {% if forloop.counter == 1 %}
+                            <i class="fa-solid fa-trophy" style="color:#F59E0B;"></i>
+                        {% elif forloop.counter == 2 %}
+                            <i class="fa-solid fa-medal" style="color:#9CA3AF;"></i>
+                        {% elif forloop.counter == 3 %}
+                            <i class="fa-solid fa-medal" style="color:#D97706;"></i>
+                        {% else %}
+                            <span style="color:#aaa; font-size:13px;">{{ forloop.counter }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:500;">{{ p.nombre }}</td>
+                    <td><span class="tag tag-categoria">{{ p.get_categoria_display }}</span></td>
+                    <td style="color:#555;">{{ p.vendedor.nombre }} {{ p.vendedor.apellido }}</td>
+                    <td style="text-align:center; color:#555;">{{ p.total_solicitudes }}</td>
+                    <td style="text-align:center;">
+                        <strong style="color:#7a2d3e;">{{ p.solicitudes_pagadas }}</strong>
+                    </td>
+                    <td style="text-align:right; font-weight:600; color:#065F46;">
+                        {% if p.ingresos_generados %}
+                            ${{ p.ingresos_generados|floatformat:0 }}
+                        {% else %}
+                            <span style="color:#ccc;">$0</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center; color:#999; padding:40px;">
+                        <i class="fa-solid fa-inbox fa-2x" style="display:block; margin-bottom:10px; color:#ddd;"></i>
+                        No hay productos con ventas registradas aún.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ═══════════ BUSCADOR ═══════════ -->
+<div class="barra-herramientas">
+    <form method="get" class="busqueda-caja">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="busqueda-input" name="q" value="{{ q }}"
+            placeholder="Buscar por ID, cliente o producto..."/>
+    </form>
+    <div class="filtros-tabs">
+        <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
+        <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
+        <button class="tab" onclick="filtrarPQRS(this,'aprobado')">Aprobados</button>
+        <button class="tab" onclick="filtrarPQRS(this,'rechazado')">Rechazados</button>
+    </div>
+</div>
+
+<!-- ═══════════ Exportar lista ═══════════ -->
+<div class="exportar-grupo">
+    <a href="{% url 'productos_export_excel' %}" id="btn-excel" class="btn-exportar btn-excel">
+        <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+    <a href="{% url 'productos_export_pdf' %}" id="btn-pdf" class="btn-exportar btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
 </div>
 
 <!-- ═══════════ LAYOUT ═══════════ -->
@@ -86,8 +207,6 @@
 
     <!-- LISTA -->
     <div class="pqrs-lista">
-
-        <!-- TARJETA PRODUCTO -->
         {% for p in productos %}
             <div class="pqrs-tarjeta" data-estado="{{ p.estado_aprobacion }}"
                 onclick="abrirDetalle(
@@ -101,162 +220,160 @@
                     '{{ p.precio }}',
                     '{{ p.fecha_creacion }}'
                 )">
-
                 <div class="pqrs-contenido">
-
-                    <!-- IMAGEN <img src="" class="pqrs-img"> -->
-                    
-
-                    <!-- INFO -->
                     <div class="pqrs-info">
                         <div class="pqrs-cabecera">
                             <span class="tag tag-categoria">{{ p.categoria }}</span>
-
                             {% if p.estado_aprobacion == "pendiente" %}
-                                <span class="badge-estado  badge-amarillo">Pendiente</span>
+                                <span class="badge-estado badge-amarillo">Pendiente</span>
                             {% elif p.estado_aprobacion == "aprobado" %}
                                 <span class="badge-estado badge-verde">Aprobado</span>
                             {% else %}
                                 <span class="badge-estado badge-rojo">Rechazado</span>
                             {% endif %}
                         </div>
-
                         <p class="pqrs-titulo">{{ p.nombre }}</p>
                         <p class="pqrs-mensaje">{{ p.descripcion }}</p>
-
                         <div class="pqrs-footer">
                             <span class="pqrs-precio">${{ p.precio }}</span>
                             <span class="pqrs-usuario">
                                 {{ p.vendedor.nombre }} {{ p.vendedor.apellido }}
                             </span>
                         </div>
-
                         <p class="pqrs-fecha">
                             {{ p.fecha_creacion|date:"Y-m-d" }} · PROD{{ p.id_producto }}
                         </p>
                     </div>
-
                 </div>
             </div>
-            {% empty %}
+        {% empty %}
             <p>No hay productos.</p>
-            {% endfor %}
-
+        {% endfor %}
     </div>
 
     <!-- PANEL DERECHO -->
     <div class="pqrs-panel">
-
         <div class="panel-vacio" id="panelVacio">
             <i class="fa-solid fa-box fa-2x"></i>
             <p>Selecciona un producto para ver los detalles</p>
         </div>
-
         <div id="panelDetalle" style="display:none">
             <div class="panel-header">
                 <span class="panel-titulo">Detalle del producto</span>
-                    <span class="badge-estado" id="pd-estado"></span>
+                <span class="badge-estado" id="pd-estado"></span>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">ID</p>
                 <p class="pqrs-nombre" id="pd-ID"></p>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">Nombre</p>
                 <p class="pqrs-nombre" id="pd-nombre"></p>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">Descripción</p>
                 <p class="pqrs-mensaje" id="pd-mensaje"></p>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">Precio</p>
                 <p class="pqrs-precio" id="pd-precio"></p>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">Categoría</p>
                 <p class="pqrs-categoria" id="pd-tipo"></p>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">Propuesto por</p>
                 <p class="pqrs-categoria" id="pd-vendedor"></p>
             </div>
-
             <div class="panel-campo">
                 <p class="panel-clave">Fecha</p>
                 <p class="pqrs-categoria" id="pd-fecha"></p>
             </div>
-
             <form method="POST" id="formEstado" action="">
                 {% csrf_token %}
-                
                 <input type="hidden" name="accion" id="accionInput">
-                
-                <button class="aprobar"  type="button" onclick="aprobarProducto()">
-                    <i class="fa-solid fa-check"></i>
-                    Aprobar producto
+                <button class="aprobar" type="button" onclick="aprobarProducto()">
+                    <i class="fa-solid fa-check"></i> Aprobar producto
                 </button>
-
                 <div class="motivo_area">
                     <p>Motivo del rechazo (opcional)</p>
                     <textarea name="motivo" id="motivo"></textarea>
                     <button class="rechazo" id="rechazo" type="submit" onclick="rechazarProducto()">
-                        <i class="fa-solid fa-x"></i>
-                        Rechazar producto
+                        <i class="fa-solid fa-x"></i> Rechazar producto
                     </button>
                 </div>
             </form>
         </div>
-
     </div>
-
 </div>
+
+<!-- ═══════════ SCRIPTS ═══════════ -->
 <script>
+    // ── Gráfica top productos ──
+    document.addEventListener('DOMContentLoaded', function () {
+        var ctx = document.getElementById('barProductos');
+        if (!ctx || typeof Chart === 'undefined') return;
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels:   {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Ventas pagadas',
+                    data:  {{ chart_valores|safe }},
+                    backgroundColor: {{ chart_valores|safe }}.map((_, i) =>
+                        i === 0 ? '#F59E0B' : i === 1 ? '#9CA3AF' : i === 2 ? '#D97706' : '#7a2d3e'
+                    ),
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3eded' } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 30, font: { size: 11 } } }
+                }
+            }
+        });
+    });
+
+    // ── Filtros lista ──
     function filtrarPQRS(btn, estado) {
-        document.querySelectorAll('.filtros-tabs .tab').forEach(function(b) { b.classList.remove('activo'); });
+        document.querySelectorAll('.filtros-tabs .tab').forEach(b => b.classList.remove('activo'));
         btn.classList.add('activo');
-        document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) {
+        document.querySelectorAll('.pqrs-tarjeta').forEach(t => {
             t.style.display = (estado === 'todos' || t.dataset.estado === estado) ? '' : 'none';
         });
+        const param = estado === 'todos' ? '' : `?estado=${estado}`;
+        document.getElementById('btn-excel').href = `{% url 'productos_export_excel' %}${param}`;
+        document.getElementById('btn-pdf').href   = `{% url 'productos_export_pdf' %}${param}`;
     }
 
+    // ── Panel detalle ──
     function abrirDetalle(tarjeta, id, estado_aprobacion, categoria, vendedor, nombre, descripcion, precio, fecha) {
-
         document.getElementById('formEstado').action = `/producto/${id}/estado/`;
-        
         document.querySelectorAll('.pqrs-tarjeta').forEach(t => t.classList.remove('seleccionada'));
         tarjeta.classList.add('seleccionada');
-
-        document.getElementById('panelVacio').style.display = 'none';
+        document.getElementById('panelVacio').style.display   = 'none';
         document.getElementById('panelDetalle').style.display = '';
-        
 
-        document.getElementById('pd-ID').textContent = id;
-        let estadoEl = document.getElementById('pd-estado');
-        estadoEl.textContent = estado_aprobacion;
+        document.getElementById('pd-ID').textContent      = id;
+        const estadoEl = document.getElementById('pd-estado');
+        const estado   = estado_aprobacion.toLowerCase();
+        estadoEl.textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
+        estadoEl.className   = 'badge-estado';
+        if      (estado === 'pendiente') estadoEl.classList.add('badge-amarillo');
+        else if (estado === 'aprobado')  estadoEl.classList.add('badge-verde');
+        else if (estado === 'rechazado') estadoEl.classList.add('badge-rojo');
 
-        estadoEl.className = 'badge-estado'; // reset
-
-        if (estado_aprobacion === 'pendiente') {
-            estadoEl.classList.add('badge-amarillo');
-        } else if (estado_aprobacion === 'aprobado') {
-            estadoEl.classList.add('badge-verde');
-        } else {
-            estadoEl.classList.add('badge-rojo');
-        }
-
-        document.getElementById('pd-nombre').textContent = nombre;
-        document.getElementById('pd-mensaje').textContent = descripcion;
-        document.getElementById('pd-precio').textContent = "$" + precio;
-        document.getElementById('pd-tipo').textContent = categoria;
+        document.getElementById('pd-nombre').textContent   = nombre;
+        document.getElementById('pd-mensaje').textContent  = descripcion;
+        document.getElementById('pd-precio').textContent   = "$" + precio;
+        document.getElementById('pd-tipo').textContent     = categoria;
         document.getElementById('pd-vendedor').textContent = vendedor;
-        document.getElementById('pd-fecha').textContent = fecha;
+        document.getElementById('pd-fecha').textContent    = fecha;
     }
 
     function aprobarProducto() {
@@ -269,9 +386,9 @@
         document.getElementById('formEstado').submit();
     }
 
-    document.getElementById("activarSidebar").onclick = function() {
+    document.getElementById("activarSidebar").onclick = function () {
         document.getElementById("sidebar").classList.toggle("activo");
-    }
-    
+    };
 </script>
+
 {% endblock %}

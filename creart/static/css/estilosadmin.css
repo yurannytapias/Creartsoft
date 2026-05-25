@@ -380,19 +380,20 @@ header .opciones li.activo a {
 }
 
 
-/* ════════ BADGES ════════ */
 
-.badge-estado {
+/* ════════ BADGES ════════*/
+ .badge-estado {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
 }
+    
 
-.badge-verde {
-    background: var(--verde-fondo);
-    color: var(--verde);
+.badge-azul {
+    background: var(--azul-fondo);
+    color: var(--azul);
 }
 
 .badge-amarillo {
@@ -410,9 +411,9 @@ header .opciones li.activo a {
     color: var(--rosado);
 }
 
-.badge-naranja {
-    background: var(--amarillo-fondo);
-    color: var(--amarillo);
+.badge-verde {
+    background: var(--verde-fondo);
+    color: var(--verde);
 }
 
 .badge-gris {
@@ -580,71 +581,6 @@ header .opciones li.activo a {
 .btn-modal-confirmar:hover {
     background: #b71c1c;
 }
-
-
-/* ════════ BARRA HERRAMIENTAS ════════ */
-
-.barra-herramientas {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.busqueda-caja {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--color-blanco);
-    border: 1.5px solid var(--color-borde);
-    border-radius: var(--radio-sm);
-    padding: 8px 14px;
-    flex: 1;
-    max-width: 380px;
-    color: var(--color-gris);
-}
-
-.busqueda-input {
-    border: none;
-    outline: none;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 13.5px;
-    color: var(--color-texto);
-    background: transparent;
-    flex: 1;
-}
-
-.filtros-tabs {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.tab {
-    border: 1.5px solid var(--color-borde);
-    background: var(--color-blanco);
-    color: #555;
-    border-radius: 20px;
-    padding: 5px 16px;
-    font-size: 13px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.tab:hover {
-    border-color: var(--color-primario);
-    color: var(--color-primario);
-}
-
-.tab.activo {
-    background: var(--color-primario);
-    border-color: var(--color-primario);
-    color: #fff;
-    font-weight: 500;
-}
-
 
 /* ════════ USUARIOS ════════ */
 
@@ -911,12 +847,34 @@ header .opciones li.activo a {
     color: #e0e0e0;
 }
 
+form .form-control{
+    height: auto;
+    width: 100%;
+    border: 2px solid #4a1f3d;
+    border-radius: 5px;
+}
+/* Contenedor oculto por defecto */
+.none {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    margin-top: 0;
+}
+
+/* Cuando se activa (tarjeta clickeada) */
+.pqrs-tarjeta.active .none {
+    max-height: 500px; /* ajusta según contenido */
+    margin-top: 15px;
+}
+
+/* Contenido interno */
+.none_content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 /*sidebar ------------------------------------------------------------------>
 sidebar ------------------------------------------------------------------> */
-
-.mySidebar{
-    
-}
 
 .sidebar{
     position: fixed;
@@ -959,6 +917,34 @@ sidebar ------------------------------------------------------------------> */
     padding: 2px 4px;
 }
 
+.btn-responder:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cambiar_perfil .estado{
+    display: flex;
+	gap: 20px;
+}
+
+.cambiar_perfil .estado .aceptar{
+	background-color: #6D9E51;
+}
+
+.cambiar_perfil .estado .rechazar{
+	background-color: #C94A4A;
+}
+
+.cambiar_perfil .estado .rechazar,
+.cambiar_perfil .estado .aceptar{
+	border-radius: 15px;
+	padding: 20px;
+	color: #fff;
+	font-weight: bold;
+	border: none;
+	width: 100%;
+	margin-top: 30px;
+}
 /* ════════ PERFIL ════════ */
 
 .perfil-layout {
@@ -1152,7 +1138,6 @@ sidebar ------------------------------------------------------------------> */
     background: #e0e0e0;
 }
 
-
 /* Campo dentro del perfil */
 
 .campo {
@@ -1195,3 +1180,36 @@ sidebar ------------------------------------------------------------------> */
     margin-top: 4px;
 }
 
+/* ════════ EXPORTAR ════════ */
+
+.exportar-grupo {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-exportar {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: var(--radio-sm);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    text-decoration: none;
+    transition: opacity 0.15s;
+}
+
+.btn-exportar:hover {
+    opacity: 0.85;
+}
+
+.btn-excel {
+    background: #1d6f42;
+    color: #fff;
+}
+
+.btn-pdf {
+    background: #c62828;
+    color: #fff;
+}

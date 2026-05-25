@@ -120,10 +120,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 # ===================== MERCADOPAGO =====================
 # Cuando tengas tu cuenta, reemplaza estos valores y descomenta:
 # MERCADOPAGO_ACCESS_TOKEN = 'TEST-xxxxxxxxxxxxxxxxxxxx'
@@ -134,3 +132,11 @@ MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-7756347471270828-031815-63ad9159bc545ef0ed6c
 MERCADOPAGO_PUBLIC_KEY = 'APP_USR-383f7c20-62de-4242-b3ee-af214f709acb'
 MERCADOPAGO_SIMULADO = True  # cambiar a False cuando tengas credenciales
 # =======================================================
+
+# ===================== MERCADOPAGO =====================
+MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-7756347471270828-031815-63ad9159bc545ef0ed6cd8c620ef4ddf-3275706265'
+MERCADOPAGO_PUBLIC_KEY = 'APP_USR-383f7c20-62de-4242-b3ee-af214f709acb'
+MERCADOPAGO_SIMULADO = False  
+# =======================================================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

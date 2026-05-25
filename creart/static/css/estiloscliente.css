@@ -420,3 +420,9 @@ body {
 .menu li.active a {
     color: #fff;
 }
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden; /* ← agrega esto */
+}

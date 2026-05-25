@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib import messages
 from django.db.models import Count, Sum, Avg, Q
 from django.conf import settings
 from django.utils import timezone
@@ -9,24 +10,40 @@ from django.utils.timezone import now
 import mercadopago
 from datetime import timedelta
 import json
-
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Border, Side
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.core.paginator import Paginator
+import os, zipfile, csv, shutil
+from io import TextIOWrapper
+from django.core.files import File
 from .models import Roles, Permisos, Usuarios, Solicitudes, Productos, PQRS, Transacciones
+import re
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  PÁGINAS GENERALES
-# ═══════════════════════════════════════════════════════════════════
-
-def index(request):
-    return render(request, 'index.html')
+# ════════════════════════════════════════════════════════════════════
 
 def inicio(request):
     return render(request, 'inicio.html')
 
 
-# ═══════════════════════════════════════════════════════════════════
+def index(request):
+    usuario = get_usuario_sesion(request)
+    return render(request, 'index.html', {
+        'usuario': usuario,
+        'es_index': True,
+    })
+
+
+# ════════════════════════════════════════════════════════════════════
 #  PROTECTORES DE SESIÓN
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 def login_requerido(vista):
     """Redirige al login si no hay sesión activa."""
@@ -49,62 +66,73 @@ def get_usuario_sesion(request):
     return None
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  AUTENTICACIÓN
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 def registrar_usuario(request):
-    """Registra un nuevo usuario con rol 'cliente'."""
     if request.method != "POST":
         return render(request, "inicio.html")
 
-    rol_cliente = Roles.objects.get(nombre="cliente")
-    Usuarios.objects.create(
-        nombre=request.POST.get("nombre"),
-        apellido=request.POST.get("apellido"),
-        correo=request.POST.get("correo"),
-        numero=request.POST.get("numero"),
-        direccion=request.POST.get("direccion", ""),
-        contrasena=make_password(request.POST.get("contrasena")),
-        rol=rol_cliente,
-    )
-    return redirect("inicio")
+    correo     = request.POST.get("correo")
+    contrasena = request.POST.get("contrasena")
+    nombre     = request.POST.get("nombre")
+    apellido   = request.POST.get("apellido")
+    numero     = request.POST.get("numero")
+    direccion  = request.POST.get("direccion", "")
 
+    if not all([nombre, apellido, correo, numero, contrasena]):
+        messages.warning(request, "Todos los campos son obligatorios.")
+        return redirect("inicio")
 
-def registrar_vendedor(request):
-    """Registra un nuevo usuario con rol 'vendedor'."""
-    if request.method != "POST":
-        return render(request, "inicio.html")
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', correo):
+        messages.error(request, "El correo no es válido. Ej: nombre@dominio.com")
+        return redirect("inicio")
 
-    rol_vendedor = Roles.objects.get(nombre="vendedor")
-    Usuarios.objects.create(
-        nombre=request.POST.get("nombre"),
-        apellido=request.POST.get("apellido"),
-        correo=request.POST.get("correo"),
-        numero=request.POST.get("numero"),
-        direccion=request.POST.get("direccion", ""),
-        contrasena=make_password(request.POST.get("contrasena")),
-        rol=rol_vendedor,
-    )
-    return redirect("inicio")
+    if Usuarios.objects.filter(correo=correo).exists():
+        messages.error(request, "Este correo ya está registrado.")
+        return redirect("inicio")
+
+    try:
+        rol_cliente = Roles.objects.get(nombre="cliente")
+        Usuarios.objects.create(
+            nombre=nombre,
+            apellido=apellido,
+            correo=correo,
+            numero=numero,
+            direccion=direccion,
+            contrasena=make_password(contrasena),
+            rol=rol_cliente,
+        )
+        messages.success(request, "¡Cuenta creada exitosamente! Ya puedes iniciar sesión.")
+        return redirect("inicio")
+    except Exception:
+        messages.error(request, "Ocurrió un error al crear la cuenta. Intenta de nuevo.")
+        return redirect("inicio")
 
 
 def login_usuario(request):
-    #Autentica al usuario por correo y contraseña hasheada.
     if request.method != "POST":
         return render(request, "inicio.html")
 
-    correo = request.POST.get("correo")
-    contrasena = request.POST.get("contrasena")
+    correo     = request.POST.get("correo", "").strip()
+    contrasena = request.POST.get("contrasena", "").strip()
+
+    if not correo or not contrasena:
+        messages.warning(request, "Por favor, completa todos los campos obligatorios.")
+        return redirect("inicio")
 
     try:
         usuario = Usuarios.objects.get(correo=correo)
 
         if not check_password(contrasena, usuario.contrasena):
-            return render(request, "inicio.html", {"error": "Contraseña incorrecta"})
+            messages.error(request, "La contraseña es incorrecta. Por favor, inténtalo de nuevo.")
+            return redirect("inicio")
 
-        request.session['usuario_id'] = usuario.id_usuario
+        request.session['usuario_id']     = usuario.id_usuario
         request.session['usuario_nombre'] = usuario.nombre
+
+        messages.success(request, "¡Bienvenido/a de nuevo! Has iniciado sesión correctamente.")
 
         rol = usuario.rol.nombre
         if rol == "administrador":
@@ -113,50 +141,47 @@ def login_usuario(request):
             return redirect("vendedor")
         if rol == "cliente":
             return redirect("catalogo")
+        return redirect("index")
 
     except Usuarios.DoesNotExist:
-        return render(request, 'inicio.html', {'error': 'Usuario no existe'})
+        messages.error(request, "No existe una cuenta con ese correo electrónico.")
+        return redirect("inicio")
 
 
 def cerrar_sesion(request):
     request.session.flush()
-    return redirect('inicio')
+    messages.success(request, "Has cerrado sesión correctamente. ¡Hasta pronto!")
+    return redirect("inicio")
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  ADMINISTRADOR
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 @login_requerido
 def administrador(request):
     usuario = get_usuario_sesion(request)
 
-    ventas_totales = Transacciones.objects.aggregate(
-        total=Sum('importe_total'))['total'] or 0
- 
-    pedidos_total = Transacciones.objects.count()
-
-    clientes_total = Usuarios.objects.filter(
-        rol__nombre__iexact='cliente').count()
-
-    promedio_venta = Transacciones.objects.aggregate(
-        prom=Avg('importe_total'))['prom'] or 0
+    ventas_totales = Transacciones.objects.aggregate(total=Sum('importe_total'))['total'] or 0
+    pedidos_total  = Transacciones.objects.count()
+    clientes_total = Usuarios.objects.filter(rol__nombre__iexact='cliente').count()
+    promedio_venta = Transacciones.objects.aggregate(prom=Avg('importe_total'))['prom'] or 0
 
     transacciones_recientes = (
         Transacciones.objects
-        .select_related('solicitud__usuarios')
+        .select_related('solicitud__usuario', 'solicitud__producto')
         .order_by('-fecha_creacion')[:5]
     )
 
     hoy = timezone.now()
-    ventas_mensuales = []
+    ventas_mensuales  = []
     pedidos_mensuales = []
 
     for i in range(5, -1, -1):
-        fecha = hoy - timedelta(days=30 * i)
+        fecha      = hoy - timedelta(days=30 * i)
         mes_inicio = fecha.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        siguiente = fecha.replace(day=28) + timedelta(days=4)
-        mes_fin = siguiente.replace(day=1) if i != 0 else hoy
+        siguiente  = fecha.replace(day=28) + timedelta(days=4)
+        mes_fin    = siguiente.replace(day=1) if i != 0 else hoy
 
         total = Transacciones.objects.filter(
             fecha_creacion__gte=mes_inicio,
@@ -188,253 +213,2270 @@ def administrador(request):
     )
 
     context = {
-        'usuario': usuario,
-        'ventas_totales': ventas_totales,
-        'pedidos_total': pedidos_total,
-        'clientes_total': clientes_total,
-        'promedio_venta': round(float(promedio_venta), 2),
+        'usuario':               usuario,
+        'ventas_totales':        ventas_totales,
+        'pedidos_total':         pedidos_total,
+        'clientes_total':        clientes_total,
+        'promedio_venta':        round(float(promedio_venta), 2),
         'transacciones_recientes': transacciones_recientes,
         'ventas_mensuales_json': json.dumps(ventas_mensuales),
-        'pedidos_mensuales': pedidos_mensuales,
-        'productos_top': productos_top,
-        'clientes_top': clientes_top,
-        'pagina_activa': 'administrador',
+        'pedidos_mensuales_json': json.dumps(pedidos_mensuales),
+        'pedidos_mensuales':     pedidos_mensuales,
+        'productos_top':         productos_top,
+        'clientes_top':          clientes_top,
+        'pagina_activa':         'administrador',
     }
     return render(request, 'administrador/administrador.html', context)
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  USUARIOS (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 @login_requerido
 def usuarios(request):
     usuario = get_usuario_sesion(request)
 
-    q = request.GET.get('q', '').strip()
+    # ── REGISTRAR ──
+    if request.method == 'POST' and request.POST.get('accion') == 'registrar_usuario':
+        nombre     = request.POST.get('nombre', '').strip()
+        apellido   = request.POST.get('apellido', '').strip()
+        correo     = request.POST.get('correo', '').strip().lower()
+        numero     = request.POST.get('numero', '').strip()
+        direccion  = request.POST.get('direccion', '').strip()
+        contrasena = request.POST.get('contrasena', '')
+        rol_nombre = request.POST.get('rol', '').strip()
+
+        if not all([nombre, apellido, correo, numero, contrasena, rol_nombre]):
+            messages.warning(request, "Todos los campos son obligatorios.")
+            return redirect('usuarios')
+
+        if Usuarios.objects.filter(correo=correo).exists():
+            messages.error(request, f"El correo {correo} ya está registrado.")
+            return redirect('usuarios')
+
+        try:
+            rol_obj = Roles.objects.get(nombre=rol_nombre)
+            Usuarios.objects.create(
+                nombre=nombre, apellido=apellido, correo=correo,
+                numero=numero, direccion=direccion or None,
+                contrasena=make_password(contrasena),
+                rol=rol_obj, estado=True,
+            )
+            messages.success(request, f"Usuario {nombre} {apellido} registrado exitosamente.")
+        except Roles.DoesNotExist:
+            messages.error(request, f"El rol '{rol_nombre}' no existe en la base de datos.")
+        except Exception:
+            messages.error(request, "Ocurrió un error al registrar el usuario. Intenta de nuevo.")
+
+        return redirect('usuarios')
+
+    # ── TOGGLE ESTADO ──
+    if request.method == 'POST' and request.POST.get('accion') == 'toggle_estado':
+        uid = request.POST.get('usuario_id')
+        try:
+            u = Usuarios.objects.get(pk=uid)
+            u.estado = not u.estado
+            u.save()
+            estado_txt = "activado" if u.estado else "desactivado"
+            messages.success(request, f"Usuario {u.nombre} {u.apellido} {estado_txt} correctamente.")
+        except Usuarios.DoesNotExist:
+            messages.error(request, "No se encontró el usuario.")
+        return redirect('usuarios')
+
+# ── LISTADO ──
+    q          = request.GET.get('q', '').strip()
     rol_filtro = request.GET.get('rol', '').strip()
 
-    qs = Usuarios.objects.select_related('Roles').all()
-
+    qs = Usuarios.objects.select_related('rol').all()
     if q:
         qs = qs.filter(
-            Q(nombre__icontains=q) |
-            Q(apellido__icontains=q) |
-            Q(correo__icontains=q) |
-            Q(documento__icontains=q)
+            Q(nombre__icontains=q) | Q(apellido__icontains=q) |
+            Q(correo__icontains=q) | Q(numero__icontains=q)
         )
-
     if rol_filtro:
         qs = qs.filter(rol__nombre__iexact=rol_filtro)
 
+    # ── REPORTE: Clientes nuevos vs recurrentes ──
+    clientes_qs = Usuarios.objects.filter(rol__nombre__iexact='cliente')
+
+    clientes_con_pedidos = (
+        clientes_qs
+        .annotate(total_pedidos=Count('solicitudes'))
+        .values('id_usuario', 'nombre', 'apellido', 'total_pedidos')
+    )
+
+    total_clientes_reporte = clientes_qs.count()
+    recurrentes = [c for c in clientes_con_pedidos if c['total_pedidos'] > 1]
+    nuevos      = [c for c in clientes_con_pedidos if c['total_pedidos'] <= 1]
+    tasa_retencion = round((len(recurrentes) / total_clientes_reporte * 100), 1) if total_clientes_reporte else 0
+
+    # ── REPORTE: LTV por cliente ──
+    ltv_clientes = (
+        clientes_qs
+        .annotate(
+            total_pedidos=Count('solicitudes'),
+            ltv=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            )
+        )
+        .values('id_usuario', 'nombre', 'apellido', 'total_pedidos', 'ltv')
+        .order_by('-ltv')
+    )
+
     context = {
-        'usuario': usuario,
-        'usuarios': qs,
-        'total_usuarios': Usuarios.objects.count(),
-        'roles': Roles.objects.all(),
-        'q': q,
-        'rol_filtro': rol_filtro,
-        'pagina_activa': 'usuarios',
+        'usuario':               usuario,
+        'usuarios':              qs,
+        'roles':                 Roles.objects.all(),
+        'total_usuarios':        Usuarios.objects.count(),
+        'total_activos':         Usuarios.objects.filter(estado=True).count(),
+        'total_clientes':        Usuarios.objects.filter(rol__nombre__iexact='cliente').count(),
+        'total_vendedores':      Usuarios.objects.filter(rol__nombre__iexact='vendedor').count(),
+        'q':                     q,
+        'rol_filtro':            rol_filtro,
+        'pagina_activa':         'usuarios',
+        'total_clientes_reporte': total_clientes_reporte,
+        'total_nuevos':          len(nuevos),
+        'total_recurrentes':     len(recurrentes),
+        'tasa_retencion':        tasa_retencion,
+        'ltv_clientes':          list(ltv_clientes),
+        'ltv_top5':              list(ltv_clientes[:5]),
     }
+
     return render(request, 'administrador/usuarios.html', context)
 
+@login_requerido
+def usuarios_export_excel(request):
+    q          = request.GET.get('q', '').strip()
+    rol_filtro = request.GET.get('rol', '').strip()
 
-# ═══════════════════════════════════════════════════════════════════
+    qs = Usuarios.objects.select_related('rol').all()
+    if q:
+        qs = qs.filter(
+            Q(nombre__icontains=q) | Q(apellido__icontains=q) |
+            Q(correo__icontains=q) | Q(numero__icontains=q)
+        )
+    if rol_filtro:
+        qs = qs.filter(rol__nombre__iexact=rol_filtro)
+
+    if not qs.exists():
+        messages.warning(request, "No hay usuarios para exportar.")
+        return redirect('usuarios')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Usuarios"
+
+    header_fill = PatternFill("solid", fgColor="7a2d3e")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    header_alig = Alignment(horizontal="center", vertical="center")
+
+    headers = ["ID", "Nombre", "Apellido", "Correo", "Número", "Rol", "Estado", "Fecha registro"]
+    ws.append(headers)
+    for col_num, _ in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    for u in qs:
+        ws.append([
+            u.id_usuario, u.nombre, u.apellido, u.correo, u.numero,
+            u.rol.nombre if u.rol else '',
+            'Activo' if u.estado else 'Inactivo',
+            u.fecha_creacion.strftime("%Y-%m-%d"),
+        ])
+
+    for i, ancho in enumerate([8, 20, 20, 30, 16, 14, 10, 16], 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="usuarios.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_requerido
+def usuarios_export_pdf(request):
+    q          = request.GET.get('q', '').strip()
+    rol_filtro = request.GET.get('rol', '').strip()
+
+    qs = Usuarios.objects.select_related('rol').all()
+    if q:
+        qs = qs.filter(
+            Q(nombre__icontains=q) | Q(apellido__icontains=q) |
+            Q(correo__icontains=q) | Q(numero__icontains=q)
+        )
+    if rol_filtro:
+        qs = qs.filter(rol__nombre__iexact=rol_filtro)
+
+    if not qs.exists():
+        messages.warning(request, "No hay usuarios para exportar.")
+        return redirect('usuarios')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="usuarios.pdf"'
+
+    doc      = SimpleDocTemplate(response, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=30, bottomMargin=20)
+    styles   = getSampleStyleSheet()
+    elements = [Paragraph("<b>Reporte de Usuarios</b>", styles['Title']), Spacer(1, 12)]
+
+    data = [["ID", "Nombre", "Apellido", "Correo", "Número", "Rol", "Estado", "Fecha"]]
+    for u in qs:
+        data.append([
+            str(u.id_usuario), u.nombre, u.apellido, u.correo, u.numero,
+            u.rol.nombre if u.rol else '',
+            'Activo' if u.estado else 'Inactivo',
+            u.fecha_creacion.strftime("%Y-%m-%d"),
+        ])
+
+    tabla = Table(data, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#7a2d3e')),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fdf5f5')]),
+        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e0c8c8')),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tabla)
+    doc.build(elements)
+    return response
+
+@login_requerido
+def crm_export_excel(request):
+    from django.db.models import Count, Sum, Q
+
+    clientes_qs = Usuarios.objects.filter(rol__nombre__iexact='cliente')
+
+    clientes_data = (
+        clientes_qs
+        .annotate(
+            total_pedidos=Count('solicitudes'),
+            ltv=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            )
+        )
+        .values('id_usuario', 'nombre', 'apellido', 'total_pedidos', 'ltv')
+        .order_by('-ltv')
+    )
+
+    wb = openpyxl.Workbook()
+
+    # ── Hoja 1: Nuevos vs Recurrentes ──
+    ws1 = wb.active
+    ws1.title = "Nuevos vs Recurrentes"
+
+    header_fill = PatternFill("solid", fgColor="612D53")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    header_alig = Alignment(horizontal="center", vertical="center")
+
+    ws1.append(["Reporte: Clientes Nuevos vs Recurrentes"])
+    ws1['A1'].font = Font(bold=True, size=13, color="612D53")
+    ws1.append([])
+
+    total = clientes_qs.count()
+    recurrentes = [c for c in clientes_data if c['total_pedidos'] > 1]
+    nuevos      = [c for c in clientes_data if c['total_pedidos'] <= 1]
+    tasa = round(len(recurrentes) / total * 100, 1) if total else 0
+
+    resumen_headers = ["Total clientes", "Clientes nuevos", "Clientes recurrentes", "Tasa de retención (%)"]
+    ws1.append(resumen_headers)
+    for col_num in range(1, 5):
+        cell = ws1.cell(row=3, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    ws1.append([total, len(nuevos), len(recurrentes), tasa])
+    ws1.append([])
+
+    detalle_headers = ["ID", "Nombre", "Apellido", "Total pedidos", "Tipo"]
+    ws1.append(detalle_headers)
+    for col_num in range(1, 6):
+        cell = ws1.cell(row=6, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    for c in clientes_data:
+        tipo = "Recurrente" if c['total_pedidos'] > 1 else "Nuevo"
+        ws1.append([c['id_usuario'], c['nombre'], c['apellido'], c['total_pedidos'], tipo])
+
+    for i, ancho in enumerate([8, 20, 20, 16, 14], 1):
+        ws1.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    # ── Hoja 2: LTV Clientes ──
+    ws2 = wb.create_sheet(title="LTV Clientes")
+
+    ws2.append(["Reporte: Valor de Vida del Cliente (LTV)"])
+    ws2['A1'].font = Font(bold=True, size=13, color="612D53")
+    ws2.append([])
+
+    ltv_headers = ["#", "ID", "Nombre", "Apellido", "Total pedidos", "Tipo", "LTV acumulado ($)"]
+    ws2.append(ltv_headers)
+    for col_num in range(1, 8):
+        cell = ws2.cell(row=3, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    for idx, c in enumerate(clientes_data, 1):
+        tipo = "Recurrente" if c['total_pedidos'] > 1 else "Nuevo"
+        ltv_val = c['ltv'] or 0
+        ws2.append([idx, c['id_usuario'], c['nombre'], c['apellido'],
+                    c['total_pedidos'], tipo, round(ltv_val, 2)])
+
+    for i, ancho in enumerate([6, 8, 20, 20, 16, 14, 20], 1):
+        ws2.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_crm.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_requerido
+def crm_export_pdf(request):
+    from django.db.models import Count, Sum, Q
+
+    clientes_qs = Usuarios.objects.filter(rol__nombre__iexact='cliente')
+
+    clientes_data = list(
+        clientes_qs
+        .annotate(
+            total_pedidos=Count('solicitudes'),
+            ltv=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            )
+        )
+        .values('id_usuario', 'nombre', 'apellido', 'total_pedidos', 'ltv')
+        .order_by('-ltv')
+    )
+
+    total = clientes_qs.count()
+    recurrentes = [c for c in clientes_data if c['total_pedidos'] > 1]
+    nuevos      = [c for c in clientes_data if c['total_pedidos'] <= 1]
+    tasa = round(len(recurrentes) / total * 100, 1) if total else 0
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_crm.pdf"'
+
+    doc      = SimpleDocTemplate(response, pagesize=landscape(A4),
+                                  leftMargin=20, rightMargin=20,
+                                  topMargin=30, bottomMargin=20)
+    styles   = getSampleStyleSheet()
+    elements = []
+
+    COLOR_HEADER = colors.HexColor('#612D53')
+    COLOR_ALT    = colors.HexColor('#fdf5f5')
+
+    style_tabla = TableStyle([
+        ('BACKGROUND',     (0, 0), (-1, 0), COLOR_HEADER),
+        ('TEXTCOLOR',      (0, 0), (-1, 0), colors.white),
+        ('FONTNAME',       (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0, 0), (-1, 0), 9),
+        ('ALIGN',          (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN',         (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTSIZE',       (0, 1), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, COLOR_ALT]),
+        ('GRID',           (0, 0), (-1, -1), 0.4, colors.HexColor('#e0c8c8')),
+        ('ROWHEIGHT',      (0, 0), (-1, -1), 20),
+    ])
+
+    # ── Sección 1: Resumen nuevos vs recurrentes ──
+    elements.append(Paragraph("<b>Reporte CRM — Clientes Nuevos vs Recurrentes</b>", styles['Title']))
+    elements.append(Spacer(1, 8))
+
+    resumen_data = [
+        ["Total clientes", "Clientes nuevos", "Clientes recurrentes", "Tasa de retención"],
+        [str(total), str(len(nuevos)), str(len(recurrentes)), f"{tasa}%"],
+    ]
+    t_resumen = Table(resumen_data, colWidths=[130, 130, 130, 130])
+    t_resumen.setStyle(style_tabla)
+    elements.append(t_resumen)
+    elements.append(Spacer(1, 14))
+
+    detalle_data = [["ID", "Nombre", "Apellido", "Pedidos", "Tipo"]]
+    for c in clientes_data:
+        tipo = "Recurrente" if c['total_pedidos'] > 1 else "Nuevo"
+        detalle_data.append([
+            str(c['id_usuario']), c['nombre'], c['apellido'],
+            str(c['total_pedidos']), tipo,
+        ])
+    t_detalle = Table(detalle_data, repeatRows=1)
+    t_detalle.setStyle(style_tabla)
+    elements.append(t_detalle)
+
+    # ── Sección 2: LTV ──
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("<b>Reporte CRM — Valor de Vida del Cliente (LTV)</b>", styles['Title']))
+    elements.append(Spacer(1, 8))
+
+    ltv_data = [["#", "ID", "Nombre", "Apellido", "Pedidos", "Tipo", "LTV ($)"]]
+    for idx, c in enumerate(clientes_data, 1):
+        tipo    = "Recurrente" if c['total_pedidos'] > 1 else "Nuevo"
+        ltv_val = c['ltv'] or 0
+        ltv_data.append([
+            str(idx), str(c['id_usuario']), c['nombre'], c['apellido'],
+            str(c['total_pedidos']), tipo,
+            f"${ltv_val:,.0f}",
+        ])
+    t_ltv = Table(ltv_data, repeatRows=1)
+    t_ltv.setStyle(style_tabla)
+    elements.append(t_ltv)
+
+    doc.build(elements)
+    return response
+
+
+# ════════════════════════════════════════════════════════════════════
 #  TRANSACCIONES (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
+
+def _filtrar_transacciones(request):
+    """Helper sin decorador."""
+    q           = request.GET.get('q', '').strip()
+    estado      = request.GET.get('estado', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+
+    qs = Transacciones.objects.select_related(
+        'solicitud__usuario', 'solicitud__producto'
+    ).order_by('-fecha_creacion')
+
+    if q:
+        qs = qs.filter(
+            Q(id_transaccion__icontains=q) |
+            Q(solicitud__usuario__nombre__icontains=q) |
+            Q(solicitud__usuario__apellido__icontains=q) |
+            Q(solicitud__producto__nombre__icontains=q)
+        )
+    if estado:
+        qs = qs.filter(estado=estado)
+    if fecha_desde:
+        qs = qs.filter(fecha_creacion__date__gte=fecha_desde)
+    if fecha_hasta:
+        qs = qs.filter(fecha_creacion__date__lte=fecha_hasta)
+
+    return qs
+
 
 @login_requerido
 def transacciones(request):
     usuario = get_usuario_sesion(request)
-
-    q = request.GET.get('q', '').strip()
-
-    qs = Transacciones.objects.select_related(
-        'solicitud__usuarios'
-    ).order_by('-fecha_creacion')
-
-    if q:
-        qs = qs.filter(
-            Q(id_pedido__icontains=q) |
-            Q(solicitud__Usuarios__nombre__icontains=q) |
-            Q(solicitud__Usuarios__apellido__icontains=q)
-        )
-
-    total_tx = Transacciones.objects.count()
+    qs      = _filtrar_transacciones(request)
 
     context = {
-        'usuario': usuario,
+        'usuario':       usuario,
         'transacciones': qs,
-        'completadas': total_tx,
-        'pendientes': 0,
-        'devueltas': 0,
-        'total_tx': total_tx,
-        'q': q,
+        'completadas':   qs.filter(estado='terminado').count(),
+        'abonadas':      qs.filter(estado='abonado').count(),
+        'total_tx':      qs.count(),
+        'q':             request.GET.get('q', ''),
+        'f_estado':      request.GET.get('estado', ''),
+        'f_desde':       request.GET.get('fecha_desde', ''),
+        'f_hasta':       request.GET.get('fecha_hasta', ''),
         'pagina_activa': 'transacciones',
     }
     return render(request, 'administrador/transacciones.html', context)
 
-# ═══════════════════════════════════════════════════════════════════
-#  PRODUCTOS (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
 
 @login_requerido
-def productos(request):
-    usuarios = get_usuario_sesion(request)
+def transacciones_export_excel(request):
+    qs = _filtrar_transacciones(request)
 
-    q = request.GET.get('q', '').strip()
+    if not qs.exists():
+        messages.warning(request, "No hay transacciones para exportar.")
+        return redirect('transacciones')
 
-    qs = Productos.objects.select_related('vendedor')\
-    .filter(estado=True)\
-    .order_by('-fecha_creacion')
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Transacciones"
 
+    header_fill = PatternFill("solid", fgColor="7a2d3e")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    header_alig = Alignment(horizontal="center", vertical="center")
+
+    headers = ["ID", "Cliente", "Producto", "Importe", "Moneda", "Método pago", "Estado", "Fecha"]
+    ws.append(headers)
+    for col_num, _ in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    for t in qs:
+        if t.solicitud:
+            cliente  = f"{t.solicitud.usuario.nombre} {t.solicitud.usuario.apellido}" if t.solicitud.usuario else t.solicitud.nombre_invitado or 'Invitado'
+            producto = t.solicitud.producto.nombre
+        else:
+            cliente = producto = ''
+        ws.append([
+            f"#{t.id_transaccion}", cliente, producto, float(t.importe_total),
+            t.moneda, t.metodo_pago, t.estado, t.fecha_creacion.strftime("%Y-%m-%d"),
+        ])
+
+    for i, ancho in enumerate([10, 25, 25, 14, 10, 18, 12, 14], 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="transacciones.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_requerido
+def transacciones_export_pdf(request):
+    qs = _filtrar_transacciones(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay transacciones para exportar.")
+        return redirect('transacciones')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="transacciones.pdf"'
+
+    doc      = SimpleDocTemplate(response, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=30, bottomMargin=20)
+    styles   = getSampleStyleSheet()
+    elements = [Paragraph("<b>Reporte de Transacciones</b>", styles['Title']), Spacer(1, 12)]
+
+    data = [["ID", "Cliente", "Producto", "Importe", "Método pago", "Estado", "Fecha"]]
+    for t in qs:
+        if t.solicitud:
+            cliente  = f"{t.solicitud.usuario.nombre} {t.solicitud.usuario.apellido}" if t.solicitud.usuario else t.solicitud.nombre_invitado or 'Invitado'
+            producto = t.solicitud.producto.nombre
+        else:
+            cliente = producto = ''
+        data.append([
+            f"#{t.id_transaccion}", cliente, producto, f"${t.importe_total}",
+            t.metodo_pago, t.estado.capitalize(), t.fecha_creacion.strftime("%Y-%m-%d"),
+        ])
+
+    tabla = Table(data, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#7a2d3e')),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fdf5f5')]),
+        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e0c8c8')),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tabla)
+    doc.build(elements)
+    return response
+
+
+# ════════════════════════════════════════════════════════════════════
+#  PRODUCTOS (ADMIN)
+# ════════════════════════════════════════════════════════════════════
+
+def _filtrar_productos(request):
+    q      = request.GET.get('q', '').strip()
+    estado = request.GET.get('estado', '').strip()
+
+    qs = Productos.objects.select_related('vendedor').order_by('-id_producto')
     if q:
         qs = qs.filter(
-            Q(id_producto__icontains=q) |
+            Q(nombre__icontains=q) |
             Q(vendedor__nombre__icontains=q) |
             Q(vendedor__apellido__icontains=q)
         )
-
+    if estado:
+        qs = qs.filter(estado_aprobacion=estado)
+    return qs
+@login_requerido
+def productos(request):
+    usuario    = get_usuario_sesion(request)
+    qs         = _filtrar_productos(request)
     pendientes = Productos.objects.filter(estado_aprobacion='pendiente').count()
-    aprobados = Productos.objects.filter(estado_aprobacion='aprobado').count()
+    aprobados  = Productos.objects.filter(estado_aprobacion='aprobado').count()
     rechazados = Productos.objects.filter(estado_aprobacion='rechazado').count()
-    inactivos = Productos.objects.filter(estado=False).order_by('-fecha_creacion')
-    total_tx = Productos.objects.count()
+    inactivos  = Productos.objects.filter(estado=False).order_by('-fecha_creacion')
+    total_tx   = Productos.objects.count()
+
+    # ── datos reporte ──
+    productos_ranking = (
+        Productos.objects
+        .filter(estado_aprobacion='aprobado')
+        .annotate(
+            total_solicitudes=Count('solicitudes__id_solicitud'),
+            solicitudes_pagadas=Count(
+                'solicitudes__id_solicitud',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+            ingresos_generados=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+        )
+        .order_by('-solicitudes_pagadas', '-total_solicitudes')[:20]
+    )
+
+    ingresos_totales = (
+        Solicitudes.objects
+        .filter(estado='pagada')
+        .aggregate(t=Sum('precio_total'))['t'] or 0
+    )
+    total_pagadas = Solicitudes.objects.filter(estado='pagada').count()
+    top1          = productos_ranking.first()
+
+    top10         = list(productos_ranking[:10])
+    chart_labels  = json.dumps([p.nombre for p in top10])
+    chart_valores = json.dumps([p.solicitudes_pagadas for p in top10])
 
     context = {
-        'usuario': usuarios,
-        'inactivos': inactivos,
-        'productos': qs,
-        'pendientes': pendientes,
-        'aprobados': aprobados,
-        'rechazados': rechazados,
-        'total_tx': total_tx,
+        'usuario':           usuario,
+        'inactivos':         inactivos,
+        'productos':         qs,
+        'pendientes':        pendientes,
+        'aprobados':         aprobados,
+        'rechazados':        rechazados,
+        'total_tx':          total_tx,
+        'q':                 request.GET.get('q', ''),
+        # reporte
+        'productos_ranking': productos_ranking,
+        'ingresos_totales':  ingresos_totales,
+        'total_pagadas':     total_pagadas,
+        'top1':              top1,
+        'chart_labels':      chart_labels,
+        'chart_valores':     chart_valores,
     }
-
     return render(request, 'administrador/productos.html', context)
-
-#acciones ------------------------------>
-#acciones ------------------------------>
 
 @login_requerido
 def cambiar_estado_producto(request, id_producto):
     if request.method == "POST":
-        producto = Productos.objects.get(id_producto=id_producto)
+        try:
+            producto = Productos.objects.get(id_producto=id_producto)
+            accion   = request.POST.get("accion")
 
-        accion = request.POST.get("accion")
+            if accion == "aprobar":
+                producto.estado_aprobacion = "aprobado"
+                messages.success(request, "Producto aceptado.")
+            elif accion == "rechazar":
+                producto.estado_aprobacion = "rechazado"
+                producto.motivo_rechazo    = request.POST.get("motivo", "")
+                messages.info(request, "Producto rechazado.")
 
-        if accion == "aprobar":
-            producto.estado_aprobacion = "aprobado"
-
-        elif accion == "rechazar":
-            producto.estado_aprobacion = "rechazado"
-            producto.motivo_rechazo = request.POST.get("motivo", "")
-
-        producto.save()
+            producto.save()
+        except Exception:
+            messages.error(request, "Ocurrió un error al cambiar el estado del producto. Intentelo de nuevo.")
 
     return redirect("productos")
 
 
-# ═══════════════════════════════════════════════════════════════════
-#  SOLICITUDES (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+@login_requerido
+def productos_export_excel(request):
+    qs = _filtrar_productos(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay productos para exportar.")
+        return redirect('productos')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Productos"
+
+    header_fill = PatternFill("solid", fgColor="7a2d3e")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    header_alig = Alignment(horizontal="center", vertical="center")
+
+    headers = ["ID", "Nombre", "Descripcion", "Precio", "Categoria", "Estado", "Motivo Rechazo", "Vendedor"]
+    ws.append(headers)
+    for col_num, _ in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    for p in qs:
+        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else ''
+        ws.append([
+            f"#{p.id_producto}", p.nombre, p.descripcion, f"${p.precio}",
+            p.categoria, p.estado_aprobacion.capitalize(),
+            p.motivo_rechazo or '', vendedor,
+        ])
+
+    for i, ancho in enumerate([10, 25, 35, 12, 12, 12, 30, 25], 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="productos.xlsx"'
+    wb.save(response)
+    return response
+
 
 @login_requerido
-def solicitudes(request):
+def productos_export_pdf(request):
+    qs = _filtrar_productos(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay productos para exportar.")
+        return redirect('productos')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="productos.pdf"'
+
+    doc      = SimpleDocTemplate(response, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=30, bottomMargin=20)
+    styles   = getSampleStyleSheet()
+    elements = [Paragraph("<b>Reporte de Productos</b>", styles['Title']), Spacer(1, 12)]
+
+    data = [["ID", "Nombre", "Descripcion", "Precio", "Categoria", "Estado", "Vendedor"]]
+    for p in qs:
+        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else ''
+        data.append([
+            f"#{p.id_producto}", p.nombre, p.descripcion, f"${p.precio}",
+            p.categoria, p.estado_aprobacion.capitalize(), vendedor,
+        ])
+
+    tabla = Table(data, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#7a2d3e')),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fdf5f5')]),
+        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e0c8c8')),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tabla)
+    doc.build(elements)
+    return response
+# ═══════════════════════════════════════════════════════════════════
+#  REPORTE: PRODUCTOS MÁS VENDIDOS
+# ═══════════════════════════════════════════════════════════════════
+@login_requerido
+def reporte_productos_mas_vendidos(request):
     usuario = get_usuario_sesion(request)
 
-    q = request.GET.get('q', '').strip()
+    # ── ranking: solo productos aprobados con al menos 1 solicitud pagada ──
+    productos_ranking = (
+        Productos.objects
+        .filter(estado_aprobacion='aprobado')
+        .annotate(
+            total_solicitudes=Count('solicitudes__id_solicitud'),
+            solicitudes_pagadas=Count(
+                'solicitudes__id_solicitud',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+            ingresos_generados=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+        )
+        .order_by('-solicitudes_pagadas', '-total_solicitudes')[:20]
+    )
 
+    # ── tarjetas resumen ──
+    total_productos   = Productos.objects.filter(estado_aprobacion='aprobado').count()
+    total_solicitudes = Solicitudes.objects.count()
+    total_pagadas     = Solicitudes.objects.filter(estado='pagada').count()
+    ingresos_totales  = (
+        Solicitudes.objects
+        .filter(estado='pagada')
+        .aggregate(t=Sum('precio_total'))['t'] or 0
+    )
+
+    # ── top 1 para destacar ──
+    top1 = productos_ranking.first()
+
+    # ── JSON para Chart.js ──
+    import json
+    top10 = list(productos_ranking[:10])
+    chart_labels  = [p.nombre for p in top10]
+    chart_valores = [p.solicitudes_pagadas for p in top10]
+
+    context = {
+        'usuario':             usuario,
+        'pagina_activa':       'productos',
+        'productos_ranking':   productos_ranking,
+        'total_productos':     total_productos,
+        'total_solicitudes':   total_solicitudes,
+        'total_pagadas':       total_pagadas,
+        'ingresos_totales':    ingresos_totales,
+        'top1':                top1,
+        'chart_labels':        json.dumps(chart_labels),
+        'chart_valores':       json.dumps(chart_valores),
+    }
+    return render(request, 'administrador/reporte_productos_mas_vendidos.html', context)
+
+@login_requerido
+def reporte_productos_pdf(request):
+    from reportlab.platypus import HRFlowable
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER
+    from datetime import date
+
+    productos_ranking = (
+        Productos.objects
+        .filter(estado_aprobacion='aprobado')
+        .annotate(
+            total_solicitudes=Count('solicitudes__id_solicitud'),
+            solicitudes_pagadas=Count(
+                'solicitudes__id_solicitud',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+            ingresos_generados=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+        )
+        .order_by('-solicitudes_pagadas', '-total_solicitudes')[:20]
+    )
+
+    ingresos_totales = (
+        Solicitudes.objects
+        .filter(estado='pagada')
+        .aggregate(t=Sum('precio_total'))['t'] or 0
+    )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_productos_mas_vendidos.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4,
+                            leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    VINO   = colors.HexColor('#7a2d3e')
+    VINO_L = colors.HexColor('#fdf5f5')
+    thin   = colors.HexColor('#e0c8c8')
+    styles = getSampleStyleSheet()
+    elements = []
+
+    titulo_style = ParagraphStyle('t', fontSize=18, textColor=VINO,
+                                  fontName='Helvetica-Bold', alignment=TA_CENTER, spaceAfter=4)
+    sub_style    = ParagraphStyle('s', fontSize=10, textColor=colors.HexColor('#888888'),
+                                  alignment=TA_CENTER, spaceAfter=16)
+    sec_style    = ParagraphStyle('sc', fontSize=12, textColor=colors.HexColor('#2a1010'),
+                                  fontName='Helvetica-Bold', spaceAfter=10)
+
+    elements.append(Paragraph("CreartSoft — Productos Más Vendidos", titulo_style))
+    elements.append(Paragraph(f"Generado el {date.today().strftime('%d/%m/%Y')}", sub_style))
+    elements.append(HRFlowable(width="100%", thickness=1.5, color=VINO, spaceAfter=20))
+
+    # ── tarjetas ──
+    total_productos = Productos.objects.filter(estado_aprobacion='aprobado').count()
+    total_pagadas   = Solicitudes.objects.filter(estado='pagada').count()
+
+    card_data = [[
+        Paragraph(f"<b>{total_productos}</b><br/>Productos activos", styles['Normal']),
+        Paragraph(f"<b>{total_pagadas}</b><br/>Ventas pagadas",      styles['Normal']),
+        Paragraph(f"<b>${ingresos_totales:,.0f}</b><br/>Ingresos totales", styles['Normal']),
+    ]]
+    card_table = Table(card_data, colWidths=[5*cm, 4*cm, 5*cm])
+    card_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (0,0), colors.HexColor('#EDE9FE')),
+        ('BACKGROUND', (1,0), (1,0), colors.HexColor('#D1FAE5')),
+        ('BACKGROUND', (2,0), (2,0), colors.HexColor('#DBEAFE')),
+        ('ALIGN',   (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',  (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',(0,0), (-1,-1), 11),
+        ('FONTNAME',(0,0), (-1,-1), 'Helvetica-Bold'),
+        ('ROWHEIGHT',(0,0),(-1,-1), 44),
+        ('BOX',     (0,0), (-1,-1), 0, colors.white),
+        ('INNERGRID',(0,0),(-1,-1), 3, colors.white),
+    ]))
+    elements.append(card_table)
+    elements.append(Spacer(1, 20))
+
+    # ── ranking ──
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=thin, spaceAfter=10))
+    elements.append(Paragraph("Ranking de productos más vendidos (top 20)", sec_style))
+
+    data = [['#', 'Producto', 'Categoría', 'Vendedor', 'Solicitudes', 'Pagadas', 'Ingresos ($)']]
+    for i, p in enumerate(productos_ranking, 1):
+        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else '—'
+        data.append([
+            str(i),
+            p.nombre,
+            p.get_categoria_display(),
+            vendedor,
+            str(p.total_solicitudes),
+            str(p.solicitudes_pagadas),
+            f"${p.ingresos_generados:,.0f}" if p.ingresos_generados else '$0',
+        ])
+
+    tabla = Table(data, colWidths=[1*cm, 4*cm, 2.5*cm, 3.5*cm, 2*cm, 2*cm, 2.5*cm],
+                  repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), VINO),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, VINO_L]),
+        # destacar top 3
+        ('FONTNAME',       (0,1), (-1,1), 'Helvetica-Bold'),
+        ('FONTNAME',       (0,2), (-1,2), 'Helvetica-Bold'),
+        ('FONTNAME',       (0,3), (-1,3), 'Helvetica-Bold'),
+        ('BACKGROUND',     (0,1), (-1,1), colors.HexColor('#FEF3C7')),
+        ('BACKGROUND',     (0,2), (-1,2), colors.HexColor('#F3F4F6')),
+        ('BACKGROUND',     (0,3), (-1,3), colors.HexColor('#FEF3C7')),
+        ('GRID',           (0,0), (-1,-1), 0.4, thin),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tabla)
+    elements.append(Spacer(1, 16))
+
+    elements.append(HRFlowable(width="100%", thickness=1, color=VINO, spaceBefore=6, spaceAfter=6))
+    pie_style = ParagraphStyle('pie', fontSize=8, textColor=colors.HexColor('#aaaaaa'),
+                                alignment=TA_CENTER)
+    elements.append(Paragraph("CreartSoft · Reporte generado automáticamente", pie_style))
+
+    doc.build(elements)
+    return response
+
+
+@login_requerido
+def reporte_productos_excel(request):
+    from openpyxl.utils import get_column_letter
+    from openpyxl.styles import Border, Side
+    from openpyxl.chart import BarChart, Reference
+    from datetime import date
+
+    productos_ranking = (
+        Productos.objects
+        .filter(estado_aprobacion='aprobado')
+        .annotate(
+            total_solicitudes=Count('solicitudes__id_solicitud'),
+            solicitudes_pagadas=Count(
+                'solicitudes__id_solicitud',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+            ingresos_generados=Sum(
+                'solicitudes__precio_total',
+                filter=Q(solicitudes__estado='pagada')
+            ),
+        )
+        .order_by('-solicitudes_pagadas', '-total_solicitudes')[:20]
+    )
+
+    ingresos_totales = (
+        Solicitudes.objects
+        .filter(estado='pagada')
+        .aggregate(t=Sum('precio_total'))['t'] or 0
+    )
+    total_productos = Productos.objects.filter(estado_aprobacion='aprobado').count()
+    total_pagadas   = Solicitudes.objects.filter(estado='pagada').count()
+
+    wb  = openpyxl.Workbook()
+    ws  = wb.active
+    ws.title = "Productos más vendidos"
+    ws.sheet_view.showGridLines = False
+
+    VINO   = "7a2d3e"
+    VINO_L = "fdf5f5"
+    BLANCO = "FFFFFF"
+    h_font = Font(name='Calibri', bold=True, color=BLANCO, size=11)
+    h_fill = PatternFill("solid", fgColor=VINO)
+    h_alig = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    thin   = Side(style='thin', color='e0c8c8')
+    borde  = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    # ── título ──
+    ws.merge_cells('A1:G1')
+    ws['A1'] = 'CreartSoft — Productos Más Vendidos'
+    ws['A1'].font = Font(name='Calibri', bold=True, size=15, color=VINO)
+    ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 34
+
+    ws.merge_cells('A2:G2')
+    ws['A2'] = f'Generado el {date.today().strftime("%d/%m/%Y")}'
+    ws['A2'].font = Font(name='Calibri', size=10, color='888888')
+    ws['A2'].alignment = Alignment(horizontal='center')
+    ws.row_dimensions[2].height = 16
+
+    # ── tarjetas fila 4-6 ──
+    tarjetas = [
+        ('Productos activos', str(total_productos),        'EDE9FE', '5B21B6'),
+        ('Ventas pagadas',    str(total_pagadas),           'D1FAE5', '065F46'),
+        ('Ingresos totales',  f"${ingresos_totales:,.0f}", 'DBEAFE', '1E3A8A'),
+    ]
+    ws.row_dimensions[4].height = 12
+    ws.row_dimensions[5].height = 28
+    ws.row_dimensions[6].height = 16
+    ws.row_dimensions[7].height = 12
+
+    for ci, (label, valor, bg, fg) in enumerate(tarjetas, 1):
+        c_v = ws.cell(row=5, column=ci, value=valor)
+        c_v.font = Font(name='Calibri', bold=True, size=13, color=fg)
+        c_v.fill = PatternFill("solid", fgColor=bg)
+        c_v.alignment = Alignment(horizontal='center', vertical='center')
+        c_v.border = borde
+        c_l = ws.cell(row=6, column=ci, value=label)
+        c_l.font = Font(name='Calibri', size=9, color=fg)
+        c_l.fill = PatternFill("solid", fgColor=bg)
+        c_l.alignment = Alignment(horizontal='center', vertical='center')
+        c_l.border = borde
+
+    # ── tabla ranking (fila 9) ──
+    ws.row_dimensions[9].height = 20
+    headers = ['#', 'Producto', 'Categoría', 'Vendedor', 'Total solicitudes', 'Ventas pagadas', 'Ingresos ($)']
+    for ci, h in enumerate(headers, 1):
+        c = ws.cell(row=9, column=ci, value=h)
+        c.font = h_font; c.fill = h_fill
+        c.alignment = h_alig; c.border = borde
+
+    medallas = {1: 'FEF08A', 2: 'E5E7EB', 3: 'FED7AA'}  # oro, plata, bronce
+
+    for ri, p in enumerate(productos_ranking, 10):
+        pos = ri - 9
+        ws.row_dimensions[ri].height = 18
+        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else '—'
+        bg = medallas.get(pos, VINO_L if ri % 2 == 0 else BLANCO)
+        fila = [
+            pos,
+            p.nombre,
+            p.get_categoria_display(),
+            vendedor,
+            p.total_solicitudes,
+            p.solicitudes_pagadas,
+            float(p.ingresos_generados or 0),
+        ]
+        for ci, valor in enumerate(fila, 1):
+            c = ws.cell(row=ri, column=ci, value=valor)
+            c.fill = PatternFill("solid", fgColor=bg)
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.border = borde
+            c.font = Font(name='Calibri', size=10,
+                          bold=(pos <= 3))
+            if ci == 7:
+                c.number_format = '$#,##0.00'
+
+    # ── gráfica de barras (top 10) ──
+    last_row = 9 + min(len(list(productos_ranking)), 10)
+    chart = BarChart()
+    chart.type    = "col"
+    chart.style   = 10
+    chart.title   = "Top 10 productos más vendidos"
+    chart.y_axis.title = "Ventas pagadas"
+    chart.x_axis.title = "Producto"
+    chart.grouping = "clustered"
+
+    data_ref   = Reference(ws, min_col=6, min_row=9, max_row=last_row)
+    labels_ref = Reference(ws, min_col=2, min_row=10, max_row=last_row)
+    chart.add_data(data_ref, titles_from_data=True)
+    chart.set_categories(labels_ref)
+    chart.series[0].graphicalProperties.solidFill = "7a2d3e"
+    chart.width  = 16
+    chart.height = 12
+    ws.add_chart(chart, "I9")
+
+    # ── anchos columnas ──
+    for col, ancho in zip(range(1, 8), [5, 28, 14, 22, 16, 14, 16]):
+        ws.column_dimensions[get_column_letter(col)].width = ancho
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="reporte_productos_mas_vendidos.xlsx"'
+    wb.save(response)
+    return response
+
+# ════════════════════════════════════════════════════════════════════
+#  SOLICITUDES (ADMIN)
+# ════════════════════════════════════════════════════════════════════
+
+def _filtrar_solicitudes(request):
     qs = Solicitudes.objects.select_related(
-        'solicitudes__usuarios'
+        'usuario', 'producto__vendedor'
+    ).filter(
+        producto__categoria='eventos'
     ).order_by('-fecha_creacion')
+
+    q           = request.GET.get('q', '').strip()
+    estado      = request.GET.get('estado', '').strip()
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+    precio_min  = request.GET.get('precio_min', '').strip()
+    precio_max  = request.GET.get('precio_max', '').strip()
+    categoria   = request.GET.get('categoria', '').strip()
 
     if q:
         qs = qs.filter(
-            Q(id_pedido__icontains=q) |
-            Q(solicitud__Usuarios__nombre__icontains=q) |
-            Q(solicitud__Usuarios__apellido__icontains=q)
+            Q(id_solicitud__icontains=q) |
+            Q(usuario__nombre__icontains=q) |
+            Q(usuario__apellido__icontains=q) |
+            Q(producto__nombre__icontains=q) |
+            Q(nombre_invitado__icontains=q)
         )
+    if estado:
+        qs = qs.filter(estado=estado)
+    if fecha_desde:
+        qs = qs.filter(fecha_creacion__date__gte=fecha_desde)
+    if fecha_hasta:
+        qs = qs.filter(fecha_creacion__date__lte=fecha_hasta)
+    if precio_min:
+        qs = qs.filter(precio_total__gte=precio_min)
+    if precio_max:
+        qs = qs.filter(precio_total__lte=precio_max)
+    if categoria:
+        qs = qs.filter(producto__categoria=categoria)
 
-    total_tx = Transacciones.objects.count()
+    return qs
+
+
+@login_requerido
+def solicitudes(request):
+    usuario    = get_usuario_sesion(request)
+    qs         = _filtrar_solicitudes(request)
+    total      = qs.count()
+    pendientes = qs.filter(estado='pendiente').count()
+    aceptadas  = qs.filter(estado='aceptada').count()
+    pagadas    = qs.filter(estado='pagada').count()
+    rechazadas = qs.filter(estado='rechazada').count()
 
     context = {
-        'usuario': usuario,
-        'transacciones': qs,
-        'completadas': total_tx,
-        'pendientes': 0,
-        'devueltas': 0,
-        'total_tx': total_tx,
-        'q': q,
-        'pagina_activa': 'transacciones',
+        'usuario':      usuario,
+        'solicitudes':  qs,
+        'total':        total,
+        'pendientes':   pendientes,
+        'aceptadas':    aceptadas,
+        'pagadas':      pagadas,
+        'rechazadas':   rechazadas,
+        'q':            request.GET.get('q', ''),
+        'f_estado':     request.GET.get('estado', ''),
+        'f_desde':      request.GET.get('fecha_desde', ''),
+        'f_hasta':      request.GET.get('fecha_hasta', ''),
+        'f_precio_min': request.GET.get('precio_min', ''),
+        'f_precio_max': request.GET.get('precio_max', ''),
+        'f_categoria':  request.GET.get('categoria', ''),
+        'pagina_activa': 'solicitudes',
     }
-    return render(request, 'administrador/transacciones.html', context)
+    return render(request, 'administrador/solicitudes.html', context)
+
+
+@login_requerido
+def solicitudes_export_excel(request):
+    qs = _filtrar_solicitudes(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay solicitudes para exportar.")
+        return redirect('solicitudes')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Solicitudes"
+
+    header_fill = PatternFill("solid", fgColor="7a2d3e")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    header_alig = Alignment(horizontal="center", vertical="center")
+
+    headers = ["ID", "Cliente", "Producto", "Vendedor", "Categoría", "Total ($)", "Abono ($)", "Tipo entrega", "Estado", "Fecha"]
+    ws.append(headers)
+    for col_num, _ in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = header_alig
+
+    estado_map = {'pendiente': 'Pendiente', 'aceptada': 'Aceptada', 'pagada': 'Pagada', 'rechazada': 'Rechazada'}
+    for s in qs:
+        cliente          = f"{s.usuario.nombre} {s.usuario.apellido}" if s.usuario else s.nombre_invitado or "Invitado"
+        vendedor_nombre  = f"{s.producto.vendedor.nombre} {s.producto.vendedor.apellido}"
+        ws.append([
+            f"#{s.id_solicitud}", cliente, s.producto.nombre, vendedor_nombre,
+            s.producto.get_categoria_display(), float(s.precio_total), float(s.abono),
+            s.tipo_entrega, estado_map.get(s.estado, s.estado),
+            s.fecha_creacion.strftime("%Y-%m-%d"),
+        ])
+
+    for i, ancho in enumerate([10, 25, 25, 25, 14, 13, 13, 14, 13, 13], 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="solicitudes.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_requerido
+def solicitudes_export_pdf(request):
+    qs = _filtrar_solicitudes(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay solicitudes para exportar.")
+        return redirect('solicitudes')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="solicitudes.pdf"'
+
+    doc      = SimpleDocTemplate(response, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=30, bottomMargin=20)
+    styles   = getSampleStyleSheet()
+    elements = [Paragraph("<b>Reporte de Solicitudes</b>", styles['Title']), Spacer(1, 12)]
+
+    data = [["ID", "Cliente", "Producto", "Vendedor", "Categoría", "Total", "Estado", "Fecha"]]
+    for s in qs:
+        cliente = f"{s.usuario.nombre} {s.usuario.apellido}" if s.usuario else s.nombre_invitado or "Invitado"
+        data.append([
+            f"#{s.id_solicitud}", cliente, s.producto.nombre,
+            f"{s.producto.vendedor.nombre} {s.producto.vendedor.apellido}",
+            s.producto.get_categoria_display(), f"${s.precio_total}",
+            s.estado.capitalize(), s.fecha_creacion.strftime("%Y-%m-%d"),
+        ])
+
+    tabla = Table(data, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#7a2d3e')),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fdf5f5')]),
+        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e0c8c8')),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tabla)
+    doc.build(elements)
+    return response
+
+
+# ════════════════════════════════════════════════════════════════════
+#  REPORTE — SOLICITUDES POR ESTADO
+# ════════════════════════════════════════════════════════════════════
+
+@login_requerido
+def reporte_solicitudes_estado(request):
+    usuario = get_usuario_sesion(request)
+    if not usuario:
+        return redirect('inicio')
+
+    por_estado = (
+        Solicitudes.objects
+        .values('estado')
+        .annotate(total=Count('id_solicitud'))
+        .order_by('estado')
+    )
+
+    total_solicitudes = Solicitudes.objects.count()
+
+    ingresos_totales = (
+        Solicitudes.objects
+        .filter(estado='pagada')
+        .aggregate(total=Sum('precio_total'))['total'] or 0
+    )
+
+    conteos    = {item['estado']: item['total'] for item in por_estado}
+    pendientes = conteos.get('pendiente', 0)
+    aceptadas  = conteos.get('aceptada',  0)
+    rechazadas = conteos.get('rechazada', 0)
+    pagadas    = conteos.get('pagada',    0)
+
+    def pct(valor):
+        if total_solicitudes == 0:
+            return 0
+        return round((valor / total_solicitudes) * 100, 1)
+
+    ultimas_solicitudes = (
+        Solicitudes.objects
+        .select_related('usuario', 'producto')
+        .order_by('-fecha_creacion')[:10]
+    )
+
+    estados_labels  = ['Pendiente', 'Aceptada', 'Rechazada', 'Pagada']
+    estados_valores = [pendientes, aceptadas, rechazadas, pagadas]
+    estados_colores = ['#F39C12', '#27AE60', '#E74C3C', '#2E75B6']
+
+    context = {
+        'usuario':          usuario,
+        'pagina_activa':    'reportes',
+        'total_solicitudes': total_solicitudes,
+        'ingresos_totales': ingresos_totales,
+        'pendientes':       pendientes,
+        'aceptadas':        aceptadas,
+        'rechazadas':       rechazadas,
+        'pagadas':          pagadas,
+        'pct_pendientes':   pct(pendientes),
+        'pct_aceptadas':    pct(aceptadas),
+        'pct_rechazadas':   pct(rechazadas),
+        'pct_pagadas':      pct(pagadas),
+        'ultimas_solicitudes': ultimas_solicitudes,
+        'chart_labels':     json.dumps(estados_labels),
+        'chart_valores':    json.dumps(estados_valores),
+        'chart_colores':    json.dumps(estados_colores),
+    }
+    return render(request, 'administrador/reporte_solicitudes_estado.html', context)
+
+
+# ── PDF ──────────────────────────────────────────────────────────────
+@login_requerido
+def reporte_estado_export_pdf(request):
+    from reportlab.platypus import HRFlowable
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER
+
+    total      = Solicitudes.objects.count()
+    pendientes = Solicitudes.objects.filter(estado='pendiente').count()
+    aceptadas  = Solicitudes.objects.filter(estado='aceptada').count()
+    pagadas    = Solicitudes.objects.filter(estado='pagada').count()
+    rechazadas = Solicitudes.objects.filter(estado='rechazada').count()
+    ingresos   = Solicitudes.objects.filter(
+        estado='pagada'
+    ).aggregate(t=Sum('precio_total'))['t'] or 0
+
+    def pct(v):
+        return f"{round((v/total)*100, 1)}%" if total else "0%"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_solicitudes_estado.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4,
+                            leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    VINO   = colors.HexColor('#7a2d3e')
+    VINO_L = colors.HexColor('#fdf5f5')
+
+    styles  = getSampleStyleSheet()
+    elements = []
+
+    titulo_style = ParagraphStyle('titulo', fontSize=18, textColor=VINO,
+                                  fontName='Helvetica-Bold', alignment=TA_CENTER, spaceAfter=4)
+    sub_style    = ParagraphStyle('sub', fontSize=10, textColor=colors.HexColor('#888888'),
+                                  alignment=TA_CENTER, spaceAfter=16)
+    seccion_style = ParagraphStyle('sec', fontSize=12, textColor=colors.HexColor('#2a1010'),
+                                   fontName='Helvetica-Bold', spaceAfter=10)
+
+    from datetime import date
+    elements.append(Paragraph("CreartSoft — Reporte de Solicitudes por Estado", titulo_style))
+    elements.append(Paragraph(f"Generado el {date.today().strftime('%d/%m/%Y')}", sub_style))
+    elements.append(HRFlowable(width="100%", thickness=1.5, color=VINO, spaceAfter=20))
+
+    # ── tarjetas resumen ──
+    card_data = [[
+        Paragraph(f"<b>{total}</b><br/>Total",       styles['Normal']),
+        Paragraph(f"<b>{pendientes}</b><br/>Pendientes", styles['Normal']),
+        Paragraph(f"<b>{aceptadas}</b><br/>Aceptadas",   styles['Normal']),
+        Paragraph(f"<b>{pagadas}</b><br/>Pagadas",        styles['Normal']),
+        Paragraph(f"<b>{rechazadas}</b><br/>Rechazadas",  styles['Normal']),
+    ]]
+    card_table = Table(card_data, colWidths=[3.1*cm]*5)
+    card_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (0,0), colors.HexColor('#eeeeee')),
+        ('BACKGROUND', (1,0), (1,0), colors.HexColor('#FEF3C7')),
+        ('BACKGROUND', (2,0), (2,0), colors.HexColor('#D1FAE5')),
+        ('BACKGROUND', (3,0), (3,0), colors.HexColor('#DBEAFE')),
+        ('BACKGROUND', (4,0), (4,0), colors.HexColor('#FEE2E2')),
+        ('ALIGN',      (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',     (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',   (0,0), (-1,-1), 11),
+        ('FONTNAME',   (0,0), (-1,-1), 'Helvetica-Bold'),
+        ('ROWHEIGHT',  (0,0), (-1,-1), 40),
+        ('BOX',        (0,0), (-1,-1), 0, colors.white),
+        ('INNERGRID',  (0,0), (-1,-1), 3, colors.white),
+    ]))
+    elements.append(card_table)
+    elements.append(Spacer(1, 20))
+
+    # ── tabla distribución SIN barra visual ──
+    elements.append(HRFlowable(width="100%", thickness=0.5,
+                                color=colors.HexColor('#e0c8c8'), spaceAfter=10))
+    elements.append(Paragraph("Distribución por estado", seccion_style))
+
+    thin = colors.HexColor('#e0c8c8')
+    dist_data = [['Estado', 'Cantidad', 'Porcentaje (%)']]
+    for nombre, valor in [('Pendiente', pendientes), ('Aceptada', aceptadas),
+                           ('Pagada', pagadas),       ('Rechazada', rechazadas)]:
+        dist_data.append([nombre, str(valor), pct(valor)])
+
+    dist_table = Table(dist_data, colWidths=[5*cm, 4*cm, 5*cm])
+    dist_table.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), VINO),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 10),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 10),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, VINO_L]),
+        ('GRID',           (0,0), (-1,-1), 0.4, thin),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 24),
+    ]))
+    elements.append(dist_table)
+    elements.append(Spacer(1, 20))
+
+    # ── últimas 10 solicitudes ──
+    elements.append(HRFlowable(width="100%", thickness=0.5,
+                                color=colors.HexColor('#e0c8c8'), spaceAfter=10))
+    elements.append(Paragraph("Últimas 10 solicitudes", seccion_style))
+
+    ultimas = (Solicitudes.objects
+               .select_related('usuario', 'producto')
+               .order_by('-fecha_creacion')[:10])
+
+    sol_data = [['#', 'Cliente', 'Producto', 'Total', 'Estado', 'Fecha']]
+    for s in ultimas:
+        cliente = f"{s.usuario.nombre} {s.usuario.apellido}" if s.usuario else "Invitado"
+        sol_data.append([
+            f"SOL{s.id_solicitud}", cliente, s.producto.nombre,
+            f"${s.precio_total:,.0f}", s.estado.capitalize(),
+            s.fecha_creacion.strftime("%d/%m/%Y"),
+        ])
+
+    sol_table = Table(sol_data, colWidths=[2*cm, 3.5*cm, 3.5*cm, 2.2*cm, 2.3*cm, 2.5*cm])
+    sol_table.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), VINO),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, VINO_L]),
+        ('GRID',           (0,0), (-1,-1), 0.4, thin),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(sol_table)
+    elements.append(Spacer(1, 16))
+
+    # ── pie ──
+    elements.append(HRFlowable(width="100%", thickness=1, color=VINO,
+                                spaceBefore=6, spaceAfter=6))
+    pie_style = ParagraphStyle('pie', fontSize=8, textColor=colors.HexColor('#aaaaaa'),
+                                alignment=TA_CENTER)
+    elements.append(Paragraph(
+        f"CreartSoft · Reporte generado automáticamente · "
+        f"Ingresos confirmados: ${ingresos:,.0f}", pie_style))
+
+    doc.build(elements)
+    return response
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  PQRS (ADMIN)
+#  ARCHIVO 2 — NUEVO REPORTE: Ingresos por método de pago
 # ═══════════════════════════════════════════════════════════════════
 
 @login_requerido
-def pqrs(request):
+def reporte_metodo_pago(request):
+    """
+    Reporte: Ingresos por método de pago
+    Muestra cuánto se ha recaudado y cuántas transacciones se hicieron
+    por cada método (tarjeta, PSE, efectivo, transferencia, etc.)
+    """
     usuario = get_usuario_sesion(request)
 
-    qs = PQRS.objects.select_related('usuario').order_by('-id_pqrs')
+    # ── datos principales ──
+    por_metodo = (
+        Transacciones.objects
+        .values('metodo_pago')
+        .annotate(
+            total_ingresos=Sum('importe_total'),
+            total_transacciones=Count('id_transaccion'),
+        )
+        .order_by('-total_ingresos')
+    )
+
+    total_ingresos     = Transacciones.objects.aggregate(t=Sum('importe_total'))['t'] or 0
+    total_transacciones = Transacciones.objects.count()
+
+    # ── últimas 10 transacciones ──
+    ultimas = (
+        Transacciones.objects
+        .select_related('solicitud__usuario', 'solicitud__producto')
+        .order_by('-fecha_creacion')[:10]
+    )
+
+    # ── JSON para Chart.js ──
+    import json
+    labels  = [m['metodo_pago'] or 'Sin especificar' for m in por_metodo]
+    valores = [float(m['total_ingresos'] or 0)        for m in por_metodo]
+    colores = ['#7a2d3e','#C0392B','#E74C3C','#F39C12','#27AE60','#2E75B6','#8E44AD']
 
     context = {
-        'usuario': usuario,
-        'pqrs_list': qs,
-        'total_pqrs': qs.count(),
-        'pendientes': qs.count(),
-        'en_proceso': 0,
-        'resueltos': 0,
+        'usuario':             usuario,
+        'pagina_activa':       'transacciones',
+        'por_metodo':          por_metodo,
+        'total_ingresos':      total_ingresos,
+        'total_transacciones': total_transacciones,
+        'ultimas':             ultimas,
+        'chart_labels':        json.dumps(labels),
+        'chart_valores':       json.dumps(valores),
+        'chart_colores':       json.dumps(colores[:len(labels)]),
+    }
+    return render(request, 'administrador/reporte_metodo_pago.html', context)
+
+
+@login_requerido
+def reporte_metodo_pago_pdf(request):
+    from reportlab.platypus import HRFlowable
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER
+    from datetime import date
+
+    por_metodo          = (Transacciones.objects
+                           .values('metodo_pago')
+                           .annotate(total_ingresos=Sum('importe_total'),
+                                     total_transacciones=Count('id_transaccion'))
+                           .order_by('-total_ingresos'))
+    total_ingresos      = Transacciones.objects.aggregate(t=Sum('importe_total'))['t'] or 0
+    total_transacciones = Transacciones.objects.count()
+
+    def pct(v):
+        return f"{round((float(v)/float(total_ingresos))*100, 1)}%" if total_ingresos else "0%"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_metodo_pago.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4,
+                            leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+
+    VINO   = colors.HexColor('#7a2d3e')
+    VINO_L = colors.HexColor('#fdf5f5')
+    thin   = colors.HexColor('#e0c8c8')
+    styles = getSampleStyleSheet()
+    elements = []
+
+    titulo_style  = ParagraphStyle('t',  fontSize=18, textColor=VINO,
+                                   fontName='Helvetica-Bold', alignment=TA_CENTER, spaceAfter=4)
+    sub_style     = ParagraphStyle('s',  fontSize=10, textColor=colors.HexColor('#888888'),
+                                   alignment=TA_CENTER, spaceAfter=16)
+    seccion_style = ParagraphStyle('sc', fontSize=12, textColor=colors.HexColor('#2a1010'),
+                                   fontName='Helvetica-Bold', spaceAfter=10)
+
+    elements.append(Paragraph("CreartSoft — Ingresos por Método de Pago", titulo_style))
+    elements.append(Paragraph(f"Generado el {date.today().strftime('%d/%m/%Y')}", sub_style))
+    elements.append(HRFlowable(width="100%", thickness=1.5, color=VINO, spaceAfter=20))
+
+    # ── tarjetas resumen ──
+    card_data = [[
+        Paragraph(f"<b>${total_ingresos:,.0f}</b><br/>Ingresos totales", styles['Normal']),
+        Paragraph(f"<b>{total_transacciones}</b><br/>Transacciones",     styles['Normal']),
+        Paragraph(f"<b>{por_metodo.count()}</b><br/>Métodos usados",     styles['Normal']),
+    ]]
+    card_table = Table(card_data, colWidths=[5*cm, 4*cm, 5*cm])
+    card_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (0,0), colors.HexColor('#D1FAE5')),
+        ('BACKGROUND', (1,0), (1,0), colors.HexColor('#DBEAFE')),
+        ('BACKGROUND', (2,0), (2,0), colors.HexColor('#FEF3C7')),
+        ('ALIGN',  (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE', (0,0), (-1,-1), 11),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica-Bold'),
+        ('ROWHEIGHT', (0,0), (-1,-1), 44),
+        ('BOX',      (0,0), (-1,-1), 0, colors.white),
+        ('INNERGRID',(0,0), (-1,-1), 3, colors.white),
+    ]))
+    elements.append(card_table)
+    elements.append(Spacer(1, 20))
+
+    # ── tabla por método ──
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=thin, spaceAfter=10))
+    elements.append(Paragraph("Detalle por método de pago", seccion_style))
+
+    met_data = [['Método de pago', 'Transacciones', 'Ingresos ($)', 'Participación (%)']]
+    for m in por_metodo:
+        met_data.append([
+            m['metodo_pago'] or 'Sin especificar',
+            str(m['total_transacciones']),
+            f"${m['total_ingresos']:,.0f}",
+            pct(m['total_ingresos']),
+        ])
+
+    met_table = Table(met_data, colWidths=[4.5*cm, 3.5*cm, 4*cm, 4*cm])
+    met_table.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), VINO),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 10),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 10),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, VINO_L]),
+        ('GRID',           (0,0), (-1,-1), 0.4, thin),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 24),
+    ]))
+    elements.append(met_table)
+    elements.append(Spacer(1, 20))
+
+    # ── últimas 10 transacciones ──
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=thin, spaceAfter=10))
+    elements.append(Paragraph("Últimas 10 transacciones", seccion_style))
+
+    ultimas = (Transacciones.objects
+               .select_related('solicitud__usuario', 'solicitud__producto')
+               .order_by('-fecha_creacion')[:10])
+
+    tx_data = [['#', 'Cliente', 'Método', 'Importe ($)', 'Estado', 'Fecha']]
+    for t in ultimas:
+        cliente = "Invitado"
+        if t.solicitud and t.solicitud.usuario:
+            cliente = f"{t.solicitud.usuario.nombre} {t.solicitud.usuario.apellido}"
+        tx_data.append([
+            f"TX{t.id_transaccion}",
+            cliente,
+            t.metodo_pago or '—',
+            f"${t.importe_total:,.0f}",
+            t.estado.capitalize(),
+            t.fecha_creacion.strftime("%d/%m/%Y"),
+        ])
+
+    tx_table = Table(tx_data, colWidths=[2*cm, 3.5*cm, 3*cm, 2.8*cm, 2.2*cm, 2.5*cm])
+    tx_table.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), VINO),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, VINO_L]),
+        ('GRID',           (0,0), (-1,-1), 0.4, thin),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tx_table)
+    elements.append(Spacer(1, 16))
+
+    elements.append(HRFlowable(width="100%", thickness=1, color=VINO, spaceBefore=6, spaceAfter=6))
+    pie_style = ParagraphStyle('pie', fontSize=8, textColor=colors.HexColor('#aaaaaa'),
+                                alignment=TA_CENTER)
+    elements.append(Paragraph("CreartSoft · Reporte generado automáticamente", pie_style))
+
+    doc.build(elements)
+    return response
+
+
+@login_requerido
+def reporte_metodo_pago_excel(request):
+    from openpyxl.utils import get_column_letter
+    from openpyxl.styles import Border, Side
+    from openpyxl.chart import DoughnutChart, Reference
+    from openpyxl.chart.series import DataPoint
+    from datetime import date
+
+    por_metodo          = (Transacciones.objects
+                           .values('metodo_pago')
+                           .annotate(total_ingresos=Sum('importe_total'),
+                                     total_transacciones=Count('id_transaccion'))
+                           .order_by('-total_ingresos'))
+    total_ingresos      = Transacciones.objects.aggregate(t=Sum('importe_total'))['t'] or 0
+    total_transacciones = Transacciones.objects.count()
+
+    wb  = openpyxl.Workbook()
+    ws  = wb.active
+    ws.title = "Ingresos por método"
+    ws.sheet_view.showGridLines = False
+
+    VINO   = "7a2d3e"
+    VINO_L = "fdf5f5"
+    BLANCO = "FFFFFF"
+    h_font = Font(name='Calibri', bold=True, color=BLANCO, size=11)
+    h_fill = PatternFill("solid", fgColor=VINO)
+    h_alig = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    thin   = Side(style='thin', color='e0c8c8')
+    borde  = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    # título
+    ws.merge_cells('A1:E1')
+    ws['A1'] = 'CreartSoft — Ingresos por Método de Pago'
+    ws['A1'].font = Font(name='Calibri', bold=True, size=15, color=VINO)
+    ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 34
+
+    ws.merge_cells('A2:E2')
+    ws['A2'] = f'Generado el {date.today().strftime("%d/%m/%Y")}'
+    ws['A2'].font = Font(name='Calibri', size=10, color='888888')
+    ws['A2'].alignment = Alignment(horizontal='center')
+    ws.row_dimensions[2].height = 16
+
+    # tarjetas fila 4-5
+    tarjetas = [
+        ('Ingresos totales', f"${total_ingresos:,.0f}", "D1FAE5", "065F46"),
+        ('Transacciones',    str(total_transacciones),  "DBEAFE", "1E3A8A"),
+        ('Métodos usados',   str(por_metodo.count()),   "FEF3C7", "92400E"),
+    ]
+    ws.row_dimensions[4].height = 14
+    ws.row_dimensions[5].height = 28
+    ws.row_dimensions[6].height = 16
+    ws.row_dimensions[7].height = 14
+
+    for ci, (label, valor, bg, fg) in enumerate(tarjetas, 1):
+        c_val = ws.cell(row=5, column=ci, value=valor)
+        c_val.font  = Font(name='Calibri', bold=True, size=13, color=fg)
+        c_val.fill  = PatternFill("solid", fgColor=bg)
+        c_val.alignment = Alignment(horizontal='center', vertical='center')
+        c_val.border = borde
+        c_lbl = ws.cell(row=6, column=ci, value=label)
+        c_lbl.font  = Font(name='Calibri', size=9, color=fg)
+        c_lbl.fill  = PatternFill("solid", fgColor=bg)
+        c_lbl.alignment = Alignment(horizontal='center', vertical='center')
+        c_lbl.border = borde
+
+    # tabla por método (fila 9)
+    ws.row_dimensions[9].height = 20
+    headers = ['Método de pago', 'Transacciones', 'Ingresos ($)', 'Participación (%)']
+    for ci, h in enumerate(headers, 1):
+        c = ws.cell(row=9, column=ci, value=h)
+        c.font = h_font; c.fill = h_fill
+        c.alignment = h_alig; c.border = borde
+
+    colores_fila = ["FEF3C7","D1FAE5","DBEAFE","FEE2E2","EDE9FE","FCE7F3","F0FDF4"]
+    for ri, m in enumerate(por_metodo, 10):
+        ws.row_dimensions[ri].height = 18
+        ing = float(m['total_ingresos'] or 0)
+        participacion = round((ing / float(total_ingresos)) * 100, 1) if total_ingresos else 0
+        bg = colores_fila[(ri - 10) % len(colores_fila)]
+        fila = [m['metodo_pago'] or 'Sin especificar',
+                m['total_transacciones'], ing, participacion]
+        for ci, valor in enumerate(fila, 1):
+            c = ws.cell(row=ri, column=ci, value=valor)
+            c.fill = PatternFill("solid", fgColor=bg)
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.border = borde
+            c.font = Font(name='Calibri', size=10)
+            if ci == 3:
+                c.number_format = '$#,##0.00'
+            if ci == 4:
+                c.number_format = '0.0"%"'
+
+    # gráfica de dona
+    last_row = 9 + por_metodo.count()
+    chart = DoughnutChart()
+    chart.title = "Ingresos por método de pago"
+    chart.style = 10
+    chart.hole_size = 50
+    data_ref   = Reference(ws, min_col=3, min_row=9, max_row=last_row)
+    labels_ref = Reference(ws, min_col=1, min_row=10, max_row=last_row)
+    chart.add_data(data_ref, titles_from_data=True)
+    chart.set_categories(labels_ref)
+    slice_colors = ['7a2d3e','C0392B','E74C3C','F39C12','27AE60','2E75B6','8E44AD']
+    for i in range(min(por_metodo.count(), len(slice_colors))):
+        pt = DataPoint(idx=i)
+        pt.graphicalProperties.solidFill = slice_colors[i]
+        chart.series[0].dPt.append(pt)
+    chart.width = 14; chart.height = 10
+    ws.add_chart(chart, "F9")
+
+    # anchos
+    for col, ancho in zip(range(1, 6), [22, 16, 16, 18, 2]):
+        ws.column_dimensions[get_column_letter(col)].width = ancho
+
+    # hoja 2 — últimas transacciones
+    ws2 = wb.create_sheet("Últimas transacciones")
+    ws2.sheet_view.showGridLines = False
+    ws2.merge_cells('A1:F1')
+    ws2['A1'] = 'Últimas 10 transacciones'
+    ws2['A1'].font = Font(name='Calibri', bold=True, size=13, color=VINO)
+    ws2['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws2.row_dimensions[1].height = 28
+
+    headers2 = ['# Trans.', 'Cliente', 'Método', 'Importe ($)', 'Estado', 'Fecha']
+    for ci, h in enumerate(headers2, 1):
+        c = ws2.cell(row=2, column=ci, value=h)
+        c.font = h_font; c.fill = h_fill
+        c.alignment = h_alig; c.border = borde
+    ws2.row_dimensions[2].height = 20
+
+    ultimas = (Transacciones.objects
+               .select_related('solicitud__usuario', 'solicitud__producto')
+               .order_by('-fecha_creacion')[:10])
+
+    for ri, t in enumerate(ultimas, 3):
+        cliente = "Invitado"
+        if t.solicitud and t.solicitud.usuario:
+            cliente = f"{t.solicitud.usuario.nombre} {t.solicitud.usuario.apellido}"
+        bg = BLANCO if ri % 2 == 0 else VINO_L
+        fila = [f"TX{t.id_transaccion}", cliente, t.metodo_pago or '—',
+                float(t.importe_total), t.estado.capitalize(),
+                t.fecha_creacion.strftime("%d/%m/%Y")]
+        ws2.row_dimensions[ri].height = 18
+        for ci, valor in enumerate(fila, 1):
+            c = ws2.cell(row=ri, column=ci, value=valor)
+            c.fill = PatternFill("solid", fgColor=bg)
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.border = borde
+            c.font = Font(name='Calibri', size=10)
+            if ci == 4:
+                c.number_format = '$#,##0.00'
+
+    for col, ancho in zip(range(1, 7), [12, 24, 18, 14, 12, 13]):
+        ws2.column_dimensions[get_column_letter(col)].width = ancho
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="reporte_metodo_pago.xlsx"'
+    wb.save(response)
+    return response
+# ── EXCEL ─────────────────────────────────────────────────────────────
+@login_requerido
+def reporte_estado_export_excel(request):
+    from openpyxl.utils import get_column_letter
+    from openpyxl.chart import DoughnutChart, Reference
+    from openpyxl.chart.series import DataPoint
+    from datetime import date
+
+    total      = Solicitudes.objects.count()
+    pendientes = Solicitudes.objects.filter(estado='pendiente').count()
+    aceptadas  = Solicitudes.objects.filter(estado='aceptada').count()
+    pagadas    = Solicitudes.objects.filter(estado='pagada').count()
+    rechazadas = Solicitudes.objects.filter(estado='rechazada').count()
+    ingresos   = Solicitudes.objects.filter(
+        estado='pagada'
+    ).aggregate(t=Sum('precio_total'))['t'] or 0
+
+    def pct(v):
+        return round((v/total)*100, 1) if total else 0
+
+    wb = openpyxl.Workbook()
+
+    # ── HOJA 1 — RESUMEN ──────────────────────────────────────────
+    ws = wb.active
+    ws.title = "Resumen"
+    ws.sheet_view.showGridLines = False
+
+    VINO     = "7a2d3e"
+    VINO_L   = "fdf5f5"
+    AMARILLO = "FEF3C7"
+    VERDE    = "D1FAE5"
+    AZUL     = "DBEAFE"
+    ROJO_L   = "FEE2E2"
+    BLANCO   = "FFFFFF"
+    GRIS     = "f5f5f5"
+
+    h_font = Font(name='Calibri', bold=True, color=BLANCO, size=11)
+    h_fill = PatternFill("solid", fgColor=VINO)
+    h_alig = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    thin   = Side(style='thin', color='e0c8c8')
+    borde  = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    # — título —
+    ws.merge_cells('A1:G1')
+    ws['A1']           = 'CreartSoft — Reporte de Solicitudes por Estado'
+    ws['A1'].font      = Font(name='Calibri', bold=True, size=16, color=VINO)
+    ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 36
+
+    ws.merge_cells('A2:G2')
+    ws['A2']           = f'Generado el {date.today().strftime("%d/%m/%Y")}'
+    ws['A2'].font      = Font(name='Calibri', size=10, color='888888')
+    ws['A2'].alignment = Alignment(horizontal='center')
+    ws.row_dimensions[2].height = 18
+
+    # — tarjetas —
+    tarjetas = [
+        ('Total',      total,      GRIS,    '555555'),
+        ('Pendientes', pendientes, AMARILLO,'92400E'),
+        ('Aceptadas',  aceptadas,  VERDE,   '065F46'),
+        ('Pagadas',    pagadas,    AZUL,    '1E3A8A'),
+        ('Rechazadas', rechazadas, ROJO_L,  '991B1B'),
+    ]
+    ws.row_dimensions[4].height = 14
+    ws.row_dimensions[5].height = 30
+    ws.row_dimensions[6].height = 18
+    ws.row_dimensions[7].height = 14
+
+    for col, (label, valor, bg, fg) in enumerate(tarjetas, 1):
+        c_val           = ws.cell(row=5, column=col, value=valor)
+        c_val.font      = Font(name='Calibri', bold=True, size=16, color=fg)
+        c_val.fill      = PatternFill("solid", fgColor=bg)
+        c_val.alignment = Alignment(horizontal='center', vertical='center')
+        c_val.border    = borde
+
+        c_lbl           = ws.cell(row=6, column=col, value=label)
+        c_lbl.font      = Font(name='Calibri', size=9, color=fg)
+        c_lbl.fill      = PatternFill("solid", fgColor=bg)
+        c_lbl.alignment = Alignment(horizontal='center', vertical='center')
+        c_lbl.border    = borde
+
+    # — ingreso especial col 6 —
+    c_ing               = ws.cell(row=5, column=6, value=float(ingresos))
+    c_ing.number_format = '$#,##0'
+    c_ing.font          = Font(name='Calibri', bold=True, size=14, color='065F46')
+    c_ing.fill          = PatternFill("solid", fgColor=VERDE)
+    c_ing.alignment     = Alignment(horizontal='center', vertical='center')
+    c_ing.border        = borde
+
+    c_lbl2              = ws.cell(row=6, column=6, value='Ingresos confirmados')
+    c_lbl2.font         = Font(name='Calibri', size=9, color='065F46')
+    c_lbl2.fill         = PatternFill("solid", fgColor=VERDE)
+    c_lbl2.alignment    = Alignment(horizontal='center', vertical='center')
+    c_lbl2.border       = borde
+
+    # — tabla distribución (fila 9) —
+    ws.row_dimensions[9].height = 20
+    for ci, h in enumerate(['Estado', 'Cantidad', 'Porcentaje (%)'], 1):
+        c           = ws.cell(row=9, column=ci, value=h)
+        c.font      = h_font
+        c.fill      = h_fill
+        c.alignment = h_alig
+        c.border    = borde
+
+    estados_data = [
+        ('Pendiente', pendientes),
+        ('Aceptada',  aceptadas),
+        ('Pagada',    pagadas),
+        ('Rechazada', rechazadas),
+    ]
+    colores_fila = [AMARILLO, VERDE, AZUL, ROJO_L]
+
+    for ri, ((nombre, valor), bg) in enumerate(zip(estados_data, colores_fila), 10):
+        ws.row_dimensions[ri].height = 18
+        for ci, dato in enumerate([nombre, valor, pct(valor)], 1):
+            c           = ws.cell(row=ri, column=ci, value=dato)
+            c.fill      = PatternFill("solid", fgColor=bg)
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.border    = borde
+            c.font      = Font(name='Calibri', size=10)
+            if ci == 3:
+                c.number_format = '0.0"%"'
+
+    # — gráfica de dona —
+    chart           = DoughnutChart()
+    chart.title     = "Distribución por Estado"
+    chart.style     = 10
+    chart.hole_size = 50
+
+    data_ref   = Reference(ws, min_col=2, min_row=9, max_row=13)
+    labels_ref = Reference(ws, min_col=1, min_row=10, max_row=13)
+    chart.add_data(data_ref, titles_from_data=True)
+    chart.set_categories(labels_ref)
+
+    for i, color_hex in enumerate(['F39C12', '27AE60', '2E75B6', 'E74C3C']):
+        pt = DataPoint(idx=i)
+        pt.graphicalProperties.solidFill = color_hex
+        chart.series[0].dPt.append(pt)
+
+    chart.width  = 14
+    chart.height = 10
+    ws.add_chart(chart, "E9")
+
+    for col, ancho in zip(range(1, 8), [14, 12, 16, 2, 2, 20, 2]):
+        ws.column_dimensions[get_column_letter(col)].width = ancho
+
+    # ── HOJA 2 — ÚLTIMAS SOLICITUDES ─────────────────────────────
+    ws2 = wb.create_sheet("Últimas solicitudes")
+    ws2.sheet_view.showGridLines = False
+
+    ws2.merge_cells('A1:F1')
+    ws2['A1']           = 'Últimas 10 solicitudes'
+    ws2['A1'].font      = Font(name='Calibri', bold=True, size=13, color=VINO)
+    ws2['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws2.row_dimensions[1].height = 28
+
+    for ci, h in enumerate(['# Solicitud', 'Cliente', 'Producto', 'Total ($)', 'Estado', 'Fecha'], 1):
+        c           = ws2.cell(row=2, column=ci, value=h)
+        c.font      = h_font
+        c.fill      = h_fill
+        c.alignment = h_alig
+        c.border    = borde
+    ws2.row_dimensions[2].height = 20
+
+    ultimas = Solicitudes.objects.select_related('usuario', 'producto').order_by('-fecha_creacion')[:10]
+    for ri, s in enumerate(ultimas, 3):
+        cliente            = f"{s.usuario.nombre} {s.usuario.apellido}" if s.usuario else "Invitado"
+        bg                 = BLANCO if ri % 2 == 0 else VINO_L
+        fila               = [
+            f"SOL{s.id_solicitud}", cliente, s.producto.nombre,
+            float(s.precio_total), s.estado.capitalize(),
+            s.fecha_creacion.strftime("%d/%m/%Y"),
+        ]
+        ws2.row_dimensions[ri].height = 18
+        for ci, valor in enumerate(fila, 1):
+            c           = ws2.cell(row=ri, column=ci, value=valor)
+            c.fill      = PatternFill("solid", fgColor=bg)
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.border    = borde
+            c.font      = Font(name='Calibri', size=10)
+            if ci == 4:
+                c.number_format = '$#,##0'
+
+    for col, ancho in zip(range(1, 7), [14, 24, 24, 14, 12, 13]):
+        ws2.column_dimensions[get_column_letter(col)].width = ancho
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="reporte_solicitudes_estado.xlsx"'
+    wb.save(response)
+    return response
+
+
+# ════════════════════════════════════════════════════════════════════
+#  PQRS (ADMIN)
+# ════════════════════════════════════════════════════════════════════
+
+def _filtrar_pqrs(request):
+    q      = request.GET.get('q', '').strip()
+    estado = request.GET.get('estado', '').strip()
+
+    qs = PQRS.objects.select_related('usuario').order_by('-id_pqrs')
+    if q:
+        qs = qs.filter(
+            Q(asunto__icontains=q) |
+            Q(usuario__nombre__icontains=q) |
+            Q(usuario__apellido__icontains=q)
+        )
+    if estado:
+        qs = qs.filter(estado_respuesta=estado)
+    return qs
+
+
+@login_requerido
+def pqrs(request):
+    usuario    = get_usuario_sesion(request)
+    qs         = _filtrar_pqrs(request)
+    pendientes = PQRS.objects.filter(estado_respuesta='sin_respuesta').count()
+    resueltos  = PQRS.objects.filter(estado_respuesta='respondido').count()
+
+    context = {
+        'usuario':     usuario,
+        'pqrs_list':   qs,
+        'total_pqrs':  qs.count(),
+        'pendientes':  pendientes,
+        'resueltos':   resueltos,
         'pagina_activa': 'pqrs',
+        'q':           request.GET.get('q', ''),
     }
     return render(request, 'administrador/pqrs.html', context)
 
 
 @login_requerido
-def pqrs_responder(request, pk):
+def pqrs_responder(request):
     if request.method == 'POST':
-        pqrs_obj = get_object_or_404(PQRS, pk=pk)
-        # pqrs_obj.respuesta = request.POST.get('respuesta', '')
-        # pqrs_obj.save()
+        try:
+            pk       = request.POST.get('pqrs_id')
+            pqrs_obj = get_object_or_404(PQRS, pk=pk)
+            pqrs_obj.respuesta       = request.POST.get('respuesta', '')
+            pqrs_obj.estado_respuesta = 'respondido'
+            pqrs_obj.save()
+            messages.success(request, "PQRS respondida exitosamente")
+        except Exception:
+            messages.error(request, "Ocurrió un error al responder la PQRS, inténtelo de nuevo.")
     return redirect('pqrs')
 
 
-# ═══════════════════════════════════════════════════════════════════
+@login_requerido
+def gestionar_cambio_perfil(request, id_pqrs):
+    pqrs = get_object_or_404(PQRS, id_pqrs=id_pqrs)
+
+    if request.method == "POST":
+        try:
+            accion  = request.POST.get('accion')
+            usuario = pqrs.usuario
+
+            if accion == "aceptar":
+                lineas       = pqrs.mensaje.split("\n")
+                campo_actual = None
+                nuevos_datos = {}
+
+                for linea in lineas:
+                    if ":" in linea and "Antes" not in linea and "Nuevo" not in linea:
+                        campo_actual = linea.replace(":", "").strip()
+                    if "Nuevo:" in linea and campo_actual:
+                        nuevos_datos[campo_actual] = linea.replace("Nuevo:", "").strip()
+
+                for campo, valor in nuevos_datos.items():
+                    if hasattr(usuario, campo):
+                        setattr(usuario, campo, valor)
+
+                usuario.save()
+                pqrs.respuesta       = "Solicitud aceptada. Perfil actualizado correctamente."
+                pqrs.estado_respuesta = "respondido"
+                pqrs.save()
+                messages.success(request, "Solicitud permitida con éxito.")
+
+            elif accion == "rechazar":
+                pqrs.respuesta       = "Solicitud rechazada por el administrador."
+                pqrs.estado_respuesta = "respondido"
+                pqrs.save()
+                messages.info(request, "Solicitud denegada.")
+
+        except Exception:
+            messages.error(request, "Ocurrió un error al responder la PQRS, inténtelo de nuevo.")
+
+    return redirect('pqrs')
+
+
+@login_requerido
+def gestionar_edicion_producto(request, id_pqrs):
+    pqrs = get_object_or_404(PQRS, id_pqrs=id_pqrs)
+
+    if request.method == "POST":
+        accion = request.POST.get('accion')
+
+        try:
+            id_producto = int(pqrs.asunto.split('#')[-1].strip())
+        except (ValueError, IndexError):
+            messages.error(request, "No se pudo identificar el producto.")
+            return redirect('pqrs')
+
+        producto = get_object_or_404(Productos, id_producto=id_producto)
+
+        if accion == "aceptar":
+            lineas       = pqrs.mensaje.split("\n")
+            campo_actual = None
+            nuevos_datos = {}
+
+            for linea in lineas:
+                linea = linea.strip()
+                if not linea:
+                    continue
+                if ":" in linea and "Antes:" not in linea and "Nuevo:" not in linea:
+                    campo_actual = linea.replace(":", "").strip()
+                elif "Nuevo:" in linea and campo_actual:
+                    nuevos_datos[campo_actual] = linea.replace("Nuevo:", "").strip()
+
+            for campo, valor in nuevos_datos.items():
+                if campo in ['nombre', 'descripcion', 'precio', 'categoria']:
+                    setattr(producto, campo, valor)
+
+            producto.save()
+            pqrs.respuesta       = "Solicitud de edición aceptada. Producto actualizado."
+            pqrs.estado_respuesta = "respondido"
+            pqrs.save()
+            messages.success(request, "Producto actualizado correctamente.")
+
+        elif accion == "rechazar":
+            pqrs.respuesta       = "Solicitud de edición rechazada."
+            pqrs.estado_respuesta = "respondido"
+            pqrs.save()
+            messages.info(request, "Solicitud rechazada.")
+
+    return redirect('pqrs')
+
+
+@login_requerido
+def pqrs_export_excel(request):
+    qs = _filtrar_pqrs(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay PQRS para exportar.")
+        return redirect('pqrs')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "PQRS"
+
+    header_fill = PatternFill("solid", fgColor="7a2d3e")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    header_alig = Alignment(horizontal="center", vertical="center")
+
+    headers = ["ID", "Asunto", "Mensaje", "Categoria", "Estado", "Respuesta", "Usuario"]
+    ws.append(headers)
+    for col_num, _ in enumerate(headers, 1):
+        cell           = ws.cell(row=1, column=col_num)
+        cell.fill      = header_fill
+        cell.font      = header_font
+        cell.alignment = header_alig
+
+    for p in qs:
+        usuario = f"{p.usuario.nombre} {p.usuario.apellido}" if p.usuario else ''
+        ws.append([
+            f"#{p.id_pqrs}", p.asunto, p.mensaje,
+            p.categoria.capitalize(),
+            p.estado_respuesta.replace('_', ' ').capitalize(),
+            p.respuesta or '', usuario,
+        ])
+
+    for i, ancho in enumerate([10, 30, 40, 14, 16, 40, 25], 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="pqrs.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_requerido
+def pqrs_export_pdf(request):
+    qs = _filtrar_pqrs(request)
+
+    if not qs.exists():
+        messages.warning(request, "No hay PQRS para exportar.")
+        return redirect('pqrs')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="pqrs.pdf"'
+
+    doc      = SimpleDocTemplate(response, pagesize=landscape(A4), leftMargin=20, rightMargin=20, topMargin=30, bottomMargin=20)
+    styles   = getSampleStyleSheet()
+    elements = [Paragraph("<b>Reporte de PQRS</b>", styles['Title']), Spacer(1, 12)]
+
+    data = [["ID", "Asunto", "Categoria", "Estado", "Usuario", "Fecha"]]
+    for p in qs:
+        usuario = f"{p.usuario.nombre} {p.usuario.apellido}" if p.usuario else ''
+        data.append([
+            f"#{p.id_pqrs}", p.asunto, p.categoria.capitalize(),
+            p.estado_respuesta.replace('_', ' ').capitalize(),
+            usuario,
+            p.fecha_creacion.strftime("%Y-%m-%d") if p.fecha_creacion else '',
+        ])
+
+    tabla = Table(data, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND',     (0,0), (-1,0), colors.HexColor('#7a2d3e')),
+        ('TEXTCOLOR',      (0,0), (-1,0), colors.white),
+        ('FONTNAME',       (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,0), 9),
+        ('ALIGN',          (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN',         (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE',       (0,1), (-1,-1), 8),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fdf5f5')]),
+        ('GRID',           (0,0), (-1,-1), 0.4, colors.HexColor('#e0c8c8')),
+        ('ROWHEIGHT',      (0,0), (-1,-1), 20),
+    ]))
+    elements.append(tabla)
+    doc.build(elements)
+    return response
+
+
+# ════════════════════════════════════════════════════════════════════
 #  PERFIL (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 @login_requerido
 def administrador_perfil(request):
     usuario = get_usuario_sesion(request)
 
     if request.method == 'POST':
-        usuario.nombre = request.POST.get('nombre', usuario.nombre)
-        usuario.apellido = request.POST.get('apellido', usuario.apellido)
-        usuario.correo = request.POST.get('correo', usuario.correo)
-        usuario.numero = request.POST.get('numero', usuario.numero)
-        usuario.direccion = request.POST.get('direccion', usuario.direccion)
+        try:
+            usuario.nombre    = request.POST.get('nombre',    usuario.nombre)
+            usuario.apellido  = request.POST.get('apellido',  usuario.apellido)
+            usuario.correo    = request.POST.get('correo',    usuario.correo)
+            usuario.numero    = request.POST.get('numero',    usuario.numero)
+            usuario.direccion = request.POST.get('direccion', usuario.direccion)
 
-        nueva = request.POST.get('nueva_contrasena', '').strip()
-        if nueva:
-            usuario.contrasena = make_password(nueva)
+            nueva = request.POST.get('nueva_contrasena', '').strip()
+            if nueva:
+                usuario.contrasena = make_password(nueva)
 
-        usuario.save()
-        request.session['usuario_nombre'] = usuario.nombre
-        return redirect('administrador_perfil')
+            usuario.save()
+            messages.success(request, "Perfil actualizado con éxito")
+            request.session['usuario_nombre'] = usuario.nombre
+            return redirect('administrador_perfil')
+        except Exception:
+            messages.error(request, "Algo salió mal en la actualización del perfil. Inténtelo de nuevo.")
 
-    context = {
-        'usuario': usuario,
+    return render(request, 'administrador/administrador_perfil.html', {
+        'usuario':       usuario,
         'pagina_activa': 'perfil',
-    }
-    return render(request, 'administrador/administrador_perfil.html', context)
+    })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  VENDEDOR
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 def _get_vendedor(request):
     """Helper interno: retorna el usuario vendedor de la sesión o None."""
@@ -449,45 +2491,30 @@ def _get_vendedor(request):
 
 @login_requerido
 def vendedor(request):
-    vendedor = _get_vendedor(request)
-    if not vendedor:
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
         return redirect('inicio')
 
-    # Ventas hoy
-    hoy = now().date()
-    ventas_hoy = Solicitudes.objects.filter(
-        producto__vendedor=vendedor,
-        fecha_creacion__date=hoy
-    ).count()
+    hoy          = now().date()
+    ventas_hoy   = Solicitudes.objects.filter(producto__vendedor=vendedor_obj, fecha_creacion__date=hoy).count()
 
-    # Solicitudes nuevas (últimas)
     solicitudes_nuevas = Solicitudes.objects.filter(
-        producto__vendedor=vendedor
+        producto__vendedor=vendedor_obj,
+        estado='pendiente',
+        producto__categoria='eventos'
     ).order_by('-fecha_creacion')[:3]
 
-    # Clientes activos
-    clientes_activos = Usuarios.objects.filter(
-        solicitudes__producto__vendedor=vendedor
-    ).distinct().count()
-
-    # Productos aprobados
-    productos_aprobados = Productos.objects.filter(
-        vendedor=vendedor,
-        estado_aprobacion='aprobado'
-    ).count()
-
-    # Ventas recientes
-    ventas = Solicitudes.objects.filter(
-        producto__vendedor=vendedor
-    ).order_by('-fecha_creacion')[:3]
+    clientes_activos   = Usuarios.objects.filter(solicitudes__producto__vendedor=vendedor_obj).distinct().count()
+    productos_aprobados = Productos.objects.filter(vendedor=vendedor_obj, estado_aprobacion='aprobado').count()
+    ventas             = Transacciones.objects.filter(solicitud__producto__vendedor=vendedor_obj).order_by('-fecha_creacion')[:3]
 
     return render(request, "vendedor/vendedor.html", {
-        "usuario": vendedor,
-        "ventas_hoy": ventas_hoy,
-        "solicitudes_nuevas": solicitudes_nuevas,
-        "clientes_activos": clientes_activos,
+        "usuario":             vendedor_obj,
+        "ventas_hoy":          ventas_hoy,
+        "solicitudes_nuevas":  solicitudes_nuevas,
+        "clientes_activos":    clientes_activos,
         "productos_aprobados": productos_aprobados,
-        "ventas": ventas
+        "ventas":              ventas,
     })
 
 
@@ -497,11 +2524,16 @@ def solicitudes_vendedor(request):
     if not usuario:
         return redirect('inicio')
 
-    solicitudes = Solicitudes.objects.filter(producto__vendedor=usuario)
+    solicitudes           = Solicitudes.objects.filter(producto__vendedor=usuario, estado='pendiente')
+    solicitudes_procesadas = Solicitudes.objects.filter(
+        producto__vendedor=usuario,
+        estado__in=['aceptada', 'rechazada', 'pagada']
+    )
 
     return render(request, 'vendedor/solicitudes_vendedor.html', {
-        'usuario': usuario,
-        'solicitudes': solicitudes
+        'usuario':                usuario,
+        'solicitudes':            solicitudes,
+        'solicitudes_procesadas': solicitudes_procesadas,
     })
 
 
@@ -511,68 +2543,55 @@ def reportes_vendedor(request):
     if not usuario:
         return redirect('inicio')
 
-    pendientes = PQRS.objects.filter(
-        usuario=usuario,
-        estado_respuesta='sin_respuesta'
-    )
-
-    respondidos = PQRS.objects.filter(
-        usuario=usuario,
-        estado_respuesta='respondido'
-    )
+    pendientes  = PQRS.objects.filter(usuario=usuario, estado_respuesta='sin_respuesta')
+    respondidos = PQRS.objects.filter(usuario=usuario, estado_respuesta='respondido')
 
     return render(request, "vendedor/reportes_vendedor.html", {
-        "usuario": usuario,
+        "usuario":       usuario,
         "sin_respuesta": pendientes,
-        "respondido": respondidos
+        "respondido":    respondidos,
     })
 
 
 @login_requerido
 def ventas_vendedor(request):
-    vendedor = _get_vendedor(request)
-    if not vendedor:
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
         return redirect('inicio')
 
-    # Traer ventas del vendedor
-    ventas = Transacciones.objects.filter(
-        solicitud__producto__vendedor=vendedor
+    ventas        = Transacciones.objects.filter(
+        solicitud__producto__vendedor=vendedor_obj
     ).select_related('solicitud__usuario', 'solicitud__producto')
 
-    # Estadísticas
-    total_ventas = ventas.aggregate(total=Sum('importe_total'))['total'] or 0
+    total_ventas  = ventas.aggregate(total=Sum('importe_total'))['total'] or 0
     total_pedidos = ventas.count()
-
-    hoy = now().date()
-    ventas_hoy = ventas.filter(
-        fecha_creacion__date=hoy
-    ).count()
+    ventas_hoy    = ventas.filter(fecha_creacion__date=now().date()).count()
 
     return render(request, 'vendedor/ventas_vendedor.html', {
-        'usuario': vendedor,
-        'ventas': ventas,
-        'total_ventas': total_ventas,
-        'ventas_hoy': ventas_hoy,
-        'total_pedidos': total_pedidos
+        'usuario':       vendedor_obj,
+        'ventas':        ventas,
+        'total_ventas':  total_ventas,
+        'ventas_hoy':    ventas_hoy,
+        'total_pedidos': total_pedidos,
     })
 
 
 @login_requerido
 def clientes_vendedor(request):
-    vendedor = _get_vendedor(request)
-    if not vendedor:
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
         return redirect('inicio')
 
     clientes = Usuarios.objects.filter(
-        solicitudes__producto__vendedor=vendedor
+        solicitudes__producto__vendedor=vendedor_obj
     ).annotate(
         total_compras=Count('solicitudes'),
         total_gastado=Sum('solicitudes__producto__precio')
     ).distinct()
 
     return render(request, 'vendedor/vendedor_clientes.html', {
-        'usuario': vendedor,
-        'clientes': clientes
+        'usuario':  vendedor_obj,
+        'clientes': clientes,
     })
 
 
@@ -587,46 +2606,276 @@ def productos_vendedor(request):
             nombre=request.POST.get("nombre"),
             descripcion=request.POST.get("descripcion"),
             precio=request.POST.get("precio"),
-            imagen=request.POST.get("imagen"),
+            imagen=request.FILES.get("imagen"),
             vendedor=usuario,
             estado_aprobacion='pendiente',
         )
 
-    pendientes = Productos.objects.filter(
-        vendedor=usuario,
-        estado_aprobacion='pendiente',
-        estado=True
-    )
+    productos_qs = Productos.objects.filter(vendedor=usuario, estado=True).order_by('-id_producto')
+    estado       = request.GET.get('estado')
+    if estado:
+        productos_qs = productos_qs.filter(estado_aprobacion=estado)
 
-    aprobados = Productos.objects.filter(
-        vendedor=usuario,
-        estado_aprobacion='aprobado',
-        estado=True
-    )
-
-    rechazados = Productos.objects.filter(
-        vendedor=usuario,
-        estado_aprobacion='rechazado',
-        estado=True
-    )
+    paginator     = Paginator(productos_qs, 6)
+    productos_page = paginator.get_page(request.GET.get('page'))
 
     return render(request, "vendedor/productos_vendedor.html", {
-        "usuario": usuario,
-        "pendientes": pendientes,
-        "aprobados": aprobados,
-        "rechazados": rechazados
+        "usuario":      usuario,
+        "productos":    productos_page,
+        "estado":       estado,
+        "pendientes":   productos_qs.filter(estado_aprobacion='pendiente'),
+        "aprobados":    productos_qs.filter(estado_aprobacion='aprobado'),
+        "rechazados":   productos_qs.filter(estado_aprobacion='rechazado'),
+        "inhabilitados": Productos.objects.filter(vendedor=usuario, estado=False),
     })
 
 
 @login_requerido
-def bonos_vendedor(request):
-    usuario = _get_vendedor(request)
-    if not usuario:
+def cambiar_estado_producto_vendedor(request, id_producto):
+    if request.method == "POST":
+        try:
+            producto = get_object_or_404(Productos, id_producto=id_producto)
+            vendedor_obj = producto.vendedor
+
+            producto.estado = not producto.estado
+            producto.save()
+
+            if producto.estado_aprobacion == 'aprobado' and not producto.estado:
+                PQRS.objects.create(
+                    asunto=f'Producto inhabilitado por vendedor',
+                    mensaje=f'El vendedor {vendedor_obj.nombre} {vendedor_obj.apellido} ha inhabilitado el producto "{producto.nombre}" (ID: {producto.id_producto}). Este producto estaba aprobado.',
+                    usuario=vendedor_obj,
+                    categoria='reporte',
+                    estado_respuesta='sin_respuesta'
+                )
+                messages.info(request, "Producto inhabilitado. Se notificó al administrador.")
+            else:
+                messages.success(request, "Estado del producto actualizado.")
+        except Exception:
+            messages.error(request, "Error al cambiar estado. Inténtalo de nuevo.")
+
+    return redirect("vendedor_productos")
+
+
+@login_requerido
+def editar_producto_vendedor(request, id_producto):
+    producto = get_object_or_404(Productos, id_producto=id_producto)
+
+    if request.method == "POST":
+        try:
+            if producto.estado_aprobacion == 'aprobado':
+                campos  = ['nombre', 'descripcion', 'precio', 'categoria']
+                mensaje = ""
+
+                for campo in campos:
+                    valor_nuevo   = request.POST.get(campo)
+                    valor_actual  = getattr(producto, campo)
+                    if valor_nuevo and str(valor_nuevo) != str(valor_actual):
+                        mensaje += f"{campo}:\n  Antes: {valor_actual}\n  Nuevo: {valor_nuevo}\n\n"
+
+                if request.FILES.get("imagen"):
+                    mensaje += "imagen:\n  (Nueva imagen adjunta)\n\n"
+
+                if mensaje:
+                    PQRS.objects.create(
+                        usuario=producto.vendedor,
+                        asunto=f"Solicitud edición de producto #{producto.id_producto}",
+                        mensaje=f"[Producto ID: {producto.id_producto}]\n\n" + mensaje,
+                        categoria='solicitud',
+                        estado_respuesta='sin_respuesta'
+                    )
+                    messages.info(request, "Solicitud enviada al administrador para revisión.")
+                else:
+                    messages.warning(request, "No detectamos cambios en el producto.")
+
+                return redirect('vendedor_productos')
+
+            # Pendiente o rechazado — editar directo
+            producto.nombre      = request.POST.get("nombre")
+            producto.descripcion = request.POST.get("descripcion")
+            producto.precio      = request.POST.get("precio")
+            producto.categoria   = request.POST.get("categoria")
+            if request.FILES.get("imagen"):
+                producto.imagen = request.FILES.get("imagen")
+
+            if producto.estado_aprobacion == 'rechazado':
+                producto.estado_aprobacion = 'pendiente'
+                messages.success(request, "Producto reenviado a revisión.")
+            else:
+                messages.success(request, "Producto actualizado correctamente.")
+
+            producto.save()
+        except Exception:
+            messages.error(request, "Error al guardar. Inténtalo de nuevo.")
+
+    return redirect('vendedor_productos')
+
+
+@login_requerido
+def carga_masiva_productos(request):
+    if request.method == 'POST':
+        vendedor_obj = _get_vendedor(request)
+        if not vendedor_obj:
+            return redirect('inicio')
+
+        if 'csv' not in request.FILES or 'zip' not in request.FILES:
+            messages.error(request, "Debes subir ambos archivos (CSV y ZIP)")
+            return redirect('vendedor_productos')
+
+        archivo_csv = request.FILES['csv']
+        archivo_zip = request.FILES['zip']
+        ruta_temp   = os.path.join(settings.MEDIA_ROOT, 'temp')
+        os.makedirs(ruta_temp, exist_ok=True)
+        productos_creados = 0
+
+        try:
+            try:
+                with zipfile.ZipFile(archivo_zip, 'r') as zip_ref:
+                    zip_ref.extractall(ruta_temp)
+            except Exception:
+                messages.error(request, "Error al leer el ZIP")
+                return redirect('vendedor_productos')
+
+            try:
+                archivo = TextIOWrapper(archivo_csv.file, encoding='utf-8')
+                reader  = csv.DictReader(archivo)
+            except Exception:
+                messages.error(request, "Error al leer el CSV")
+                return redirect('vendedor_productos')
+
+            for fila in reader:
+                try:
+                    if not fila.get('nombre') or not fila.get('precio'):
+                        continue
+
+                    producto = Productos(
+                        nombre=fila['nombre'],
+                        descripcion=fila.get('descripcion', ''),
+                        precio=fila['precio'],
+                        categoria=fila.get('categoria', 'diarios'),
+                        estado_aprobacion='pendiente',
+                        vendedor=vendedor_obj,
+                    )
+                    producto.save()
+
+                    nombre_imagen = fila.get('imagen', '').strip()
+                    if nombre_imagen:
+                        for root, dirs, files in os.walk(ruta_temp):
+                            if nombre_imagen in files:
+                                ruta_imagen = os.path.join(root, nombre_imagen)
+                                with open(ruta_imagen, 'rb') as f:
+                                    producto.imagen.save(nombre_imagen, File(f), save=True)
+                                break
+
+                    productos_creados += 1
+                except Exception:
+                    continue
+        finally:
+            shutil.rmtree(ruta_temp, ignore_errors=True)
+
+        if productos_creados > 0:
+            messages.success(request, f"Se subieron {productos_creados} productos correctamente")
+        else:
+            messages.warning(request, "No se creó ningún producto (revisa tu CSV)")
+
+    return redirect('vendedor_productos')
+
+
+@login_requerido
+def crear_productos(request):
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
         return redirect('inicio')
 
-    return render(request, 'vendedor/bonos_vendedor.html', {
-        'usuario': usuario
-    })
+    if request.method == "POST":
+        nombre      = request.POST.get("nombre")
+        descripcion = request.POST.get("descripcion")
+        precio      = request.POST.get("precio")
+        imagen      = request.FILES.get("imagen")
+        categoria   = request.POST.get("categoria")
+
+        if not all([nombre, descripcion, precio, categoria]):
+            messages.warning(request, "Todos los campos son obligatorios.")
+            return redirect("vendedor_productos")
+
+        try:
+            Productos.objects.create(
+                nombre=nombre, descripcion=descripcion, precio=precio,
+                imagen=imagen, vendedor=vendedor_obj, categoria=categoria,
+                estado_aprobacion='pendiente',
+            )
+            messages.success(request, "¡Producto creado! Quedará pendiente de aprobación.")
+        except Exception:
+            messages.error(request, "Error al guardar. Inténtalo de nuevo.")
+
+    return redirect("vendedor_productos")
+
+
+def descargar_plantilla_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="plantilla_productos.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['nombre', 'descripcion', 'precio', 'categoria', 'imagen'])
+    writer.writerow(['Pastel de chocolate', 'Delicioso pastel', '500', 'antojos', 'pastel.jpg'])
+    return response
+
+
+@login_requerido
+def eliminar_producto_vendedor(request, id_producto):
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
+        return redirect('inicio')
+
+    producto = get_object_or_404(Productos, id_producto=id_producto, vendedor=vendedor_obj)
+
+    if request.method == 'POST':
+        try:
+            if producto.estado_aprobacion == 'aprobado' and producto.estado:
+                messages.error(request, "No puedes eliminar un producto aprobado y activo.")
+                return redirect('vendedor_productos')
+            producto.delete()
+            messages.success(request, "Producto eliminado permanentemente.")
+        except Exception:
+            messages.error(request, "Error al eliminar. Inténtalo de nuevo.")
+
+    return redirect('vendedor_productos')
+
+
+@login_requerido
+def aceptar_soli(request, id_solicitud):
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
+        return redirect('inicio')
+
+    solicitud = get_object_or_404(Solicitudes, id_solicitud=id_solicitud)
+
+    if request.method == "POST":
+        accion = request.POST.get("accion")
+        try:
+            if accion == "aceptar":
+                porcentaje = request.POST.get("porcentaje_abono")
+                if not porcentaje or not porcentaje.isdigit():
+                    messages.error(request, "Debes ingresar un porcentaje válido para aceptar.")
+                    return redirect('vendedor_solicitudes')
+
+                porcentaje = int(porcentaje)
+                if not (1 <= porcentaje <= 100):
+                    messages.error(request, "El porcentaje debe estar entre 1 y 100.")
+                    return redirect('vendedor_solicitudes')
+
+                solicitud.estado = "aceptada"
+                solicitud.abono  = (solicitud.precio_total * porcentaje) / 100
+                messages.success(request, "Solicitud aceptada correctamente.")
+
+            elif accion == "rechazar":
+                solicitud.estado = "rechazada"
+                messages.info(request, "Solicitud rechazada.")
+
+            solicitud.save()
+        except Exception:
+            messages.error(request, "Ocurrió un error al procesar la solicitud.")
+
+    return redirect('vendedor_solicitudes')
 
 
 @login_requerido
@@ -635,118 +2884,18 @@ def mi_perfil_vendedor(request):
     if not usuario:
         return redirect('inicio')
 
-    # Total ventas
-    total_ventas = Transacciones.objects.filter(
-        solicitud__producto__vendedor=usuario
-    ).aggregate(total=Sum('importe_total'))['total'] or 0
-
-    # Total pedidos
-    total_pedidos = Solicitudes.objects.filter(
-        producto__vendedor=usuario
-    ).count()
-
-    # Clientes únicos
-    clientes = Usuarios.objects.filter(
-        solicitudes__producto__vendedor=usuario
-    ).distinct().count()
-
-    # Productos aprobados
-    productos_aprobados = Productos.objects.filter(
-        vendedor=usuario,
-        estado_aprobacion='aprobado'
-    ).count()
+    total_ventas        = Transacciones.objects.filter(solicitud__producto__vendedor=usuario).aggregate(total=Sum('importe_total'))['total'] or 0
+    total_pedidos       = Solicitudes.objects.filter(producto__vendedor=usuario).count()
+    clientes            = Usuarios.objects.filter(solicitudes__producto__vendedor=usuario).distinct().count()
+    productos_aprobados = Productos.objects.filter(vendedor=usuario, estado_aprobacion='aprobado').count()
 
     return render(request, 'vendedor/perfil_vendedor.html', {
-        'usuario': usuario,
-        'total_ventas': total_ventas,
-        'total_pedidos': total_pedidos,
-        'clientes': clientes,
-        'productos_aprobados': productos_aprobados
+        'usuario':             usuario,
+        'total_ventas':        total_ventas,
+        'total_pedidos':       total_pedidos,
+        'clientes':            clientes,
+        'productos_aprobados': productos_aprobados,
     })
-
-
-@login_requerido
-def soli_vendedor(request):
-    usuario = _get_vendedor(request)
-    if not usuario:
-        return redirect('inicio')
-
-    return render(request, 'vendedor/hacer_solicitud_vendedor.html', {
-        'usuario': usuario
-    })
-
-#acciones ---------------------------------------------------------------------->
-#acciones ---------------------------------------------------------------------->
-#acciones ---------------------------------------------------------------------->
-
-@login_requerido
-def cambiar_estado_producto_vendedor(request, id_producto):
-    if request.method == "POST":
-        producto = Productos.objects.get(id_producto=id_producto)
-
-        # invertir el estado
-        producto.estado = not producto.estado
-
-        producto.save()
-
-    return redirect("vendedor_productos")
-
-@login_requerido
-def editar_producto_vendedor(request, id_producto):
-    producto = get_object_or_404(Productos, id_producto=id_producto)
-
-    if request.method == "POST":
-        producto.nombre = request.POST.get("nombre")
-        producto.descripcion = request.POST.get("descripcion")
-        producto.precio = request.POST.get("precio")
-        producto.categoria = request.POST.get("categoria")
-        if request.FILES.get("imagen"):
-            producto.imagen = request.FILES.get("imagen")
-        producto.save()
-
-        return redirect('vendedor_productos')  # tu vista principal
-
-    return redirect('vendedor_productos')
-
-@login_requerido
-def crear_solicitud_vendedor(request):
-    usuario = _get_vendedor(request)
-    if not usuario:
-        return redirect('inicio')
-
-    if request.method == "POST":
-        Solicitudes.objects.create(
-            cliente_id=request.POST.get("cliente"),
-            producto_id=request.POST.get("producto"),
-            cantidad=request.POST.get("cantidad"),
-            detalles=request.POST.get("detalles"),
-        )
-
-    return render(request, "vendedor/hacer_solicitud_vendedor.html", {
-        "usuario": usuario,
-        "clientes": Usuarios.objects.all(),
-        "productos": Productos.objects.all(),
-    })
-
-
-@login_requerido
-def crear_productos(request):
-    vendedor = _get_vendedor(request)
-    if not vendedor:
-        return redirect('inicio')
-
-    if request.method == "POST":
-        Productos.objects.create(
-            nombre=request.POST.get("nombre"),
-            descripcion=request.POST.get("descripcion"),
-            precio=request.POST.get("precio"),
-            imagen=request.POST.get("imagen"),
-            vendedor=vendedor,
-            categoria=request.POST.get("categoria"),
-            estado_aprobacion='pendiente'
-        )
-
-    return redirect("vendedor_productos")
 
 
 @login_requerido
@@ -756,157 +2905,263 @@ def editar_perfil_vendedor(request):
         return redirect('inicio')
 
     if request.method == "POST":
-        datos = {
-            "nombre": request.POST.get('nombre'),
-            "apellido": request.POST.get('apellido'),
-            "correo": request.POST.get('correo'),
-            "numero": request.POST.get('numero'),
-            "direccion": request.POST.get('direccion')
-        }
+        try:
+            datos   = {
+                "nombre":    request.POST.get('nombre'),
+                "apellido":  request.POST.get('apellido'),
+                "correo":    request.POST.get('correo'),
+                "numero":    request.POST.get('numero'),
+                "direccion": request.POST.get('direccion'),
+            }
+            mensaje = ""
+            for campo, valor in datos.items():
+                valor_actual = getattr(usuario, campo)
+                if valor and valor != valor_actual:
+                    mensaje += f"{campo}:\n  Antes: {valor_actual}\n  Nuevo: {valor}\n\n"
 
-        PQRS.objects.create(
-            usuario=usuario,
-            asunto="Solicitud cambio de perfil",
-            mensaje=json.dumps(datos),
-            categoria='solicitud',
-            estado_respuesta='sin_respuesta'
-        )
+            PQRS.objects.create(
+                usuario=usuario,
+                asunto="Solicitud cambio de perfil",
+                mensaje=mensaje,
+                categoria='solicitud',
+                estado_respuesta='sin_respuesta'
+            )
+            messages.info(request, "Tu solicitud de cambio de información ha sido enviada para futura revisión.")
+        except Exception:
+            messages.error(request, "Ocurrió un error al procesar la solicitud.")
 
-        return redirect('vendedor_perfil')
+    return redirect('vendedor_perfil')
 
 
 @login_requerido
 def crear_reporte_vendedor(request):
-    vendedor = _get_vendedor(request)
-    if not vendedor:
+    vendedor_obj = _get_vendedor(request)
+    if not vendedor_obj:
         return redirect('inicio')
 
     if request.method == "POST":
-        datos = {
-            "Nombre": request.POST.get('nombre'),
-            "Apellido": request.POST.get('apellido'),
-            "Correo": request.POST.get('correo'),
-            "Número": request.POST.get('numero'),
-            "Dirección": request.POST.get('direccion')
-        }
+        try:
+            asunto    = request.POST.get('asunto')
+            categoria = request.POST.get('categoria')
+            mensaje   = request.POST.get('mensaje')
 
-        mensaje = ""
-        for campo, valor in datos.items():
-            if valor:
-                mensaje += f"{campo}: {valor}\n"
+            if asunto and categoria and mensaje:
+                PQRS.objects.create(
+                    usuario=vendedor_obj, asunto=asunto,
+                    mensaje=mensaje, categoria=categoria,
+                    estado_respuesta='sin_respuesta'
+                )
+                messages.success(request, "Tu PQRS ha sido enviada con éxito. Espere respuesta del admin.")
+            else:
+                messages.warning(request, "Faltan campos por llenar.")
 
-        PQRS.objects.create(
-            usuario=vendedor,
-            asunto="Solicitud cambio de perfil",
-            mensaje=mensaje,
-            categoria='solicitud',
-            estado_respuesta='sin_respuesta'
-        )
+            return redirect('vendedor_reportes')
+        except Exception:
+            messages.error(request, "Ocurrió un error generando el reporte. Inténtalo de nuevo.")
 
-        print("REPORTE GUARDADO")
-        return redirect('vendedor_reportes')
-
-    pendientes = PQRS.objects.filter(
-        usuario=vendedor,
-        estado_respuesta='sin_respuesta'
-    )
-
-    respondidos = PQRS.objects.filter(
-        usuario=vendedor,
-        estado_respuesta='respondido'
-    )
-
-    for p in pendientes:
-        if p.categoria == 'solicitud':
-            try:
-                p.mensaje_json = json.loads(p.mensaje)
-            except:
-                p.mensaje_json = None
+    pendientes  = PQRS.objects.filter(usuario=vendedor_obj, estado_respuesta='sin_respuesta')
+    respondidos = PQRS.objects.filter(usuario=vendedor_obj, estado_respuesta='respondido')
 
     return render(request, "vendedor/reportes_vendedor.html", {
-        "usuario": vendedor,
+        "usuario":       vendedor_obj,
         "sin_respuesta": pendientes,
-        "respondidos": respondidos
+        "respondidos":   respondidos,
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  CLIENTE
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
+
+@login_requerido
+def perfil_cliente(request):
+    usuario = get_usuario_sesion(request)
+
+    if request.method == 'POST':
+
+        if request.POST.get('cambiar_contrasena'):
+            actual    = request.POST.get('contrasena_actual', '').strip()
+            nueva     = request.POST.get('nueva_contrasena', '').strip()
+            confirmar = request.POST.get('confirmar_contrasena', '').strip()
+
+            if not all([actual, nueva, confirmar]):
+                messages.warning(request, "Todos los campos de contraseña son obligatorios.")
+                return redirect('perfil_cliente')
+
+            if not check_password(actual, usuario.contrasena):
+                messages.error(request, "La contraseña actual es incorrecta.")
+                return redirect('perfil_cliente')
+
+            if nueva != confirmar:
+                messages.error(request, "La nueva contraseña y la confirmación no coinciden.")
+                return redirect('perfil_cliente')
+
+            if len(nueva) < 6:
+                messages.warning(request, "La nueva contraseña debe tener al menos 6 caracteres.")
+                return redirect('perfil_cliente')
+
+            usuario.contrasena = make_password(nueva)
+            usuario.save()
+            messages.success(request, "Contraseña actualizada correctamente.")
+
+        else:
+            nombre   = request.POST.get('nombre', '').strip()
+            apellido = request.POST.get('apellido', '').strip()
+            correo   = request.POST.get('correo', '').strip()
+            numero   = request.POST.get('numero', '').strip()
+
+            if not all([nombre, apellido, correo, numero]):
+                messages.warning(request, "Los campos nombre, apellido, correo y número son obligatorios.")
+                return redirect('perfil_cliente')
+
+            if Usuarios.objects.filter(correo=correo).exclude(id_usuario=usuario.id_usuario).exists():
+                messages.error(request, "Este correo ya está registrado por otro usuario.")
+                return redirect('perfil_cliente')
+
+            try:
+                usuario.nombre    = nombre
+                usuario.apellido  = apellido
+                usuario.correo    = correo
+                usuario.numero    = numero
+                usuario.direccion = request.POST.get('direccion', usuario.direccion)
+                usuario.save()
+                request.session['usuario_nombre'] = usuario.nombre
+                messages.success(request, "Perfil actualizado correctamente.")
+            except Exception:
+                messages.error(request, "Ocurrió un error al actualizar el perfil. Intenta de nuevo.")
+
+        return redirect('perfil_cliente')
+
+    total_pedidos         = Solicitudes.objects.filter(usuario=usuario).count()
+    total_gastado         = Solicitudes.objects.filter(usuario=usuario).aggregate(t=Sum('precio_total'))['t'] or 0
+    total_pqrs            = PQRS.objects.filter(usuario=usuario).count()
+    solicitudes_recientes = Solicitudes.objects.filter(usuario=usuario).order_by('-fecha_creacion')[:4]
+
+    return render(request, 'cliente/perfil_cliente.html', {
+        'usuario':               usuario,
+        'total_pedidos':         total_pedidos,
+        'total_gastado':         total_gastado,
+        'total_pqrs':            total_pqrs,
+        'solicitudes_recientes': solicitudes_recientes,
+    })
+
 
 def catalogo(request):
+    if request.GET.get('cancelado'):
+        messages.warning(request, "Compra cancelada. Puedes seguir explorando el catálogo.")
+
+    usuario   = get_usuario_sesion(request)
     categoria = request.GET.get("categoria", "todos")
-    pasteles = (
-        Productos.objects.filter(categoria=categoria, estado=True)
+    pasteles  = (
+        Productos.objects.filter(categoria=categoria, estado=True, estado_aprobacion='aprobado')
         if categoria != "todos"
-        else Productos.objects.filter(estado=True)
+        else Productos.objects.filter(estado=True, estado_aprobacion='aprobado')
     )
     return render(request, "cliente/catalogo.html", {
-        "pasteles": pasteles,
+        "pasteles":        pasteles,
         "categoria_activa": categoria,
-        "total": pasteles.count(),
+        "total":           pasteles.count(),
+        "usuario":         usuario,
     })
 
 
 def compra_rapida(request, producto_id):
-    producto = get_object_or_404(Productos, id_producto=producto_id)
+    producto   = get_object_or_404(Productos, id_producto=producto_id, estado_aprobacion='aprobado', estado=True)
     usuario_id = request.session.get('usuario_id')
-    usuario = Usuarios.objects.get(id_usuario=usuario_id) if usuario_id else None
-    return render(request, 'cliente/compra_rapida.html', {
-        'producto': producto,
-        'usuario': usuario,
+    usuario    = Usuarios.objects.get(id_usuario=usuario_id) if usuario_id else None
+    return render(request, 'cliente/compra_rapida.html', {'producto': producto, 'usuario': usuario})
+
+
+# ════════════════════════════════════════════════════════════════════
+#  TRANSACCIONES DEL CLIENTE
+# ════════════════════════════════════════════════════════════════════
+
+@login_requerido
+def mis_transacciones(request):
+    usuario = get_usuario_sesion(request)
+
+    transacciones = Transacciones.objects.filter(
+        solicitud__usuario=usuario
+    ).select_related('solicitud__producto').order_by('-fecha_creacion')
+
+    total_pagado = transacciones.aggregate(total=Sum('importe_total'))['total'] or 0
+    total_tx     = transacciones.count()
+    terminadas   = transacciones.filter(estado='terminado').count()
+    abonadas     = transacciones.filter(estado='abonado').count()
+
+    return render(request, 'cliente/mis_transacciones.html', {
+        'usuario':       usuario,
+        'transacciones': transacciones,
+        'total_pagado':  total_pagado,
+        'total_tx':      total_tx,
+        'terminadas':    terminadas,
+        'abonadas':      abonadas,
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  CONFIGURADOR
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 def configurador(request, producto_id):
-    producto = get_object_or_404(Productos, id_producto=producto_id)
+    producto   = get_object_or_404(Productos, id_producto=producto_id, estado_aprobacion='aprobado', estado=True)
     usuario_id = request.session.get('usuario_id')
+
+    if producto.categoria == 'eventos' and not usuario_id:
+        return redirect('inicio')
+
     usuario = Usuarios.objects.get(id_usuario=usuario_id) if usuario_id else None
     return render(request, 'cliente/configurador.html', {
-        'producto': producto,
-        'usuario': usuario,
+        'producto':   producto,
+        'usuario':    usuario,
         'public_key': settings.MERCADOPAGO_PUBLIC_KEY,
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  SOLICITUDES (CLIENTE)
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
-@login_requerido
 def crear_solicitud(request, producto_id):
     if request.method != 'POST':
         return redirect('catalogo')
 
-    producto = get_object_or_404(Productos, id_producto=producto_id)
+    producto   = get_object_or_404(Productos, id_producto=producto_id)
     usuario_id = request.session.get('usuario_id')
-    usuario = Usuarios.objects.get(id_usuario=usuario_id) if usuario_id else None
+    usuario    = Usuarios.objects.get(id_usuario=usuario_id) if usuario_id else None
+
+    if producto.categoria == 'eventos' and not usuario:
+        messages.warning(request, "Debes iniciar sesión para solicitar un evento.")
+        return redirect('inicio')
 
     precio_total = int(float(request.POST.get('precio_total', producto.precio)))
 
-    solicitud = Solicitudes.objects.create(
-        usuario=usuario,
-        producto=producto,
-        nombre_invitado=request.POST.get('nombre_invitado', ''),
-        direccion_entrega=request.POST.get('direccion_entrega', ''),
-        tipo_entrega=request.POST.get('tipo_entrega', 'tienda'),
-        mensaje_pastel=request.POST.get('mensaje_pastel', ''),
-        cobertura=request.POST.get('cobertura', 'chantilly'),
-        rellenos=request.POST.get('rellenos', ''),
-        decoracion=request.POST.get('decoracion', ''),
-        pisos=int(request.POST.get('pisos', 1)),
-        porciones=request.POST.get('porciones', 2),
-        precio_total=precio_total,
-        fecha_evento=request.POST.get('fecha_evento') or None,
-        estado='pendiente',
-    )
+    try:
+        solicitud = Solicitudes.objects.create(
+            usuario           = usuario,
+            producto          = producto,
+            nombre_invitado   = request.POST.get('nombre_invitado', ''),
+            correo_invitado   = request.POST.get('correo_invitado', ''),
+            direccion_entrega = request.POST.get('direccion_entrega', ''),
+            tipo_entrega      = request.POST.get('tipo_entrega', 'tienda'),
+            mensaje_pastel    = request.POST.get('mensaje_pastel', ''),
+            cobertura         = request.POST.get('cobertura', ''),
+            rellenos          = request.POST.get('rellenos', ''),
+            decoracion        = request.POST.get('decoracion', ''),
+            pisos             = int(request.POST.get('pisos', 1)),
+            porciones         = request.POST.get('porciones') or None,
+            precio_total      = precio_total,
+            abono             = 0,
+            descripcion       = request.POST.get('descripcion_config', ''),
+            fecha_evento      = request.POST.get('fecha_evento') or None,
+            estado            = 'pendiente',
+        )
+    except Exception:
+        messages.error(request, "Ocurrió un error al crear la solicitud. Intenta de nuevo.")
+        return redirect('catalogo')
 
-    # Productos de eventos no pasan por pasarela de pago inmediata
     if producto.categoria == 'eventos':
+        messages.success(request, "¡Solicitud enviada! Pronto nos pondremos en contacto contigo.")
         return redirect('solicitud_pendiente', solicitud_id=solicitud.id_solicitud)
 
     return _redirigir_a_mercadopago(solicitud, usuario, producto, precio_total)
@@ -918,23 +3173,27 @@ def mis_solicitudes(request):
     if not usuario_id:
         return redirect('inicio')
 
-    estado = request.GET.get('estado', 'todos')
-    solicitudes = Solicitudes.objects.filter(usuario_id=usuario_id).order_by('-fecha_solicitud')
+    usuario    = get_usuario_sesion(request)
+    estado     = request.GET.get('estado', 'todos')
+    solicitudes = Solicitudes.objects.filter(usuario_id=usuario_id).order_by('-fecha_creacion')
     if estado != 'todos':
         solicitudes = solicitudes.filter(estado=estado)
 
     return render(request, 'cliente/mis_solicitudes.html', {
-        'solicitudes': solicitudes,
+        'solicitudes':  solicitudes,
         'estado_activo': estado,
+        'usuario':      usuario,
     })
 
 
 @login_requerido
 def detalle_solicitud(request, solicitud_id):
-    if not request.session.get('usuario_id'):
-        return redirect('inicio')
     solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
-    return render(request, 'detalle_solicitud.html', {'solicitud': solicitud})
+    usuario   = get_usuario_sesion(request)
+    return render(request, 'cliente/detalle_solicitud.html', {
+        'solicitud': solicitud,
+        'usuario':   usuario,
+    })
 
 
 @login_requerido
@@ -950,22 +3209,77 @@ def cancelar_solicitud(request, solicitud_id):
 
 def solicitud_pendiente(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
-    return render(request, 'cliente/solicitud_pendiente.html', {'solicitud': solicitud})
+    usuario   = get_usuario_sesion(request)
+    return render(request, 'cliente/solicitud_pendiente.html', {
+        'solicitud': solicitud,
+        'usuario':   usuario,
+    })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
+#  PQRS CLIENTE
+# ════════════════════════════════════════════════════════════════════
+
+@login_requerido
+def mis_pqrs(request):
+    usuario        = get_usuario_sesion(request)
+    filtro_activo  = request.GET.get('f', 'todos')
+    qs             = PQRS.objects.filter(usuario=usuario)
+
+    if filtro_activo == 'sin_respuesta':
+        qs = qs.filter(estado_respuesta='sin_respuesta')
+    elif filtro_activo == 'respondido':
+        qs = qs.filter(estado_respuesta='respondido')
+    elif filtro_activo in ['pregunta', 'queja', 'reporte', 'solicitud']:
+        qs = qs.filter(categoria=filtro_activo)
+
+    return render(request, 'cliente/mis_pqrs.html', {
+        'usuario':       usuario,
+        'pqrs_list':     qs.order_by('-id_pqrs'),
+        'filtro_activo': filtro_activo,
+    })
+
+
+@login_requerido
+def crear_pqrs(request):
+    usuario = get_usuario_sesion(request)
+
+    if request.method != 'POST':
+        return redirect('mis_pqrs')
+
+    asunto    = request.POST.get('asunto', '').strip()
+    mensaje   = request.POST.get('mensaje', '').strip()
+    categoria = request.POST.get('categoria', '').strip()
+
+    if not all([asunto, mensaje, categoria]):
+        messages.warning(request, "Todos los campos son obligatorios.")
+        return redirect('mis_pqrs')
+
+    try:
+        PQRS.objects.create(
+            usuario=usuario, asunto=asunto, mensaje=mensaje,
+            categoria=categoria, estado_respuesta='sin_respuesta',
+        )
+        messages.success(request, "¡Tu PQRS fue enviada correctamente! Te responderemos pronto.")
+    except Exception:
+        messages.error(request, "Ocurrió un error al enviar tu PQRS. Intenta de nuevo.")
+
+    return redirect('mis_pqrs')
+
+
+# ════════════════════════════════════════════════════════════════════
 #  MERCADOPAGO — PAGOS
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 def _redirigir_a_mercadopago(solicitud, usuario, producto, precio_total):
     """Helper interno: crea una preferencia MP y redirige al init_point."""
-    sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+    sdk              = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
     nombre_comprador = usuario.nombre if usuario else solicitud.nombre_invitado
 
     preference_data = {
         "items": [{
-            "title": producto.nombre,
-            "quantity": 1,
+            "title":      producto.nombre,
+            "quantity":   1,
             "unit_price": precio_total,
             "currency_id": "COP",
         }],
@@ -981,13 +3295,11 @@ def _redirigir_a_mercadopago(solicitud, usuario, producto, precio_total):
     preference = sdk.preference().create(preference_data)
 
     if "id" not in preference["response"]:
-        print("ERROR MP:", preference["response"])
         return HttpResponse(f"Error MercadoPago: {preference['response']}", status=500)
 
     solicitud.mp_preference_id = preference["response"]["id"]
     solicitud.save()
-
-    return redirect(preference["response"]["init_point"])
+    return redirect(preference["response"]["sandbox_init_point"])
 
 
 @login_requerido
@@ -996,12 +3308,12 @@ def pagar_abono(request, solicitud_id):
         return redirect('inicio')
 
     solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
-    sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+    sdk       = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
 
     preference_data = {
         "items": [{
-            "title": f"Abono — {solicitud.producto.nombre}",
-            "quantity": 1,
+            "title":      f"Abono — {solicitud.producto.nombre}",
+            "quantity":   1,
             "unit_price": float(solicitud.abono),
             "currency_id": "COP",
         }],
@@ -1018,25 +3330,28 @@ def pagar_abono(request, solicitud_id):
 
 
 def pago_exitoso(request, solicitud_id):
-    solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
+    solicitud        = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
     solicitud.estado = 'pagada'
     solicitud.save()
-    return render(request, 'cliente/pago_exitoso.html', {'solicitud': solicitud})
+    usuario = get_usuario_sesion(request)
+    return render(request, 'cliente/pago_exitoso.html', {'solicitud': solicitud, 'usuario': usuario})
 
 
 def pago_fallido(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
-    return render(request, 'cliente/pago_fallido.html', {'solicitud': solicitud})
+    usuario   = get_usuario_sesion(request)
+    return render(request, 'cliente/pago_fallido.html', {'solicitud': solicitud, 'usuario': usuario})
 
 
 def pago_pendiente(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
-    return render(request, 'cliente/pago_pendiente.html', {'solicitud': solicitud})
+    usuario   = get_usuario_sesion(request)
+    return render(request, 'cliente/pago_pendiente.html', {'solicitud': solicitud, 'usuario': usuario})
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 #  MERCADOPAGO — WEBHOOK
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
 
 @csrf_exempt
 def webhook_mp(request):
@@ -1049,10 +3364,10 @@ def webhook_mp(request):
             return HttpResponse(status=200)
 
         payment_id = data['data']['id']
-        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
-        info = sdk.payment().get(payment_id)['response']
+        sdk        = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        info       = sdk.payment().get(payment_id)['response']
 
-        solicitud = get_object_or_404(Solicitudes, id_solicitud=info.get('external_reference'))
+        solicitud               = get_object_or_404(Solicitudes, id_solicitud=info.get('external_reference'))
         solicitud.mp_payment_id = str(payment_id)
 
         if info.get('status') == 'approved':
@@ -1074,3 +3389,33 @@ def webhook_mp(request):
         print(f"Webhook error: {e}")
 
     return HttpResponse(status=200)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  COMPRAS DE INVITADO
+# ════════════════════════════════════════════════════════════════════
+
+def mis_compras_invitado(request):
+    correo      = request.GET.get('correo', '').strip()
+    usuario     = get_usuario_sesion(request)
+    solicitudes = Solicitudes.objects.none()
+
+    if usuario:
+        solicitudes = Solicitudes.objects.filter(
+            usuario=usuario
+        ).select_related('producto').order_by('-fecha_creacion')
+    elif correo:
+        solicitudes = Solicitudes.objects.filter(
+            correo_invitado=correo, usuario=None
+        ).select_related('producto').order_by('-fecha_creacion')
+
+    total_gastado     = solicitudes.filter(estado='pagada').aggregate(total=Sum('precio_total'))['total'] or 0
+    pendientes_count  = solicitudes.filter(estado__in=['pendiente', 'aceptada']).count()
+
+    return render(request, 'cliente/mis_compras_invitado.html', {
+        'solicitudes':      solicitudes,
+        'correo':           correo,
+        'usuario':          usuario,
+        'total_gastado':    total_gastado,
+        'pendientes_count': pendientes_count,
+    })

@@ -2,235 +2,626 @@
 {% load static %}
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-	<section class="productos">
-		<div class="display">
-			<div class="titulo_area">
-				<i class="fa-solid fa-box"></i>
-				<div class="texto_area">
-					<strong>Mis Productos</strong>
-					<p>Gestiona tu catálogo de productos</p>
+
+<!-- ═══════════ FILTROS ═══════════ -->
+<div class="filtraciones">
+    <div class="filtros-tabs">
+        <button class="tab activo" onclick="filtrarPRODU(this,'todos')">Todos</button>
+        <button class="tab" onclick="filtrarPRODU(this,'pendiente')">Pendientes</button>
+        <button class="tab" onclick="filtrarPRODU(this,'aprobado')">Aprobados</button>
+        <button class="tab" onclick="filtrarPRODU(this,'rechazado')">Rechazados</button>
+    </div>
+
+    <div class="vista-toggle">
+        <button onclick="cambiarVista('cards')" class="toggle"><i class="fa-solid fa-border-all"></i> Tarjetas</button>
+        <button onclick="cambiarVista('tabla')" class="toggle"><i class="fa-solid fa-table"></i> Tabla</button>
+    </div>
+</div>
+    <section class="productos">
+        <div class="display">
+            <div class="titulo_area">
+                <i class="fa-solid fa-box"></i>
+                <div class="texto_area">
+                    <strong>Mis Productos</strong>
+                    <p>Gestiona tu catálogo de productos</p>
+                </div>
+            </div>
+            <div class="buttons">
+                <button class="button" data-bs-toggle="modal" data-bs-target="#modalCargaMasiva"><i class="fa-solid fa-arrow-up-from-bracket"></i> Carga masiva</button>
+                <button class="button" id="openModalMio"><i class="fa-solid fa-plus"></i> Crear producto</button>
+            </div>
+        </div>
+        <section>
+            
+        </section>
+        <section class="modal_mio" id="modal_mio">
+            <div class="modal_content">
+                <h4>Crear nuevo producto</h4><br>
+                <form method="POST" action="{% url 'crear_producto' %}" class="form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="inputs">
+                        <div class="input">
+                            <label>Nombre del producto</label><br>
+                            <input type="text" name="nombre" placeholder="Ej: Pastel de chocolate" maxlength="30" minlength="3"">
+                        </div>
+                        <div class="input">
+                            <label>Categoria del producto</label><br>
+                            <select name="categoria">
+                                <option id="antojos" value="antojos">Antojos</option>
+                                <option id="eventos" value="eventos">Eventos</option>
+                                <option id="diarios" value="diarios">Diarios</option>
+                            </select>
+                        </div>
+                    </div><br>  
+                    <label for="descripcion">Descripcion</label><br>
+                    <textarea name="descripcion"></textarea><br><br>
+                    <label>Precio</label><br>
+                    <input type="text" name="precio" placeholder="Ej: 500" maxlength="6" minlength="2" onkeypress="return event.charCode >= 48 && event.charCode <= 57" title="Números solamente"><br><br>
+                    <label for="imagen">Imagen</label>
+                    <input type="file" name="imagen" placeholder="Coloca tu archivo aquí. Se aceptan PNG y JPG"><br><br>
+                    <p>Tu producto sera evaluado por administracion</p><br>
+                    <button class="button" type="submit">Enviar</button><br><br>
+                </form>
+                <button class="button" id="close_modalMio">Cerrar modal</button>
+            </div>
+        </section>
+        <strong><i class="fa-regular fa-clock"></i> Pendientes de Aprobación</strong><br><br>
+            <div id="vista-cards" class="vista-cards">
+                <div class="listas">
+                    {% for p in pendientes %}
+                        <article class="card_productos producto_pendiente card-click" id="verBotones">
+                            <div class="img">
+                                {% if p.imagen %}
+                                    <img src="{{ p.imagen.url }}" title="{{ p.nombre }}">
+                                {% else %}
+                                    <img src="{% static 'imagenes/pie.jpg' %}" title="{{ p.nombre }}">
+                                {% endif %}
+                            </div>
+                            <div class="top">
+                                <div class="icon">
+                                    <i class="fa-solid fa-box"></i>
+                                </div>
+                                <span class="badge">{{ p.estado_aprobacion }}</span>
+                            </div>
+
+                            <h3 class="nombre">{{ p.nombre }}</h3>
+                            <p class="descripcion">{{ p.descripcion }}</p>
+
+                            <hr>
+
+                            <div class="footer">
+                                <span>{{ p.categoria }}</span>
+                                <strong>{{ p.precio }}</strong>
+                            </div>
+                            <p class="pqrs-fecha" style="font-size:11px; color:#888;">
+                                <p>{{ a.motivo_rechazo }}</p>
+                                Reenviado: {{ a.fecha_modificacion|date:"Y-m-d H:i" }}
+                            </p>
+                            <div class="none">
+                                <div class="none_content" id="botones">
+                                    <button class="EditarProducto"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditar"
+
+                                        data-id="{{ p.id_producto }}"
+                                        data-nombre="{{ p.nombre }}"
+                                        data-descripcion="{{ p.descripcion }}"
+                                        data-precio="{{ p.precio }}"
+                                        data-categoria="{{ p.categoria }}">
+                                        Editar
+                                    </button>
+                                    <form method="POST" action="{% url 'cambiar_estado_producto_vendedor' p.id_producto %}">
+                                        {% csrf_token %}
+                                        
+                                        <button type="submit" class="elimina_producto">
+                                            {% if p.estado %}
+                                                Inactivar
+                                            {% else %}
+                                                Activar
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <p>No tienes productos pendientes</p>
+                    {% endfor %}
+                </div><br>
+                <strong><i class="fa-regular fa-clock"></i> Productos aprobados (3)</strong><br><br>
+                <div class="listas">
+                    
+                    {% for a in aprobados %}
+                        <article class="card_productos producto_aceptado card-click" id="verBotones">
+                            <div class="img">
+                                {% if a.imagen %}
+                                    <img src="{{ a.imagen.url }}" title="{{ a.nombre }}">
+                                {% else %}
+                                    <img src="{% static 'imagenes/pie.jpg' %}" title="{{ a.nombre }}">
+                                {% endif %}
+                            </div>
+                            <div class="top">
+                                <div class="icon">
+                                    <i class="fa-solid fa-box"></i>
+                                </div>
+                                <span class="badge">{{ a.estado_aprobacion }}</span>
+                            </div>
+
+                            <h3 class="nombre">{{ a.nombre }}</h3>
+                            <p class="descripcion">{{ a.descripcion }}</p>
+
+                            <div class="footer">
+                                <span>{{ a.categoria }}</span>
+                                <strong>{{ a.precio }}</strong>
+                            </div>
+                            <div class="none">
+                                <div class="none_content" id="botones">
+                                    <button class="EditarProducto"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditar"
+
+                                        
+                                        data-id="{{ a.id_producto }}"
+                                        data-nombre="{{ a.nombre }}"
+                                        data-descripcion="{{ a.descripcion }}"
+                                        data-precio="{{ a.precio }}"
+                                        data-categoria="{{ a.categoria }}">
+                                        Editar
+                                    </button>
+                                    <form method="POST" action="{% url 'cambiar_estado_producto_vendedor' a.id_producto %}">
+                                        {% csrf_token %}
+                                        
+                                        <button type="submit" class="elimina_producto">
+                                            {% if a.estado %}
+                                                Inactivar
+                                            {% else %}
+                                                Activar
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <p>No tienes productos aprobados aún</p>
+                    {% endfor %}
+                </div><br>
+                <strong><i class="fa-regular fa-clock"></i> Productos rechazados (3)</strong><br><br>
+                <div class="listas">
+                    {% for a in rechazados %}
+                        <article class="card_productos producto_rechazado card-click" id="verBotones">
+                            <div class="img">
+                                {% if a.imagen %}
+                                    <img src="{{ a.imagen.url }}" title="{{ a.nombre }}">
+                                {% else %}
+                                    <img src="{% static 'imagenes/pie.jpg' %}" title="{{ a.nombre }}">
+                                {% endif %}
+                            </div>
+                            <div class="top">
+                                <div class="icon">
+                                    <i class="fa-solid fa-box"></i>
+                                </div>
+                                <span class="badge">{{ a.estado_aprobacion }}</span>
+                            </div>
+
+                            <h3 class="nombre">{{ a.nombre }}</h3>
+                            <p class="descripcion">{{ a.descripcion }}</p>
+                            <div class="footer">
+                                <span>{{ a.categoria }}</span>
+                                <strong>{{ a.precio }}</strong>
+                            </div>
+                            <div class="none">
+                            <p class="pqrs-fecha" style="font-size:11px; color:#888;">
+                                <p>{{ a.motivo_rechazo }}</p>
+                                Reenviado: {{ a.fecha_modificacion|date:"Y-m-d H:i" }}
+                            </p>
+                                <div class="none_content" id="botones">
+                                    <button class="EditarProducto"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditar"
+
+                                        data-id="{{ a.id_producto }}"
+                                        data-nombre="{{ a.nombre }}"
+                                        data-descripcion="{{ a.descripcion }}"
+                                        data-precio="{{ a.precio }}"
+                                        data-categoria="{{ a.categoria }}">
+                                        Editar
+                                    </button>
+                                    <form method="POST" action="{% url 'cambiar_estado_producto_vendedor' a.id_producto %}">
+                                        {% csrf_token %}
+                                        
+                                        <button type="submit" class="elimina_producto">
+                                            {% if a.estado %}
+                                                Inactivar
+                                            {% else %}
+                                                Activar
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <p>No tienes productos aprobados aún</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="vista-tabla" style="display:none;">
+                <table class="tabla-productos">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripcion</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in productos %}
+                        <tr class="info_tabla" data-estado="{{ p.estado_aprobacion }}">
+                            <td>
+                                <div class="nombre">
+                                    <i class="fa-solid fa-box"></i> 
+                                    <p>{{ p.nombre }}</p>
+                                </div>
+                            </td>
+                            <td class="p_gris">{{ p.descripcion }}</td>
+                            <td><p class="categoria">{{ p.categoria }}</p></td>
+                            <td class="precio">${{ p.precio }}</td>
+
+                            <td>
+                                {% if p.estado_aprobacion == 'pendiente' %}
+                                    <span class="estado pendiente">Pendiente</span>
+                                {% elif p.estado_aprobacion == 'aprobado' %}
+                                    <span class="estado aprobado">Aprobado</span>
+                                {% else %}
+                                    <span class="estado rechazado">Rechazado</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                            <div class="botones">
+                                    <button class="EditarProducto"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditar"
+
+                                        data-id="{{ p.id_producto }}"
+                                        data-nombre="{{ p.nombre }}"
+                                        data-descripcion="{{ p.descripcion }}"
+                                        data-precio="{{ p.precio }}"
+                                        data-categoria="{{ p.categoria }}">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </button>
+                                    <form method="POST" action="{% url 'cambiar_estado_producto_vendedor' p.id_producto %}">
+                                        {% csrf_token %}
+                                        
+                                        <button type="submit" class="elimina_producto">
+                                            {% if p.estado %}
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-floppy-disk"></i>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                            </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <nav>
+                    <ul class="pagination">
+                        {% if productos.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ productos.previous_page_number }}">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                        <span class="page-link">{{ productos.number }}</span>
+                        </li>
+
+                        {% if productos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ productos.next_page_number }}">Siguiente</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+				
+            </div>
+
+
+<button class="toggle-inhabilitados" id="toggleInhabilitados">
+	<i class="fa-solid fa-box-archive"></i> 
+	Ver inhabilitados 
+	<span id="countInhabilitados">({{ inhabilitados|length }})</span>
+	<i class="fa-solid fa-chevron-down" id="chevronInhabilitados"></i>
+</button>
+	<div class="inhabilitados" id="seccionInhabilitados" style="display:none;">
+		{% for i in inhabilitados %}
+			<div class="producto_inhabilitado fila_inhabilitado">
+				<div class="nombre">
+					<i class="fa-solid fa-box"></i> 
+					<div class="descrip">
+						<strong class="nombre_producto">{{ i.nombre }}</strong>
+						<p class="p_gris">{{ i.categoria }}</p>
+					</div>
+				</div>
+				<div class="botones">
+					<span class="badge_inhabilitado">Inhabilitado</span>
+
+					<form method="POST" action="{% url 'cambiar_estado_producto_vendedor' i.id_producto %}">
+						{% csrf_token %}
+						<button type="submit" class="btn_reactivar">
+							<i class="fa-solid fa-rotate-left"></i> Reactivar
+						</button>
+					</form>
+
+					<form method="POST" action="{% url 'eliminar_producto_vendedor' i.id_producto %}"
+                        class="form-eliminar">
+                        {% csrf_token %}
+                        <button type="submit" class="btn_eliminar">
+                            <i class="fa-regular fa-trash-can"></i> Eliminar
+                        </button>
+                    </form>
 				</div>
 			</div>
-			<button class="button" id="openModalMio"><i class="fa-solid fa-plus"></i> Crear producto</button>
-		</div><br><br><br>
-		<section class="modal_mio" id="modal_mio">
-			<div class="modal_content">
-				<strong>Crear nuevo producto</strong><br><br>
-				<form method="POST" action="{% url 'crear_producto' %}" class="form">
-					{% csrf_token %}
-					<div class="display">
-						<div class="input">
-							<label>Nombre del producto</label><br><br>
-							<input type="text" name="nombre" placeholder="Ej: Pastel de chocolate">
-						</div>
-						<div class="input">
-							<label>Categoria del producto</label><br><br>
-							<select name="categoria">
-								<option id="antojos" value="antojos">Antojos</option>
-								<option id="eventos" value="eventos">Eventos</option>
-								<option id="diarios" value="diarios">Diarios</option>
-							</select>
-						</div>
-					</div><br>
-					<label>Descripcion</label><br><br>
-					<textarea name="descripcion"></textarea><br><br>
-					<label>Precio</label><br><br>
-					<input type="text" name="precio" placeholder="Ej: 500"><br><br>
-					<input type="file" name="imagen" placeholder="Coloca tu archivo aquí. Se aceptan PNG y JPG"><br><br>
-					<p>Tu producto sera evaluado por administracion</p><br>
-					<button class="button" type="submit">Enviar</button><br><br>
-				</form>
-				<button class="button" id="close_modalMio">Cerra modal</button>
-			</div>
-		</section>
-		<strong><i class="fa-regular fa-clock"></i> Pendientes de Aprobación (2)</strong><br><br>
-		<div class="listas">
-			{% for p in pendientes %}
-				<article class="card_productos producto_pendiente card-click" id="verBotones">
-					<div class="img">
-						<img src="{{ p.imagen }}">
-					</div>
-					<div class="top">
-						<div class="icon">
-							<i class="fa-solid fa-box"></i>
-						</div>
-						<span class="badge">{{ p.estado_aprobacion }}</span>
-					</div>
+		{% endfor %}
+	</div>
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <h3>Editar producto</h3>
+            <form method="POST" id="formEditar" data-url-base="{% url 'editar_producto_vendedor' 0 %}">
+                {% csrf_token %}
 
-					<h3 class="nombre">{{ p.nombre }}</h3>
-					<p class="descripcion">{{ p.descripcion }}</p>
+                <input type="hidden" name="id" id="productoId">
 
-					<hr>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" name="nombre" id="nombre" minlength="3" maxlength="30" required>
+                    <label>Nombre del producto</label>
+                </div>
 
-					<div class="footer">
-						<span>{{ p.categoria }}</span>
-						<strong>{{ p.precio }}</strong>
-					</div>
-					
-					<div class="none">
-						<div class="none_content" id="botones" >
-							<button class="EditarProducto"
-									data-bs-toggle="modal"
-									data-bs-target="#modalEditar{{ p.id_producto }}">
-								Editar
-							</button>
-							<form method="POST" action="{% url 'cambiar_estado_producto_vendedor' p.id_producto %}">
-								{% csrf_token %}
-								
-								<button type="submit" class="elimina_producto">
-									{% if p.estado %}
-										Inactivar
-									{% else %}
-										Activar
-									{% endif %}
-								</button>
-							</form>
-						</div>
-					</div>
-				</article>
-					<div class="modal fade" id="modalEditar{{ p.id_producto }}" tabindex="-1">
-  						<div class="modal-dialog modal-dialog-centered">
-   							 <div class="modal-content">
-								<form method="POST" action="{% url 'editar_producto_vendedor' p.id_producto %}">
-   									{% csrf_token %}
-									<div class="form-floating mb-3">
-										<input type="text" class="form-control" name="id" id="floatingInput" value="{{ p.id_producto }}" readonly>
-										<label for="floatingInput">ID del producto</label>
-									</div>
-									<div class="form-floating mb-3">
-										<input type="text" class="form-control" id="floatingInput" name="nombre" value="{{ p.nombre }}">
-										<label for="floatingInput">Nombre del producto</label>
-									</div>
-									<div class="form-floating">
-										<textarea class="form-control" id="floatingTextarea" name="descripcion">{{ p.descripcion }}</textarea>
-										<label for="floatingTextarea">Descripcion</label>
-									</div><br>
-									<div class="form-floating mb-3">
-										<input type="text" class="form-control" name="precio" id="floatingInput" value="{{ p.precio }}">
-										<label for="floatingInput">Precio</label>
-									</div>
-									<div class="form-floating">
-										<select class="form-select" id="floatingSelect" name="categoria" aria-label="Floating label select example">
-											<p>{{ p.categoria }}</p>
-											<option value="diarios">Diarios</option>
-											<option value="antojos">Antojos</option>
-											<option value="eventos">Eventos</option>
-										</select>
-										<label for="floatingSelect">Categoria</label>
-									</div><br>
-									<div class="form-floating mb-3">
-										<input type="file" class="form-control"name="imagen" id="floatingInput" value="{{ p.imagen }}">
-										<label for="floatingInput">Imagen</label>
-									</div>
-									<button type="submit" class="EditarProducto">Actualizar</button>
-								</form>						
-    						</div>
-  						</div>
-					</div>
-			{% empty %}
-				<p>No tienes productos pendientes</p>
-			{% endfor %}
-		</div><br><br>
-		<strong><i class="fa-regular fa-clock"></i> Productos aprobados (3)</strong><br><br>
-		<div class="listas">
-			{% for a in aprobados %}
-				<article class="card_productos producto_aceptado card-click" id="verBotones">
-					<div class="img">
-						<img src="{{ a.imagen }}">
-					</div>
-					<div class="top">
-						<div class="icon">
-							<i class="fa-solid fa-box"></i>
-						</div>
-						<span class="badge">{{ a.estado_aprobacion }}</span>
-					</div>
+                <div class="form-floating">
+                    <textarea class="form-control" name="descripcion" id="descripcion" required></textarea>
+                    <label>Descripción</label>
+                </div><br>
 
-					<h3 class="nombre">{{ a.nombre }}</h3>
-					<p class="descripcion">{{ a.descripcion }}</p>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" name="precio" id="precio" maxlength="6" minlength="2" required>
+                    <label>Precio</label>
+                </div>
 
-					<hr>
+                <div class="form-floating">
+                    <select class="form-select" id="floatingSelect" name="categoria" aria-label="Floating label select example">
+                        <p>{{ p.categoria }}</p>
+                        <option value="diarios">Diarios</option>
+                        <option value="antojos">Antojos</option>
+                        <option value="eventos">Eventos</option>
+                    </select>
+                    <label for="floatingSelect">Categoria</label>
+                </div><br>
 
-					<div class="footer">
-						<span>{{ a.categoria }}</span>
-						<strong>{{ a.precio }}</strong>
-					</div>
-					<div class="none" id="botones">
-					</div>
-				</article>
-			{% empty %}
-				<p>No tienes productos aprobados aún</p>
-			{% endfor %}
-		</div>
-		<strong><i class="fa-regular fa-clock"></i> Productos rechazados (3)</strong><br><br>
-		<div class="listas">
-			{% for a in rechazados %}
-				<article class="card_productos producto_rechazado card-click" id="verBotones">
-					<div class="img">
-						<img src="{{ a.imagen }}">
-					</div>
-					<div class="top">
-						<div class="icon">
-							<i class="fa-solid fa-box"></i>
-						</div>
-						<span class="badge">{{ a.estado_aprobacion }}</span>
-					</div>
+                <div class="form-floating mb-3">
+                    <input type="file" class="form-control"name="imagen" id="floatingInput" value="{{ p.imagen }}">
+                    <label for="floatingInput">Imagen</label>
+                </div>
+                <br>
+                <button type="submit" class="EditarProducto">Actualizar</button>
+            </form>
+        </div>
+    </div>
+</div>  
 
-					<h3 class="nombre">{{ a.nombre }}</h3>
-					<p class="descripcion">{{ a.descripcion }}</p>
+<div class="modal fade" id="modalCargaMasiva" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content scroll-modal">
+                <div class="instrucciones">
+                    <strong><i class="fa-solid fa-file"></i> Instrucciones</strong>
+                        <ol>
+                            <li class="p_gris">Descarga la plantilla CSV de ejemplo</li>
+                            <li class="p_gris">Completa la plantilla con tus productos</li>
+                            <li class="p_gris">Asegúrate de incluir: nombre, descripción, precio, categoría, nombre del archivo/imagen (Ejemplo: pie.jpg, galletas.png)</li>
+                            <li class="p_gris">IMPORTANTE: para las imagenes deberas subir un archivo zip con las imagenes de tus productos dentro nombradas igual que como las llamas en tu CSV</li>
+                            <li class="p_gris">Sube el archivo completado usando el botón de abajo</li>
+                        </ol>
+                </div>  
+                <div class="nota_vendedor1">
+                    <div class="texto">
+                        <strong>Plantilla CSV</strong>
+                        <p class="p_gris">Descarga la plantilla para comenzar</p>
+                    </div>
+                    <a href="{% url 'descargar_plantilla_csv' %}" class="button">
+                        <i class="fa-solid fa-download"></i> Descargar
+                    </a>
+                </div>
+                <form action="{% url 'carga_masiva_productos' %}" 
+                    method="POST" 
+                    enctype="multipart/form-data" 
+                    class="carga_masiva">
 
-					<div class="footer">
-						<span>{{ a.categoria }}</span>
-						<strong>{{ a.precio }}</strong>
-					</div>
-					<div class="none" id="botones">
-						<strong>Motivo rechazo</strong>
-						<p>{{ a.motivo_rechazo }}</p>
-						<div class="none_content">
-							<form method="POST" action="{% url 'cambiar_estado_producto_vendedor' a.id_producto %}">
-								{% csrf_token %}
-								
-								<button type="submit" class="elimina_producto">
-									{% if p.estado %}
-										Inactivar
-									{% else %}
-										Activar
-									{% endif %}
-								</button>
-							</form>
-						</div>
-					</div>
-				</article>
-			{% empty %}
-				<p>No tienes productos aprobados aún</p>
-			{% endfor %}
-		</div>
-	</section>
+                    {% csrf_token %}
+                    <div class="nota_vendedor">
+                        <center>
+                        <label for="csvInput" class="dropzone">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i> <br><br>
+                            <p class="color_rojo">
+                                Haz clic para seleccionar un archivo CSV
+                            </p>
+                            <p class="p_gris">o arrastra y suelta aquí</p>
+                        </label>
+                        <input type="file" id="csvInput" name="csv" accept=".csv" required>
+                        </center>
+                    </div>
+                    <div class="nota_vendedor">
+                        <center>
+                        <label for="zipInput" class="dropzone">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i><br><br>
+                            <p class="color_rojo">
+                                Haz clic para seleccionar un archivo ZIP
+                            </p>
+                            <p class="p_gris">o arrastra y suelta aquí</p>
+                        </label>
+                        <input type="file" id="zipInput" name="zip" accept=".zip" required  >
+                        </center>
+                    </div>
+                <div class="nota_vendedor_mensaje">
+                    <p class="p_gris"><strong>Nota:</strong>Los productos importados quedarán en estado "Pendiente" hasta que sean aprobados por el administrador.</p>
+                </div>
+
+                <button type="submit" class="boton">Carga masiva</button>
+            </form>
+        </div>
+    </div>
+</div>
+    </section>
 <script>
-	const myModal = document.getElementById('myModal')
-	const myInput = document.getElementById('myInput')
+    document.querySelectorAll('.form-eliminar').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // detiene el envío
 
-	myModal.addEventListener('shown.bs.modal', () => {
-	myInput.focus()
-	})
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Este producto se eliminará permanentemente.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#C94A4A',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // si confirma, ahora sí lo envía
+                }
+            });
+        });
+    });
 </script>
-<script>	
-	document.querySelectorAll('.card-click').forEach(card => {
-		card.addEventListener('click', () => {
+<script>
+    const myModal = document.getElementById('myModal')
+    const myInput = document.getElementById('myInput')
 
-			document.querySelectorAll('.card-click').forEach(c => {
-				if(c !== card) c.classList.remove('active');
-			});
+    myModal.addEventListener('shown.bs.modal', () => {
+    myInput.focus()
+    })
+</script>
+<script>    
+    document.querySelectorAll('.card-click').forEach(card => {
+        card.addEventListener('click', () => {
 
-			card.classList.toggle('active');
-		});
-	});
+            document.querySelectorAll('.card-click').forEach(c => {
+                if(c !== card) c.classList.remove('active');
+            });
 
-	document.querySelectorAll('textarea').forEach(textarea => {
-		textarea.addEventListener('input', function () {
-			this.style.height = "auto";
-			this.style.height = this.scrollHeight + "px";
-		});
+            card.classList.toggle('active');
+        });
+    });
+
+    function filtrarPRODU(btn, estado) {
+        // Quitar clase activo de todos los tabs
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
+        btn.classList.add('activo');
+
+        document.querySelectorAll('.card_productos').forEach(card => {
+            // Mostrar todos
+            if (estado === 'todos') {
+            card.style.display = 'block';
+            } else {
+            // Comparar con tus clases actuales
+            let claseProducto = '';
+            if (card.classList.contains('producto_pendiente')) claseProducto = 'pendiente';
+            if (card.classList.contains('producto_aceptado')) claseProducto = 'aprobado';
+            if (card.classList.contains('producto_rechazado')) claseProducto = 'rechazado';
+
+            if (claseProducto === estado) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+            }
+        });
+
+        document.querySelectorAll('.info_tabla').forEach(row => {
+
+            if (estado === 'todos') {
+                row.style.display = 'table-row';
+            } else {
+                if (row.dataset.estado === estado) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+
+        });
+    }
+
+    function cambiarVista(tipo) {
+        localStorage.setItem('vista', tipo);
+
+        document.getElementById('vista-cards').style.display =
+            tipo === 'cards' ? 'block' : 'none';
+
+        document.getElementById('vista-tabla').style.display =
+            tipo === 'tabla' ? 'block' : 'none';
+    }
+
+    // cargar al inicio
+    window.onload = () => {
+        const vista = localStorage.getItem('vista') || 'cards';
+        cambiarVista(vista);
+    }
+</script>
+<script>
+    const modal = document.getElementById('modalEditar');
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+
+        const id = button.getAttribute('data-id');
+        const nombre = button.getAttribute('data-nombre');
+        const descripcion = button.getAttribute('data-descripcion');
+        const precio = button.getAttribute('data-precio');
+        const categoria = button.getAttribute('data-categoria');
+
+        document.getElementById('productoId').value = id;
+        document.getElementById('nombre').value = nombre;
+        document.getElementById('descripcion').value = descripcion;
+        document.getElementById('precio').value = precio;
+        document.getElementById('floatingSelect').value = categoria;
+
+        
+        const baseUrl = document.getElementById('formEditar').dataset.urlBase;
+        document.getElementById('formEditar').action = baseUrl.replace('0', id);
+    });
+</script>
+<script>
+    document.querySelector('.carga_masiva').addEventListener('submit', function(e) {
+        const csv = document.getElementById('csvInput').files.length;
+        const zip = document.getElementById('zipInput').files.length;
+
+        if (!csv || !zip) {
+            e.preventDefault();
+            alert("Selecciona ambos archivos (CSV y ZIP)");
+        }
+    });
+</script>
+<script>
+	document.getElementById('toggleInhabilitados').addEventListener('click', function() {
+		const seccion = document.getElementById('seccionInhabilitados');
+		const chevron = document.getElementById('chevronInhabilitados');
+		const visible = seccion.style.display !== 'none';
+
+		seccion.style.display = visible ? 'none' : 'block';
+		chevron.style.transform = visible ? 'rotate(0deg)' : 'rotate(180deg)';
+		this.querySelector('i:first-child').className = visible 
+			? 'fa-solid fa-box-archive' 
+			: 'fa-solid fa-box-open';
 	});
 </script>
-<script src="{% static 'js/modal.js' %}"></script>
 {% endblock %}
+
+

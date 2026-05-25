@@ -22,7 +22,6 @@ urlpatterns = [
     # ═══════════════════════════════════════════════════════════════════
     path('login/', views.login_usuario, name='login'),
     path('registro/', views.registrar_usuario, name='registro'),
-    path('registro_vendedor/', views.registrar_vendedor, name='registro_vendedor'),
     path('logout/', views.cerrar_sesion, name='logout'),
 
     # ═══════════════════════════════════════════════════════════════════
@@ -34,20 +33,48 @@ urlpatterns = [
     path('administrador/productos/', views.productos, name='productos'),
     path('administrador/solicitudes/', views.solicitudes, name='solicitudes'),
     path('administrador/pqrs/', views.pqrs, name='pqrs'),
-    path('administrador/pqrs/responder/<int:pk>/', views.pqrs_responder, name='pqrs_responder'),
     path('administrador/perfil/', views.administrador_perfil, name='administrador_perfil'),
 
+    #exportaciones 
+    path('administrador/solicitudes/exportar/excel/', views.solicitudes_export_excel, name='solicitudes_export_excel'),
+    path('administrador/solicitudes/exportar/pdf/',   views.solicitudes_export_pdf,   name='solicitudes_export_pdf'),
+    # ADMIN — usuarios
+    path('administrador/usuarios/exportar/excel/', views.usuarios_export_excel, name='usuarios_export_excel'),
+    path('administrador/usuarios/exportar/pdf/',   views.usuarios_export_pdf,   name='usuarios_export_pdf'),
+    # ADMIN — transacciones
+    path('administrador/transacciones/exportar/excel/', views.transacciones_export_excel, name='transacciones_export_excel'),
+    path('administrador/transacciones/exportar/pdf/',   views.transacciones_export_pdf,   name='transacciones_export_pdf'),
+    #ADMIN -- productos 
+    path('administrador/productos/exportar/excel/', views.productos_export_excel, name='productos_export_excel'),
+    path('administrador/productos/exportar/pdf/',   views.productos_export_pdf,   name='productos_export_pdf'),
+    #ADMIN -- pqrs
+    path('administrador/pqrs/exportar/excel/', views.pqrs_export_excel, name='pqrs_export_excel'),
+    path('administrador/pqrs/exportar/pdf/',   views.pqrs_export_pdf,   name='pqrs_export_pdf'),
     #acciones -------->
     #acciones -------->
-
+    path('gestionar-edicion-producto/<int:id_pqrs>/', views.gestionar_edicion_producto, name='gestionar_edicion_producto'),
+    path('pqrs/responder/', views.pqrs_responder, name='pqrs_responder'),
     path('producto/<int:id_producto>/estado/', views.cambiar_estado_producto, name='cambiar_estado_producto'),
-
+    path('gestionar-cambio-perfil/<int:id_pqrs>/', views.gestionar_cambio_perfil, name='gestionar_cambio_perfil'), 
+    path('administrador/solicitudes/reporte/excel/', views.reporte_estado_export_excel, name='reporte_estado_export_excel'),
+    path('administrador/solicitudes/reporte/pdf/',   views.reporte_estado_export_pdf,   name='reporte_estado_export_pdf'),
+    path('administrador/reportes/productos-mas-vendidos/',       views.reporte_productos_mas_vendidos, name='reporte_productos_mas_vendidos'),
+    path('administrador/reportes/productos-mas-vendidos/pdf/',   views.reporte_productos_pdf,          name='reporte_productos_pdf'),
+    path('administrador/reportes/productos-mas-vendidos/excel/', views.reporte_productos_excel,        name='reporte_productos_excel'),
+    path('usuarios/crm/excel/', views.crm_export_excel, name='crm_export_excel'),
+    path('usuarios/crm/pdf/',   views.crm_export_pdf,   name='crm_export_pdf'),
+    
     # ═══════════════════════════════════════════════════════════════════
     # CLIENTE
     # ═══════════════════════════════════════════════════════════════════
     path('catalogo/', views.catalogo, name='catalogo'),
     path('compra/<int:producto_id>/', views.compra_rapida, name='compra_rapida'),
     path('configurador/<int:producto_id>/', views.configurador, name='configurador'),
+    path('mis-transacciones/', views.mis_transacciones, name='mis_transacciones'),
+    path('mis-pqrs/', views.mis_pqrs, name='mis_pqrs'),
+    path('mis-pqrs/crear/', views.crear_pqrs, name='crear_pqrs'),
+    path('mis-compras/', views.mis_compras_invitado, name='mis_compras_invitado'),
+    path('mi-perfil/', views.perfil_cliente, name='perfil_cliente'),
 
     # ═══════════════════════════════════════════════════════════════════
     # SOLICITUDES (CLIENTE)
@@ -72,20 +99,23 @@ urlpatterns = [
     # ═══════════════════════════════════════════════════════════════════
     path('vendedor/', views.vendedor, name='vendedor'),
     path('vendedor/solicitudes/', views.solicitudes_vendedor, name='vendedor_solicitudes'),
-    path('vendedor/solicitud/crear/', views.soli_vendedor, name='vendedor_solicitud'),
-    path('vendedor/solicitud/guardar/', views.crear_solicitud_vendedor, name='crear_solicitud_vendedor'),
     path('vendedor/ventas/', views.ventas_vendedor, name='vendedor_ventas'),
     path('vendedor/clientes/', views.clientes_vendedor, name='vendedor_clientes'),
     path('vendedor/productos/', views.productos_vendedor, name='vendedor_productos'),
-    path('vendedor/bonos/', views.bonos_vendedor, name='vendedor_bonos'),
     path('vendedor/perfil/', views.mi_perfil_vendedor, name='vendedor_perfil'),
     path('vendedor/perfil/editar/', views.editar_perfil_vendedor, name='editar_perfil_vendedor'),
     path('vendedor/reportes/', views.reportes_vendedor, name='vendedor_reportes'),
     
-
-    #acciones --------------------------------------------------------
-    path('vendedor/productos/crear/', views.crear_productos, name='crear_producto'),
-    path('vendedor/productos/<int:id_producto>/editar/', views.editar_producto_vendedor, name='editar_producto_vendedor'),
+    #acciones ----------------------------------------------------------------------->
+    #acciones ----------------------------------------------------------------------->
+    #acciones ----------------------------------------------------------------------->
+    
     path('vendedor/reportes/crear/', views.crear_reporte_vendedor, name='crear_reporte_vendedor'),
     path('vendedor/producto/<int:id_producto>/estado/', views.cambiar_estado_producto_vendedor, name='cambiar_estado_producto_vendedor'),
+    path('solicitud/estado/<int:id_solicitud>/', views.aceptar_soli, name='aceptar_soli'),
+    path('vendedor/productos/crear/', views.crear_productos, name='crear_producto'),
+    path('vendedor/productos/crear_carga_masiva/', views.carga_masiva_productos, name='carga_masiva_productos'),
+    path('vendedor/productos/descargar_plantilla/', views.descargar_plantilla_csv, name='descargar_plantilla_csv'),
+    path('vendedor/productos/<int:id_producto>/editar/', views.editar_producto_vendedor, name='editar_producto_vendedor'),
+    path('vendedor/producto/<int:id_producto>/eliminar/', views.eliminar_producto_vendedor, name='eliminar_producto_vendedor'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -27,7 +27,7 @@ class Usuarios(ModeloBase):
     apellido = models.CharField(max_length=50)
     correo = models.CharField(max_length=100)
     numero = models.CharField(max_length=20)
-    contrasena = models.CharField(max_length=100)
+    contrasena = models.CharField(max_length=255)
     direccion = models.CharField(max_length=100, null=True, blank=True)
     rol = models.ForeignKey(Roles, on_delete=models.CASCADE)
 
@@ -46,7 +46,7 @@ class Productos(ModeloBase):
     
     id_producto = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
-    descripcion = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen = models.ImageField(upload_to='productos/')
     motivo_rechazo = models.TextField(blank=True, null=True)
@@ -64,7 +64,7 @@ class Productos(ModeloBase):
         default='pendiente'
     )
     
-class Solicitudes(ModeloBase):
+class Solicitudes(models.Model):
     ESTADOS = [
         ('pendiente', 'Pendiente'),
         ('aceptada', 'Aceptada'),
@@ -95,13 +95,16 @@ class Solicitudes(ModeloBase):
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # auto_now: se actualiza solo cada vez que guardas (save)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    correo_invitado = models.EmailField(blank=True, null=True)
     # MercadoPago
     mp_preference_id = models.CharField(max_length=200, blank=True)
     mp_payment_id = models.CharField(max_length=200, blank=True)
 
 
-class Transacciones(ModeloBase):
+class Transacciones(models.Model):
     ESTADOS_ABONO = [
         ('abonado', 'Abonado'),
         ('terminado', 'Terminado')
@@ -118,6 +121,8 @@ class Transacciones(ModeloBase):
     ip_cliente = models.CharField(max_length=225) #seguridad o actividad fraudulenta
     solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE, blank=True)
     mp_payment_id = models.CharField(max_length=200, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
 
     estado = models.CharField(
         max_length=20,
@@ -142,6 +147,7 @@ class PQRS(ModeloBase):
     asunto = models.CharField(max_length=225)
     mensaje = models.TextField()
     usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    respuesta = models.TextField(null=True, blank=True)
 
     estado_respuesta = models.CharField(
         max_length=20,

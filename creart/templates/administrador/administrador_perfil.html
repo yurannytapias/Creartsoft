@@ -30,13 +30,6 @@
 
             <div class="perfil-campo">
                 <p class="perfil-clave">
-                    <i class="fa-solid fa-id-card"></i> Documento
-                </p>
-                <p class="perfil-valor">{{ usuario.documento }}</p>
-            </div>
-
-            <div class="perfil-campo">
-                <p class="perfil-clave">
                     <i class="fa-solid fa-envelope"></i> Correo Electrónico
                 </p>
                 <p class="perfil-valor">{{ usuario.correo }}</p>
@@ -79,31 +72,40 @@
             <div class="campo">
                 <label class="campo-label">Nombre</label>
                 <input class="campo-input" type="text" name="nombre"
-                       value="{{ usuario.nombre }}" placeholder="Tu nombre"/>
+                       value="{{ usuario.nombre }}" placeholder="Tu nombre" 
+                       maxlength="20" minlength="3" required/>
             </div>
 
             <div class="campo">
                 <label class="campo-label">Apellido</label>
                 <input class="campo-input" type="text" name="apellido"
-                       value="{{ usuario.apellido }}" placeholder="Tu apellido"/>
+                       value="{{ usuario.apellido }}" placeholder="Tu apellido"
+                       maxlength="20" minlength="4" required/>
             </div>
 
             <div class="campo">
                 <label class="campo-label">Correo Electrónico</label>
                 <input class="campo-input" type="email" name="correo"
-                       value="{{ usuario.correo }}" placeholder="correo@ejemplo.com"/>
+                       value="{{ usuario.correo }}"
+                       pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com"
+                       title="Por favor, ingrese un correo válido terminado en .com"
+                       required
+                       maxlength="35" required/>
             </div>
 
             <div class="campo">
                 <label class="campo-label">Teléfono</label>
                 <input class="campo-input" type="text" name="numero"
-                       value="{{ usuario.numero }}" placeholder="+57 300 000 0000"/>
+                       value="{{ usuario.numero }}" 
+                       inputmode="numeric" pattern="[0-9]*" title="Solo se permiten numeros"
+                       maxlength="10" minlength="10" required/>
             </div>
 
             <div class="campo">
                 <label class="campo-label">Dirección</label>
                 <input class="campo-input" type="text" name="direccion"
-                       value="{{ usuario.direccion }}" placeholder="Tu dirección"/>
+                       value="{{ usuario.direccion }}"
+                       maxlength="40" minlength="5" required/>
             </div>
 
             <div class="campo">

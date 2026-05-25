@@ -1,0 +1,226 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% load extras %}
+{% block content %}
+
+<style>
+.wrap{max-width:860px;margin:0 auto;padding:2rem 1rem;}
+.page-title{font-size:22px;font-weight:500;color:var(--color-text-primary, #2a1010);margin-bottom:4px;}
+.page-sub{font-size:14px;color:#a07070;margin-bottom:2rem;}
+
+/* Buscador */
+.search-box{background:#fff;border:0.5px solid #e8d8d8;border-radius:16px;padding:2rem;margin-bottom:2rem;text-align:center;}
+.search-box h3{font-size:16px;font-weight:500;color:#2a1010;margin-bottom:6px;}
+.search-box p{font-size:13px;color:#aaa;margin-bottom:1.25rem;}
+.search-row{display:flex;gap:8px;max-width:480px;margin:0 auto;}
+.search-row input{flex:1;padding:10px 14px;border:0.5px solid #e0d0d0;border-radius:10px;font-size:14px;outline:none;color:#2a1010;}
+.search-row input:focus{border-color:#7a2d3e;}
+.search-row button{padding:10px 20px;background:#7a2d3e;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;white-space:nowrap;}
+.search-row button:hover{background:#5e2030;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.stat{background:#fff;border:0.5px solid #e8d8d8;border-radius:14px;padding:1rem;text-align:center;}
+.stat label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;}
+.stat .val{font-size:22px;font-weight:500;color:#7a2d3e;}
+.stat .sub{font-size:11px;color:#ccc;margin-top:2px;}
+
+/* Cards */
+.solicitud-card{background:#fff;border:0.5px solid #e8d8d8;border-radius:16px;margin-bottom:1rem;overflow:hidden;transition:box-shadow .2s;}
+.solicitud-card:hover{box-shadow:0 4px 20px rgba(120,50,60,0.08);}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:0.5px solid #f5eaec;background:#fdfafa;}
+.card-orden{font-size:13px;font-weight:600;color:#7a2d3e;}
+.card-fecha{font-size:12px;color:#aaa;}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;}
+.badge-pendiente{background:#faeeda;color:#854f0b;}
+.badge-aceptada{background:#e8edf5;color:#2d4a7a;}
+.badge-pagada{background:#eaf3de;color:#3b6d11;}
+.badge-rechazada{background:#fef2f2;color:#7a1010;}
+.card-body{display:grid;grid-template-columns:72px 1fr auto;gap:1rem;padding:1.25rem;align-items:center;}
+.card-img{width:72px;height:72px;border-radius:10px;background:#f5eaec;display:flex;align-items:center;justify-content:center;font-size:1.75rem;flex-shrink:0;overflow:hidden;}
+.card-img img{width:100%;height:100%;object-fit:cover;}
+.card-info h3{font-size:15px;font-weight:500;color:#2a1010;margin-bottom:4px;}
+.card-info p{font-size:12px;color:#aaa;}
+.detalles{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.tag{font-size:11px;background:#f5f0f0;color:#885050;padding:3px 8px;border-radius:6px;}
+.card-precio{text-align:right;flex-shrink:0;}
+.precio{font-size:20px;font-weight:600;color:#7a2d3e;}
+.precio-label{font-size:11px;color:#aaa;margin-top:2px;}
+.card-footer{border-top:0.5px solid #f5eaec;padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;background:#fdfafa;flex-wrap:wrap;gap:.5rem;}
+.card-footer span{font-size:12px;color:#aaa;}
+.acciones{display:flex;gap:8px;}
+.btn-accion{font-size:12px;padding:6px 14px;border-radius:8px;border:1.5px solid #e8d0d0;background:#fff;color:#7a2d3e;text-decoration:none;font-weight:500;transition:all .18s;}
+.btn-accion:hover{background:#7a2d3e;color:#fff;border-color:#7a2d3e;}
+.btn-pagar{background:#009ee3;color:#fff;border-color:#009ee3;}
+.btn-pagar:hover{background:#007bb5;border-color:#007bb5;}
+
+/* Invitado info */
+.invitado-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;background:#f5eaec;color:#7a2d3e;padding:4px 10px;border-radius:999px;margin-bottom:1.5rem;}
+
+/* Empty */
+.empty{text-align:center;padding:4rem 2rem;background:#fff;border-radius:16px;border:0.5px solid #e8d8d8;color:#b08080;}
+.empty-icon{font-size:3rem;margin-bottom:1rem;}
+.empty p{font-size:15px;margin-bottom:.5rem;}
+.empty small{font-size:13px;color:#ccc;}
+
+/* Tip registro */
+.tip-registro{background:#f5eaec;border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.tip-registro p{font-size:13px;color:#7a2d3e;}
+.tip-registro a{font-size:13px;font-weight:600;color:#fff;background:#7a2d3e;padding:8px 18px;border-radius:8px;text-decoration:none;}
+.tip-registro a:hover{background:#5e2030;}
+</style>
+
+<div class="wrap">
+
+  <p class="page-title">Mis Compras</p>
+  <p class="page-sub">Consulta el estado de todos tus pedidos</p>
+
+  <!-- Buscador por correo (solo si es invitado) -->
+  {% if not usuario %}
+  <div class="search-box">
+    <h3>Rastrear mi pedido</h3>
+    <p>Ingresa el correo que usaste al realizar tu compra</p>
+    <form method="GET" action="{% url 'mis_compras_invitado' %}">
+      <div class="search-row">
+        <input type="email" name="correo" value="{{ correo }}" placeholder="tucorreo@email.com" required>
+        <button type="submit">Buscar</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if correo or usuario %}
+
+    <!-- Tip de registro para invitados -->
+    {% if not usuario and solicitudes %}
+    <div class="tip-registro">
+      <p>Crea una cuenta para gestionar tus pedidos más fácilmente y no perder el historial.</p>
+      <a href="{% url 'inicio' %}">Crear cuenta</a>
+    </div>
+    {% endif %}
+
+    <!-- Badge invitado -->
+    {% if not usuario and correo %}
+    <div class="invitado-badge">
+      Mostrando pedidos de: {{ correo }}
+    </div>
+    {% endif %}
+
+    <!-- Stats -->
+    {% if solicitudes %}
+    <div class="stats">
+    <div class="stat">
+        <label>Total pedidos</label>
+        <span class="val">{{ solicitudes|length }}</span>
+        <span class="sub">compras realizadas</span>
+    </div>
+    <div class="stat">
+        <label>Pendientes</label>
+        <span class="val">{{ pendientes_count }}</span>
+        <span class="sub">por pagar / en proceso</span>
+    </div>
+    <div class="stat">
+        <label>Total gastado</label>
+        <span class="val">${{ total_gastado|floatformat:0 }}</span>
+        <span class="sub">solo pedidos pagados · COP</span>
+    </div>
+</div>
+    {% endif %}
+
+    <!-- Cards de compras -->
+    {% if solicitudes %}
+      {% for s in solicitudes %}
+      <div class="solicitud-card">
+
+        <div class="card-header">
+          <span class="card-orden">#CRT-{{ s.id_solicitud }}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge badge-{{ s.estado }}">
+              {% if s.estado == 'pendiente' %}⏳
+              {% elif s.estado == 'aceptada' %}✔
+              {% elif s.estado == 'pagada' %}✅
+              {% elif s.estado == 'rechazada' %}✕
+              {% endif %}
+              {{ s.estado|capfirst }}
+            </span>
+            <span class="card-fecha">{{ s.fecha_creacion|date:"d M Y" }}</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="card-img">
+            {% if s.producto.imagen %}
+              <img src="{{ s.producto.imagen.url }}" alt="{{ s.producto.nombre }}">
+            {% else %}🎂{% endif %}
+          </div>
+          <div class="card-info">
+            <h3>{{ s.producto.nombre }}</h3>
+            <p>
+              {% if s.porciones %}{{ s.porciones }} personas · {% endif %}
+              {% if s.pisos %}{{ s.pisos }} piso{{ s.pisos|pluralize }} · {% endif %}
+              {% if s.cobertura %}{{ s.cobertura|capfirst }}{% endif %}
+            </p>
+            <div class="detalles">
+              {% if s.rellenos %}
+                {% for r in s.rellenos|split:',' %}
+                  <span class="tag">{{ r|capfirst }}</span>
+                {% endfor %}
+              {% endif %}
+              {% if s.mensaje_pastel %}
+                <span class="tag">💬 "{{ s.mensaje_pastel }}"</span>
+              {% endif %}
+              <span class="tag">
+                {% if s.tipo_entrega == 'domicilio' %}🚚 Domicilio{% else %}🏪 Tienda{% endif %}
+              </span>
+            </div>
+          </div>
+          <div class="card-precio">
+            <p class="precio">${{ s.precio_total|floatformat:0 }}</p>
+            {% if s.abono > 0 %}
+              <p class="precio-label">Abono: ${{ s.abono|floatformat:0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span>
+            {% if s.fecha_evento %}
+              📅 Evento: {{ s.fecha_evento|date:"d M Y" }}
+            {% else %}
+              Sin fecha de evento
+            {% endif %}
+          </span>
+          <div class="acciones">
+            {% if s.estado == 'aceptada' and s.producto.categoria == 'eventos' %}
+              <a href="{% url 'pagar_abono' s.id_solicitud %}" class="btn-accion btn-pagar">
+                Pagar abono ${{ s.abono|floatformat:0 }}
+              </a>
+            {% endif %}
+            <a href="{% url 'detalle_solicitud' s.id_solicitud %}" class="btn-accion">
+              Ver detalle
+            </a>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="empty">
+        <div class="empty-icon">🎂</div>
+        <p>No encontramos pedidos con ese correo.</p>
+        <small>Verifica que sea el mismo correo que usaste al comprar.</small>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <!-- Estado inicial sin búsqueda -->
+    <div class="empty">
+      <div class="empty-icon">🔍</div>
+      <p>Ingresa tu correo para ver tus pedidos.</p>
+      <small>Usamos el correo que ingresaste al momento de comprar.</small>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

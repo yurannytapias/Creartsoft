@@ -45,21 +45,7 @@
 .btn-cancel{width:100%;padding:11px;background:transparent;color:#888;border:0.5px solid #ddd;border-radius:10px;font-size:14px;cursor:pointer;margin-top:8px;text-decoration:none;display:block;text-align:center;}
 .btn-cancel:hover{background:#f5f5f5;}
 </style>
-</head>
-<body>
-<div class="container">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="logo"><h2>CreartSoft</h2><p>Pasteles personalizados</p></div>
-    <ul class="menu">
-      <li><a href="{% url 'catalogo' %}"><i class="fa fa-home"></i> Inicio</a></li>
-      <li class="active"><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
-      <li><a href="{% url 'mis_solicitudes' %}"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
-      <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
-    </ul>
-    <div class="logout"><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Cerrar Sesión</a></div>
-  </div>
 
   <!-- CONTENIDO -->
   <div class="contenido">
@@ -116,6 +102,10 @@
                 <label>Tu nombre</label>
                 <input type="text" name="nombre_invitado" placeholder="¿Cómo te llamamos?" required>
               </div>
+              <div class="field">
+                <label>Tu correo</label>
+                <input type="email" name="correo_invitado" placeholder="Para enviarte la confirmación" required>
+              </div>
               {% endif %}
 
               <!-- Método de entrega -->
@@ -152,7 +142,7 @@
               <button type="submit" class="btn-pay">
                 <div class="mp-logo">MP</div> Pagar con MercadoPago
               </button>
-              <a href="{% url 'catalogo' %}" class="btn-cancel">Cancelar</a>
+              <a href="{% url 'catalogo' %}?cancelado=1" class="btn-cancel">Cancelar</a>
             </div>
 
           </div>
@@ -164,7 +154,7 @@
 </div>
 
 <script>
-const precioBase = {{ producto.precio }};
+const precioBase = {{ producto.precio|stringformat:"d" }}; 
 
 function selEntrega(tipo) {
   document.getElementById('f-entrega').value = tipo;
@@ -177,5 +167,5 @@ function selEntrega(tipo) {
   document.getElementById('precio-final').value = total;
 }
 </script>
-</body>
-</html>
+
+{% endblock %}

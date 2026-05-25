@@ -124,31 +124,18 @@
             </div>
 
             <div class="card">
-              <p class="card-title">Método de pago</p>
-
-              {% if mp_simulado %}
-                <!-- MODO SIMULADO: borrar este bloque cuando tengas MP -->
-                <div style="background:#fff8e1;border-radius:8px;padding:10px 12px;font-size:12px;color:#854f0b;margin-bottom:1rem;display:flex;gap:8px;">
-                  ⚠️ Modo simulado activo — el pago no es real
-                </div>
-                <a href="{% url 'simular_pago' solicitud.id_solicitud %}" class="btn-sim">
-                  <span class="sim-badge">SIM</span> Simular pago aprobado
-                </a>
-              {% else %}
-                <!-- MODO REAL: descomentar cuando tengas MP -->
-                {# <div id="mp-button"></div>
-                <script src="https://sdk.mercadopago.com/js/v2"></script>
-                <script>
-                  const mp = new MercadoPago('{{ mp_public_key }}', {locale:'es-CO'});
-                  mp.checkout({
-                    preference: { id: '{{ solicitud.mp_preference_id }}' },
-                    render: { container: '#mp-button', label: 'Pagar con MercadoPago' }
-                  });
-                </script> #}
-              {% endif %}
-
-              <p class="seguro"><i class="fa fa-lock"></i> Pago 100% seguro</p>
-            </div>
+  <p class="card-title">Método de pago</p>
+  <div id="mp-button"></div>
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+  <script>
+    const mp = new MercadoPago('{{ mp_public_key }}', {locale:'es-CO'});
+    mp.checkout({
+      preference: { id: '{{ solicitud.mp_preference_id }}' },
+      render: { container: '#mp-button', label: 'Pagar con MercadoPago' }
+    });
+  </script>
+  <p class="seguro"><i class="fa fa-lock"></i> Pago 100% seguro</p>
+</div>
           </div>
 
         </div>

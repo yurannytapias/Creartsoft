@@ -3422,9 +3422,6 @@ def mis_compras_invitado(request):
 
 from django.contrib.auth.models import User
 
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser(
-        username='admin',
-        email='admin@gmail.com',
-        password='admin123'
-    )
+def crear_admin():
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@test.com', '123456')

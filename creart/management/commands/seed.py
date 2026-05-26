@@ -8,9 +8,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # Roles
         rol_admin, _ = Roles.objects.get_or_create(
-            nombre='admin',
-            defaults={'descripcion': 'Administrador del sistema'}
-        )
+        nombre='administrador',  # ← cambia 'admin' por 'administrador'
+        defaults={'descripcion': 'Administrador del sistema'}
+)
         rol_vendedor, _ = Roles.objects.get_or_create(
             nombre='vendedor',
             defaults={'descripcion': 'Vendedor de productos'}

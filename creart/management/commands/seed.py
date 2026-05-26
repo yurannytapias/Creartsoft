@@ -6,56 +6,50 @@ class Command(BaseCommand):
     help = 'Carga datos iniciales: roles y usuarios base'
 
     def handle(self, *args, **kwargs):
+        # Limpia datos viejos
+        Usuarios.objects.all().delete()
+        Roles.objects.all().delete()
+        self.stdout.write('🗑️ Datos viejos eliminados')
+
         # Roles
-        rol_admin, _ = Roles.objects.get_or_create(
-        nombre='administrador',  # ← cambia 'admin' por 'administrador'
-        defaults={'descripcion': 'Administrador del sistema'}
-)
-        rol_vendedor, _ = Roles.objects.get_or_create(
-            nombre='vendedor',
-            defaults={'descripcion': 'Vendedor de productos'}
+        rol_admin = Roles.objects.create(
+            nombre='administrador',
+            descripcion='Administrador del sistema'
         )
-        rol_cliente, _ = Roles.objects.get_or_create(
+        rol_vendedor = Roles.objects.create(
+            nombre='vendedor',
+            descripcion='Vendedor de productos'
+        )
+        rol_cliente = Roles.objects.create(
             nombre='cliente',
-            defaults={'descripcion': 'Cliente de la tienda'}
+            descripcion='Cliente de la tienda'
         )
         self.stdout.write('✅ Roles creados')
 
-        # Admin
-        Usuarios.objects.get_or_create(
+        # Usuarios
+        Usuarios.objects.create(
             correo='admin@creart.com',
-            defaults={
-                'nombre': 'Admin',
-                'apellido': 'Creart',
-                'numero': '0000000000',
-                'contrasena': make_password('admin123'),
-                'rol': rol_admin,
-            }
+            nombre='Admin',
+            apellido='Creart',
+            numero='0000000000',
+            contrasena=make_password('admin123'),
+            rol=rol_admin,
         )
-
-        # Vendedor
-        Usuarios.objects.get_or_create(
+        Usuarios.objects.create(
             correo='vendedor@creart.com',
-            defaults={
-                'nombre': 'Vendedor',
-                'apellido': 'Demo',
-                'numero': '1111111111',
-                'contrasena': make_password('vendedor123'),
-                'rol': rol_vendedor,
-            }
+            nombre='Vendedor',
+            apellido='Demo',
+            numero='1111111111',
+            contrasena=make_password('vendedor123'),
+            rol=rol_vendedor,
         )
-
-        # Cliente
-        Usuarios.objects.get_or_create(
+        Usuarios.objects.create(
             correo='cliente@creart.com',
-            defaults={
-                'nombre': 'Cliente',
-                'apellido': 'Demo',
-                'numero': '2222222222',
-                'contrasena': make_password('cliente123'),
-                'rol': rol_cliente,
-            }
+            nombre='Cliente',
+            apellido='Demo',
+            numero='2222222222',
+            contrasena=make_password('cliente123'),
+            rol=rol_cliente,
         )
-
         self.stdout.write('✅ Usuarios creados')
         self.stdout.write(self.style.SUCCESS('🎉 Seed completado'))

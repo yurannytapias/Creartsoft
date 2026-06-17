@@ -27,9 +27,10 @@ class Usuarios(ModeloBase):
     apellido = models.CharField(max_length=50)
     correo = models.CharField(max_length=100)
     numero = models.CharField(max_length=20)
-    contrasena = models.CharField(max_length=100)
+    contrasena = models.CharField(max_length=255)
     direccion = models.CharField(max_length=100, null=True, blank=True)
-    rol = models.ForeignKey(Roles, on_delete=models.CASCADE)
+    rol = models.ForeignKey(Roles, on_delete=models.CASCADE)     
+    token_activacion = models.CharField(max_length=64, blank=True, default='')      
 
 class Productos(ModeloBase):
     ESTADO_CHOICES = [
@@ -46,7 +47,7 @@ class Productos(ModeloBase):
     
     id_producto = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
-    descripcion = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen = models.ImageField(upload_to='productos/')
     motivo_rechazo = models.TextField(blank=True, null=True)
@@ -64,7 +65,7 @@ class Productos(ModeloBase):
         default='pendiente'
     )
     
-class Solicitudes(ModeloBase):
+class Solicitudes(models.Model):
     ESTADOS = [
         ('pendiente', 'Pendiente'),
         ('aceptada', 'Aceptada'),
@@ -95,13 +96,16 @@ class Solicitudes(ModeloBase):
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     abono = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # auto_now: se actualiza solo cada vez que guardas (save)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    correo_invitado = models.EmailField(blank=True, null=True)
     # MercadoPago
     mp_preference_id = models.CharField(max_length=200, blank=True)
     mp_payment_id = models.CharField(max_length=200, blank=True)
 
 
-class Transacciones(ModeloBase):
+class Transacciones(models.Model):
     ESTADOS_ABONO = [
         ('abonado', 'Abonado'),
         ('terminado', 'Terminado')
@@ -110,7 +114,7 @@ class Transacciones(ModeloBase):
 
     id_transaccion = models.AutoField(primary_key=True)
     hora = models.TimeField()
-    importe_total  = models.DecimalField(max_digits=10, decimal_places=2) #e el pago total
+    importe_total  = models.DecimalField(max_digits=10, decimal_places=2) #estado el pago total
     moneda = models.CharField(max_length=225)
     comisiones  = models.DecimalField(max_digits=10, decimal_places=2) #son pagos adicionales como iva,lo que se lleva el banco, etc
     metodo_pago = models.CharField(max_length=225, blank=True)
@@ -118,6 +122,8 @@ class Transacciones(ModeloBase):
     ip_cliente = models.CharField(max_length=225) #seguridad o actividad fraudulenta
     solicitud = models.ForeignKey(Solicitudes, on_delete=models.CASCADE, blank=True)
     mp_payment_id = models.CharField(max_length=200, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
 
     estado = models.CharField(
         max_length=20,
@@ -142,6 +148,7 @@ class PQRS(ModeloBase):
     asunto = models.CharField(max_length=225)
     mensaje = models.TextField()
     usuario = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
+    respuesta = models.TextField(null=True, blank=True)
 
     estado_respuesta = models.CharField(
         max_length=20,
@@ -154,3 +161,79 @@ class PQRS(ModeloBase):
         choices=CATEGORIA,
         default='pregunta'
     )
+
+class Proveedores(ModeloBase):
+    id_proveedor = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
+    numero = models.CharField(max_length=20)
+    correo = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=225)
+    empresa = models.CharField(max_length=100, default='')
+
+class Inventario(ModeloBase):
+    CATEGORIA = [
+        ('harinas', 'Harinas'),
+        ('lacteos', 'Lacteos'),
+        ('endulzantes', 'Endulzantes'),
+        ('licores', 'Licores'),
+        ('frutas', 'Frutas'),
+        ('chocolates', 'Chocolates'),
+        ('aceites', 'Aceites'),
+        ('huevos', 'Huevos'),
+        ('manies', 'Manies'),
+        ('frutos_rojos', 'Frutos_rojos'),
+    ]
+
+    TIPOS = [
+        ('g', 'G'),
+        ('kg', 'Kg'),
+        ('ml', 'ML'),
+        ('cc', 'CC'),
+        ('l', 'L'),
+        ('lb', 'Lb'),
+    ]
+    id_inventario = models.AutoField(primary_key=True)
+    id_proveedor = models.ForeignKey(Proveedores, on_delete=models.SET_NULL, null=True, blank=True)
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    cantidad = models.IntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock_minimo = models.IntegerField(default=0)
+    unidad = models.CharField(
+        max_length=50,
+        choices=TIPOS,
+        default='g'    
+    )
+    
+    categoria = models.CharField(
+        max_length=25,
+        choices=CATEGORIA,
+        default="harinas"
+    )
+
+class Movimiento(ModeloBase):
+    CATEGORIA = [
+        ('entrada', 'Entrada'),
+        ('salida', 'Salida'),
+        ('merma', 'Merma'),
+    ]
+    id_movimiento = models.AutoField(primary_key=True)
+    id_inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    tipo = models.CharField(max_length=30, choices=CATEGORIA, default='entrada')
+    costo_unitario = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    observacion = models.TextField(null=True, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+class RecetaProducto(ModeloBase):
+    producto = models.ForeignKey(
+        Productos, on_delete=models.CASCADE, related_name='receta'
+    )
+    ingrediente = models.ForeignKey(
+        Inventario, on_delete=models.CASCADE
+    )
+    cantidad_por_porcion = models.DecimalField(max_digits=8, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.producto.nombre} → {self.ingrediente.nombre} x{self.cantidad_por_porcion}{self.ingrediente.unidad}"

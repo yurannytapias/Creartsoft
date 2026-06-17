@@ -1,0 +1,88 @@
+:root {
+    --color-primario: #612D53;
+    --color-oscuro: #4a1f3d;
+    --color-claro: #f5edf2;
+    --color-crema: #EBD9D1;
+    --color-fondo: #F3F4F4;
+    --color-blanco: #ffffff;
+    --color-texto: #1a1a1a;
+    --color-gris: #888;
+    --color-borde: #e8e8e8;
+    --verde: #2e7d32;
+    --verde-fondo: #e8f5e9;
+    --amarillo: #f57c00;
+    --amarillo-fondo: #fff3e0;
+    --rojo: #c62828;
+    --rojo-fondo: #ffebee;
+    --rosado: #ad1457;
+    --rosado-fondo: #fce4ec;
+    --radio: 12px;
+    --radio-sm: 8px;
+    --sombra: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+/* ════════ BARRA HERRAMIENTAS ════════ */
+
+.barra-herramientas {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.busqueda-caja {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-blanco);
+    border: 1.5px solid var(--color-borde);
+    border-radius: var(--radio-sm);
+    padding: 8px 14px;
+    flex: 1;
+    max-width: 380px;
+    color: var(--color-gris);
+}
+
+.busqueda-input {
+    border: none;
+    outline: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--color-texto);
+    background: transparent;
+    flex: 1;
+}
+
+.filtros-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.tab {
+    border: 1.5px solid var(--color-borde);
+    background: var(--color-blanco);
+    color: #555;
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 13.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.tab:hover {
+    border-color: var(--color-primario);
+    color: var(--color-primario);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.tab.activo {
+    background: var(--color-primario);
+    border-color: var(--color-primario);
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}

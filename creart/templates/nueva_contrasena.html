@@ -1,0 +1,23 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+
+<section>
+    <div class="container__todo">
+        <div class="caja_trasera">
+            <!--formularios-->
+            <div class="contenedor__form" style="left: 0; justify-content: center;">
+                <form method="POST" action="{% url 'nueva_contrasena' token=token %}">
+                    {% csrf_token %}
+                    <h2>Cambiar contraseña</h2>
+                    <input type="password" name="contrasena" placeholder="Ingrese su nueva contraseña">
+                    <input type="password" name="contrasena2" placeholder="Confirmacion">
+                    <button type="submit">Iniciar sesion</button>
+                </form>
+            </div>
+        </div>
+    </div>
+<br><br>
+</section>
+
+{% endblock %}

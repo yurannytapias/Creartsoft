@@ -1,23 +1,24 @@
 {% extends "layout_header.html" %}
-
+{% load static %}
 {% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 	<section class="bandeja" id="bandeja">
 		<div class="estadistica">
-			<article class="card">
+			<article class="card_mio">
 				<i class="fa-solid fa-chart-line"></i>
 				<div class="detalles_card">
 					<p>Ventas hoy</p>
 					<p class="cifra">{{ ventas_hoy }}</p>
 				</div>
 			</article>
-			<article class="card">
+			<article class="card_mio">
 				<i class="fa-solid fa-envelope-open"></i>
 				<div class="detalles_card">
 					<p>Solicitudes nuevas</p>
 					<p class="cifra">{{ ventas_hoy }}</p>
 				</div>
 			</article>
-			<article class="card">
+			<article class="card_mio">
 				<i class="fa-regular fa-user"></i>
 				<div class="detalles_card">
 					<p>Clientes activos</p>
@@ -33,7 +34,7 @@
 					<h3>Solicitudes nuevas</h3>
 				</div>
 				<div class="ver">
-					<a href="">Ver todas</a>
+					<a href="{% url 'vendedor_solicitudes' %}">Ver todas</a>
 					<i class="fa-regular fa-eye"></i>
 				</div>
 			</div>
@@ -41,28 +42,156 @@
 				{% for s in solicitudes_nuevas %}
 					<article class="solicitud_nueva">
 						<div class="linea"></div>
-
 						<div class="usuario">
 							<div class="foto_perfil">
 								<p>{{ s.cliente.nombre|first }}</p>
 							</div>
 							<p>Nuevo</p>
 						</div>
-
 						<div class="detalles">
-							<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong><br><br>
+							<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong>
 							<p>{{ s.producto.nombre }}</p>
 							<p class="hora">{{ s.fecha_creacion }}</p>
 						</div>
-
-						<button class="boton">Ver detalles</button>
+						<button class="boton editarSoli" 
+						data-bs-toggle="modal"
+						data-bs-target="#modalEditar{{ s.id_solicitud }}">Ver detalles</button>
 					</article>
+						<div class="modal fade" id="modalEditar{{ s.id_solicitud }}" tabindex="-1">
+							<div class="modal-dialog modal-dialog-centered">
+								<div class="modal-content scroll-modal">
+									<div class="cabecera_modal">
+										<div class="perfil_foto">
+											<p>{{ s.usuario.nombre|first }}</p>
+										</div>
+										<div class="info_general">
+											<strong><i class="fa-solid fa-align-right"></i> Reporte de Solicitud</strong>
+											<p class="p_gris">Solicitud #{{ s.id_solicitud }}</p>
+											<p class="estado"><i class="fa-regular fa-clock"></i>  Estado: {{ s.estado }}</p>
+										</div>
+									</div>	
+									<div class="informacion_cliente">
+										<strong><i class="fa-regular fa-user"></i> Informacion del cliente</strong>
+										<div class="nombre_hora">
+											<div class="detalles_p">
+												<p class="p_gris">Nombre del cliente</p>
+												<h5>{{ s.usuario.nombre }} {{ s.usuario.apellido }}</h5>
+												<p class="p_gris">Hora de solicitud</p>
+												<h5></h5>
+											</div>
+											<div class="detalles_s">
+												<p class="p_gris">Fecha de Solicitud</p>
+												<div class="icon_in">
+													<i class="fa-regular fa-calendar"></i>
+													<h5>{{ s.fecha_creacion }}</h5>
+												</div>
+											</div>
+										</div>
+									</div>	
+									<div class="detalles_producto">
+										<strong><i class="fa-solid fa-box"></i> Detalles del producto</strong>
+										<div class="estado_categoria">
+											<p class="p_gris">Tipo de producto</p>
+											<h5>{{ s.producto.categoria }}</h5>
+										</div>
+										<h4>{{ s.producto.nombre }}</h4>
+										<section class="mensaje">
+											<p class="p_gris">Descripcion detallada</p>
+											<p>{{ s.producto.descripcion }}</p>
+										</section>
+									</div>	
+									<div class="informacion_financiera">
+										<strong><i class="fa-solid fa-dollar-sign"></i> Informacion financiera</strong>
+										<div class="info_valor">
+											<div class="valor">
+												<p>Precio total</p>
+												<strong>${{ s.precio_total }}</strong>
+											</div>
+											<div class="porciones">
+												<p>Porciones</p>
+												<strong>{{ s.porciones }}</strong>
+											</div>
+										</div>
+									</div>	
+									<div class="boceto">
+										<div class="imagen">
+											<img src="" alt="">
+										</div>
+										<div class="solicitud_forma">
+											<section class="mensaje">
+												<p>Descripcion de la solicitud</p>
+												<p>{{ s.descripcion }}</p>
+											</section>
+											<p>Mensaje del pastel</p>
+											<section class="mensaje">
+												<p>Descripcion de la solicitud</p>
+												<p>{{ s.mensaje_pastel }}</p>
+											</section>
+											<div class="display_elementos">
+												<div class="elemento">
+													<p class="p_gris">Cobertura</p>
+													<h4>{{ s.cobertura }}</h4>
+												</div>
+												<div class="elemento">
+													<p class="p_gris">Rellenos</p>
+													<h4>{{ s.rellenos }}</h4>
+												</div>
+											</div>
+											<div class="display_elementos">
+												<div class="elemento">
+													<p class="p_gris">Decoracion</p>
+													<h4>{{ s.decoracion }}</h4>
+												</div>
+												<div class="elemento">
+													<p class="p_gris">Pisos</p>
+													<h4>{{ s.pisos }}</h4>
+												</div>
+											</div>
+											<div class="display_elementos">
+												<div class="elemento">
+													<p class="p_gris">Numero de Porciones</p>
+													<h4>{{ s.porciones }}</h4>
+												</div>
+												<div class="elemento">
+													<p class="p_gris">Fecha del evento</p>
+													<h4>{{ s.fecha_creacion }}</h4>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="nota_vendedor">
+										<strong>📝 Notas del vendedor</strong>
+										<p class="p_gris">Revisa cuidadosamente todos los detalles antes de aceptar o rechazar esta solicitud. 
+											Al aceptar, te comprometes a cumplir con los requisitos especificados.</p>
+									</div>
+									<div class="contenedor_estado">
+										<form class="estado" method="POST" action="{% url 'aceptar_soli' s.id_solicitud %}">
+											<input type="number" name="porcentaje_abono" placeholder="Ej: 50 (% de abono)" 
+												min="1" max="100" required>
+											{% csrf_token %}
+											<div class="estado_botones" style="display: flex; gap: 20px;">
+												<button class="aceptar" type="submit" name="accion" value="aceptar">
+													<i class="fa-regular fa-circle-check"></i> Aceptar
+												</button>
+												<button class="rechazar" type="submit" name="accion" value="rechazar">
+													<i class="fa-regular fa-circle-xmark"></i> Rechazar
+												</button>
+											</div>
+										</form>
+									</div>
+									<center>
+									<p class="p_gris">Este documento es de carácter informativo · 
+										CreartSoft</p>
+									</center>
+								</div>
+							</div>
+						</div>
 				{% empty %}
 					<p>No hay solicitudes recientes</p>
 				{% endfor %}
 			</div>
 		</div>
-		<br><br><br><br>
+		<br><br><br>
 		<div class="ventas_recientes">
 			<div class="display">
 				<i class="fa-solid fa-chart-line"></i>
@@ -71,21 +200,20 @@
 			<div class="ventas">
 				{% for v in ventas %}
 					<div class="venta">
-							<div class="venta-info">
-								<i class="fa-regular fa-clock"></i>
-								<div class="tex">
-									<h4>Pedido #{{ v.id_solicitud }}</h4>
-									<p>Cliente: {{ v.cliente.nombre }}</p>
-								</div>
-							</div>
-
-							<div class="venta-derecha">
-								<span class="precio">${{ v.producto.precio }}</span>
-								<span class="estado enviado">Pendiente</span>
+						<div class="venta-info">
+							<i class="fa-regular fa-circle-check"></i>
+							<div class="tex">
+								<strong>Pedido #{{ v.id_transaccion }}</strong>
+								<p>Cliente: {{ v.solicitud.cliente.nombre }}</p>
 							</div>
 						</div>
+						<div class="venta-derecha">
+							<span class="precio">${{ v.solicitud.precio_total }}</span>
+							<span class="estado">{{ v.estado }}</span>
+						</div>
+					</div>
 				{% empty%}
-					<p>Hoy no se han hecho ventas</p>
+					<br><p>Hoy no se han hecho ventas</p><br>
 				{% endfor %}
 			</div>
 		</div>

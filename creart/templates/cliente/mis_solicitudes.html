@@ -1,5 +1,6 @@
 {% extends "layout_header.html" %}
 {% load static %}
+{% load extras %}
 {% block content %}
 <style>
 .page-title{font-size:22px;font-weight:500;color:#2a1010;margin-bottom:4px;}
@@ -12,8 +13,6 @@
 .empty .empty-icon{font-size:3rem;margin-bottom:1rem;}
 .empty p{font-size:15px;margin-bottom:1.5rem;}
 .btn-catalogo{display:inline-block;padding:10px 24px;background:#7a2d3e;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;}
-
-/* Tarjeta de solicitud */
 .solicitud-card{background:#fff;border:0.5px solid #e8d8d8;border-radius:16px;padding:0;margin-bottom:1rem;overflow:hidden;transition:box-shadow .2s;}
 .solicitud-card:hover{box-shadow:0 4px 20px rgba(120,50,60,0.08);}
 .card-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:0.5px solid #f5eaec;}
@@ -40,8 +39,6 @@
 .btn-accion:hover{background:#7a2d3e;color:#fff;border-color:#7a2d3e;}
 .btn-pagar{background:#009ee3;color:#fff;border-color:#009ee3;}
 .btn-pagar:hover{background:#007bb5;border-color:#007bb5;}
-
-/* Progreso para eventos */
 .progreso-wrap{padding:.75rem 1.25rem;border-top:0.5px solid #f5eaec;}
 .progreso-steps{display:flex;align-items:center;gap:0;}
 .pstep{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
@@ -53,24 +50,7 @@
 .pline{flex:1;height:2px;background:#e8d0d0;margin-bottom:14px;}
 .pline.done{background:#7a2d3e;}
 </style>
-</head>
-<body>
-<div class="container">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="logo"><h2>CreartSoft</h2><p>Pasteles personalizados</p></div>
-    <ul class="menu">
-      <li><a href="{% url 'index' %}"><i class="fa fa-home"></i> Inicio</a></li>
-      <li><a href="{% url 'catalogo' %}"><i class="fa fa-book"></i> Catálogo</a></li>
-      <li class="active"><a href="{% url 'mis_solicitudes' %}"><i class="fa fa-file"></i> Mis Solicitudes</a></li>
-      <li><a href="#"><i class="fa fa-wallet"></i> Mis Transacciones</a></li>
-      <li><a href="#"><i class="fa fa-user"></i> Perfil</a></li>
-    </ul>
-    <div class="logout"><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Cerrar Sesión</a></div>
-  </div>
-
-  <!-- CONTENIDO -->
   <div class="contenido">
     <main class="main">
       <div class="main__content">
@@ -78,7 +58,6 @@
         <p class="page-title">Mis Solicitudes</p>
         <p class="page-sub">Aquí puedes ver el estado de todos tus pedidos</p>
 
-        <!-- Filtros -->
         <div class="filtros">
           <a href="?estado=todos"     class="filtro {% if estado_activo == 'todos' %}activo{% endif %}">Todos</a>
           <a href="?estado=pendiente" class="filtro {% if estado_activo == 'pendiente' %}activo{% endif %}">Pendientes</a>
@@ -91,7 +70,6 @@
           {% for s in solicitudes %}
           <div class="solicitud-card">
 
-            <!-- Header -->
             <div class="card-header">
               <span class="card-orden">#CRT-{{ s.id_solicitud }}</span>
               <div style="display:flex;align-items:center;gap:10px;">
@@ -103,11 +81,10 @@
                   {% endif %}
                   {{ s.estado|capfirst }}
                 </span>
-                <span class="card-fecha">{{ s.fecha_solicitud|date:"d M Y" }}</span>
+                <span class="card-fecha">{{ s.fecha_creacion|date:"d M Y" }}</span>
               </div>
             </div>
 
-            <!-- Body -->
             <div class="card-body">
               <div class="card-img">
                 {% if s.producto.imagen %}
@@ -119,12 +96,12 @@
                 <p style="font-size:13px;color:#888;">{{ s.porciones }} personas · {{ s.pisos }} piso{{ s.pisos|pluralize }} · {{ s.cobertura|capfirst }}</p>
                 <div class="detalles">
                   {% if s.rellenos %}
-                    {% for r in s.rellenos.split(',') %}
+                    {% for r in s.rellenos|split:',' %}
                       <span class="detalle-tag">{{ r|capfirst }}</span>
                     {% endfor %}
                   {% endif %}
                   {% if s.decoracion %}
-                    {% for d in s.decoracion.split(',') %}
+                    {% for d in s.decoracion|split:',' %}
                       <span class="detalle-tag">{{ d|capfirst }}</span>
                     {% endfor %}
                   {% endif %}
@@ -144,7 +121,6 @@
               </div>
             </div>
 
-            <!-- Progreso (solo eventos) -->
             {% if s.producto.categoria == 'eventos' %}
             <div class="progreso-wrap">
               <div class="progreso-steps">
@@ -175,7 +151,6 @@
             </div>
             {% endif %}
 
-            <!-- Footer -->
             <div class="card-footer">
               <span>
                 <i class="fa fa-clock-o"></i>

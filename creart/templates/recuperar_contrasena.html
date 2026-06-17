@@ -1,0 +1,17 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+        <div class="container__todo">
+            <div class="caja_trasera">
+                <div class="contenedor__form" style="left: 0; justify-content: center;">
+                    <form class="recuperacion" method="POST" action="{% url 'recuperacion_contrasena' %}" style="width: 100%; position: relative;">
+                        {% csrf_token %}
+                        <h2>Recupere la contraseña</h2>
+                        <input type="email" name="correo" placeholder="Ingrese su correo">
+                        <button type="submit">Enviar correo</button>
+                    </form>   
+                </div>
+            </div>
+        </div>
+<br><br>	
+{% endblock %}

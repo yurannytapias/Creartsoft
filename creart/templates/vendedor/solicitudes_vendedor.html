@@ -1,7 +1,9 @@
 {% extends "layout_header.html" %}
 {% load static %}
 {% block content %}
-	<section class="solicitudes" id="solicitudes">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+	<section>
 		<div class="bandeja_solicitudes">
 			<div class="titulo_area">
 				<i class="fa-solid fa-envelope-open"></i>
@@ -12,77 +14,231 @@
 			</div>
 		</div>
 		<div class="strong">
-			<strong><i class="fa-regular fa-envelope"></i> Nuevas (3)</strong>
+			<strong><i class="fa-regular fa-envelope"></i> Nuevas</strong>
 		</div>
 			<div class="elementos_varios">
 				{% for s in solicitudes %}
-					<article class="flip-card">
-						<div class="flip-card-inner">
-							<!-- FRONT -->
-							<div class="flip-card-front">
-							<div class="usuario">
-								<div class="foto_perfil">
-								<p>{{ s.cliente.nombre|first }}</p>
+				
+					<article class="solicitud">
+							<div class="solicitud_nueva">
+								<div class="linea"></div>
+								<div class="usuario">
+									<div class="foto_perfil">
+										<p>{{ s.usuario.nombre|first }}</p>
+									</div>
+									<p>Nuevo</p>
 								</div>
-								<p>Nuevo</p>
+								<div class="detalles">
+									<strong>Pedido de {{ s.usuario.nombre }} {{ s.usuario.apellido }}</strong>
+									<p>{{ s.producto.nombre }}</p>
+									<p class=""><i class="fa-solid fa-clock"></i> {{ s.fecha_creacion }}</p>
+								</div>
+								<button class="boton editarSoli" 
+										data-bs-toggle="modal"
+										data-bs-target="#modalEditar{{ s.id_solicitud }}">Ver detalles</button>		
 							</div>
-							<div class="detalles">
-								<strong>Pedido de {{ s.cliente.nombre }} {{ s.cliente.apellido }}</strong>
-								<p>{{ s.producto.nombre }}</p>
-								<p><i class="fa-solid fa-clock"></i> {{ s.fecha_creacion }}</p>
-							</div>
-							<button class="flip-btn">Ver más...</button>
-							</div>
-
-							<!-- BACK -->
-							<div class="flip-card-back">
-							<div class="texto">
-								<strong>{{ s.cliente.nombre }}</strong><br><br>
-								<p>{{ s.producto.nombre }}</p>
-								<p class="descripcion">{{ s.detalles }}</p>
-							</div>
-
-							<div class="fecha_price">
-								<p>{{ s.fecha_creacion }}</p>
-								<strong>${{ s.producto.precio }}</strong>
-							</div>
-
-							<div class="estado">
-								<button class="flip-btn back-btn">Aceptar</button>
-							</div>
-							<button class="flip-btn back-btn">Volver</button>
+					</article>
+					<div class="modal fade" id="modalEditar{{ s.id_solicitud }}" tabindex="-1">
+							<div class="modal-dialog modal-dialog-centered">
+								<div class="modal-content scroll-modal">
+									<div class="cabecera_modal">
+										<div class="perfil_foto">
+											<p>{{ s.usuario.nombre|first }}</p>
+										</div>
+										<div class="info_general">
+											<strong><i class="fa-solid fa-align-right"></i> Reporte de Solicitud</strong>
+											<p class="p_gris">Solicitud #{{ s.id_solicitud }}</p>
+											<p class="estado"><i class="fa-regular fa-clock"></i>  Estado: {{ s.estado }}</p>
+										</div>
+									</div>	
+									<div class="informacion_cliente">
+										<strong><i class="fa-regular fa-user"></i> Informacion del cliente</strong>
+										<div class="nombre_hora">
+											<div class="detalles_p">
+												<p class="p_gris">Nombre del cliente</p>
+												<h5>{{ s.usuario.nombre }} {{ s.usuario.apellido }}</h5>
+												<p class="p_gris">Hora de solicitud</p>
+												<h5></h5>
+											</div>
+											<div class="detalles_s">
+												<p class="p_gris">Fecha de Solicitud</p>
+												<div class="icon_in">
+													<i class="fa-regular fa-calendar"></i>
+													<h5>{{ s.fecha_creacion }}</h5>
+												</div>
+											</div>
+										</div>
+									</div>	
+									<div class="detalles_producto">
+										<strong><i class="fa-solid fa-box"></i> Detalles del producto</strong>
+										<div class="estado_categoria">
+											<p class="p_gris">Tipo de producto</p>
+											<h5>{{ s.producto.categoria }}</h5>
+										</div>
+										<h4>{{ s.producto.nombre }}</h4>
+										<section class="mensaje">
+											<p class="p_gris">Descripcion detallada</p>
+											<p>{{ s.producto.descripcion }}</p>
+										</section>
+									</div>	
+									<div class="informacion_financiera">
+										<strong><i class="fa-solid fa-dollar-sign"></i> Informacion financiera</strong>
+										<div class="info_valor">
+											<div class="valor">
+												<p>Precio total</p>
+												<strong>${{ s.precio_total }}</strong>
+											</div>
+											<div class="porciones">
+												<p>Porciones</p>
+												<strong>{{ s.porciones }}</strong>
+											</div>
+										</div>
+									</div>	
+									<div class="boceto">
+										<div class="imagen">
+											<img src="" alt="">
+										</div>
+										<div class="solicitud_forma">
+											<section class="mensaje">
+												<p>Descripcion de la solicitud</p>
+												<p>{{ s.descripcion }}</p>
+											</section>
+											<p>Mensaje del pastel</p>
+											<section class="mensaje">
+												<p>Descripcion de la solicitud</p>
+												<p>{{ s.mensaje_pastel }}</p>
+											</section>
+											<div class="display_elementos">
+												<div class="elemento">
+													<p class="p_gris">Cobertura</p>
+													<h4>{{ s.cobertura }}</h4>
+												</div>
+												<div class="elemento">
+													<p class="p_gris">Rellenos</p>
+													<h4>{{ s.rellenos }}</h4>
+												</div>
+											</div>
+											<div class="display_elementos">
+												<div class="elemento">
+													<p class="p_gris">Decoracion</p>
+													<h4>{{ s.decoracion }}</h4>
+												</div>
+												<div class="elemento">
+													<p class="p_gris">Pisos</p>
+													<h4>{{ s.pisos }}</h4>
+												</div>
+											</div>
+											<div class="display_elementos">
+												<div class="elemento">
+													<p class="p_gris">Numero de Porciones</p>
+													<h4>{{ s.porciones }}</h4>
+												</div>
+												<div class="elemento">
+													<p class="p_gris">Fecha del evento</p>
+													<h4>{{ s.fecha_creacion }}</h4>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="nota_vendedor">
+										<strong>📝 Notas del vendedor</strong>
+										<p class="p_gris">Revisa cuidadosamente todos los detalles antes de aceptar o rechazar esta solicitud. 
+											Al aceptar, te comprometes a cumplir con los requisitos especificados.</p>
+									</div>
+									<div class="contenedor_estado">
+										<form class="estado" method="POST" action="{% url 'aceptar_soli' s.id_solicitud %}">
+											<input type="number" name="porcentaje_abono" placeholder="Ej: 50 (% de abono)" 
+												min="1" max="100" required>
+											{% csrf_token %}
+											<div class="estado_botones" style="display: flex; gap: 20px;">
+												<button class="aceptar" type="submit" name="accion" value="aceptar">
+													<i class="fa-regular fa-circle-check"></i> Aceptar
+												</button>
+												<button class="rechazar" type="submit" name="accion" value="rechazar">
+													<i class="fa-regular fa-circle-xmark"></i> Rechazar
+												</button>
+											</div>
+										</form>
+									</div>
+									<center>
+									<p class="p_gris">Este documento es de carácter informativo · 
+										CreartSoft</p>
+									</center>
+								</div>
 							</div>
 						</div>
-						</article>
 				{% empty %}
-					<p>No tienes reportes sin responder</p>
+					<p>No tienes solicitudes aun</p>
 				{% endfor %}
 			</div>
+			<br><br>
+	<div class="filtros-tabs">
+		<button class="tab activo" onclick="filtrarSOLI(this,'todos')">Todos</button>
+		<button class="tab" onclick="filtrarSOLI(this,'aceptada')">Aceptadas</button>
+		<button class="tab" onclick="filtrarSOLI(this,'rechazada')">Rechazadas</button>
+		<button class="tab" onclick="filtrarSOLI(this,'pagada')">Pagadas</button>
+	</div>
+			<br><br>
 		<section class="procesadas">
-			<strong><i class="fa-regular fa-envelope"></i> Procesadas (1)</strong>
-			<div class="card_venta">
-				<div class="usuario">
-					<div class="foto_perfil">
-						<p>P</p>
-					</div>
-					<div class="detalles">
-						<strong>Pedro Sanchez</strong>
-						<p>Pastel de chocolate - 3 pisos</p>
-					</div>
+			<strong><i class="fa-solid fa-check"></i> Procesadas</strong>
+				<div class="solicitudes">
+					{% for s in solicitudes_procesadas %}
+						<div class="card_soli procesadas
+									{% if s.estado == 'aceptada' %}solicitud_aceptada
+									{% elif s.estado == 'rechazada' %}solicitud_rechazada
+									{% elif s.estado == 'pagada' %}solicitud_pagada
+									{% endif %}">
+							<div class="venta-info">
+								<div class="icono_perfil">
+									<p>{{ s.usuario.nombre|first }}</p>
+								</div>
+								<div class="tex">
+									<strong>Pedido #{{ s.id_solicitud }}</strong>
+									<p>Cliente: {{ s.usuario.nombre }}</p>
+								</div>
+							</div>
+							<div class="venta-derecha">
+								<span class="precio">${{ s.precio_total }}</span>
+								<span class="estado_soli										
+									{% if s.estado == 'aceptada' %}estado-aceptada
+									{% elif s.estado == 'rechazada' %}estado-rechazada
+									{% elif s.estado == 'pagada' %}estado-pagada
+									{% endif %}">
+									{{ s.estado }}
+								</span>
+							</div>
+						</div>
+					{% empty %}
+						<p>No tienes solicitudes aceptadas aun</p>
+					{% endfor %}
 				</div>
-				<div class="price_estado">
-					<p class="price">$200</p>
-					<p class="estado">Aceptada</p>	
-				</div>
-			</div>
 		</section>
 	</section>
 <script>
-  document.querySelectorAll('.flip-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const card = btn.closest('.flip-card');
-      card.classList.toggle('flip');
-    });
-  });
+	document.querySelectorAll('.flip-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+		const card = btn.closest('.flip-card');
+		card.classList.toggle('flip');
+		});
+	});
+
+	function filtrarSOLI(btn, estado) {
+		// Quitar clase activo de todos los tabs
+		document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
+		btn.classList.add('activo');
+
+		document.querySelectorAll('.card_soli').forEach(card => {
+			if (estado === 'todos') {
+				card.style.display = '';
+			} else {
+				let claseSolicitud = '';
+				if (card.classList.contains('solicitud_aceptada')) claseSolicitud = 'aceptada';
+				if (card.classList.contains('solicitud_rechazada')) claseSolicitud = 'rechazada';
+				if (card.classList.contains('solicitud_pagada')) claseSolicitud = 'pagada';
+
+				card.style.display = (claseSolicitud === estado) ? '' : 'none';
+			}
+		});
+	}
 </script>
 {% endblock %}

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos local
+db.sqlite3
+
+# Archivos de media (imágenes subidas)
+media/
+
+# VS Code
+.vscode/
+
+# Variables de entorno
+.env

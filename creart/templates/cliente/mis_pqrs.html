@@ -1,0 +1,517 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  .page-title { font-size: 22px; font-weight: 500; color: #2a1010; margin-bottom: 4px; }
+  .page-sub   { font-size: 14px; color: #a07070; margin-bottom: 2rem; }
+
+  /* TOP BAR */
+  .top-bar {
+    display: flex; align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;
+  }
+  .btn-nueva {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 20px; border-radius: 999px;
+    background: #7a2d3e; color: #fff; border: none;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all .18s; white-space: nowrap;
+  }
+  .btn-nueva:hover { background: #5a1e2c; transform: translateY(-1px); }
+
+  /* FILTROS */
+  .filtros { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .filtro {
+    padding: 7px 18px; border-radius: 999px;
+    border: 1.5px solid #e8d8d8; font-size: 13px;
+    cursor: pointer; background: #fff; color: #664444;
+    text-decoration: none; transition: all .18s;
+  }
+  .filtro:hover { border-color: #7a2d3e; color: #7a2d3e; }
+  .filtro.activo { background: #7a2d3e; color: #fff; border-color: #7a2d3e; }
+
+  /* CARD */
+  .pqrs-card {
+    background: #fff; border: 0.5px solid #e8d8d8;
+    border-radius: 16px; overflow: hidden;
+    margin-bottom: 1rem; transition: box-shadow .2s;
+  }
+  .pqrs-card:hover { box-shadow: 0 4px 20px rgba(120,50,60,0.08); }
+
+  .card-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 0.5px solid #f5eaec;
+  }
+  .card-id   { font-size: 13px; font-weight: 600; color: #7a2d3e; }
+  .card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .card-fecha{ font-size: 12px; color: #aaa; }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .badge-sin_respuesta { background: #faeeda; color: #854f0b; }
+  .badge-respondido    { background: #eaf3de; color: #3b6d11; }
+  .badge-pregunta      { background: #ebf1ff; color: #3a68d8; }
+  .badge-queja         { background: #ffebeb; color: #c03030; }
+  .badge-reporte       { background: #fff4e0; color: #b36800; }
+  .badge-solicitud     { background: #e6f8ef; color: #1e7a4e; }
+
+  .card-body { padding: 1.1rem 1.25rem 1rem; }
+  .card-asunto {
+    font-size: 15px; font-weight: 500; color: #2a1010;
+    margin: 0 0 .4rem; line-height: 1.35;
+  }
+  .card-preview {
+    font-size: 13px; color: #a07070; line-height: 1.6; margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  .card-footer {
+    border-top: 0.5px solid #f5eaec; padding: .75rem 1.25rem;
+    display: flex; align-items: center;
+    justify-content: space-between; background: #fdfafa;
+  }
+  .footer-info { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #aaa; }
+  .acciones { display: flex; gap: 8px; }
+  .btn-accion {
+    font-size: 12px; padding: 6px 14px; border-radius: 8px;
+    border: 1.5px solid #e8d0d0; background: #fff; color: #7a2d3e;
+    cursor: pointer; text-decoration: none; transition: all .18s; font-weight: 500;
+  }
+  .btn-accion:hover  { background: #7a2d3e; color: #fff; border-color: #7a2d3e; }
+  .btn-accion.filled { background: #7a2d3e; color: #fff; border-color: #7a2d3e; }
+  .btn-accion.filled:hover { background: #5a1e2c; border-color: #5a1e2c; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 4rem 2rem; color: #b08080; }
+  .empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty p { font-size: 15px; margin-bottom: 1.5rem; }
+
+  /* ── MODALES ─────────────────────────────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(42,16,16,0.4); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: #fff; border-radius: 20px; width: 100%; max-width: 500px;
+    box-shadow: 0 20px 60px rgba(120,45,62,0.16); overflow: hidden;
+    animation: popIn .24s cubic-bezier(.34,1.3,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity:0; transform: scale(.95) translateY(20px); }
+    to   { opacity:1; transform: none; }
+  }
+
+  .modal-head {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 10px;
+    padding: 1.3rem 1.4rem 1.1rem;
+    border-bottom: 0.5px solid #f5eaec;
+  }
+  .modal-head h2 { font-size: 17px; font-weight: 500; color: #2a1010; margin: 0 0 2px; }
+  .modal-head p  { font-size: 12.5px; color: #a07070; margin: 0; }
+  .btn-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid #e8d8d8; background: #fff;
+    color: #a07070; font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .18s; flex-shrink: 0; line-height: 1;
+  }
+  .btn-close:hover { border-color: #7a2d3e; color: #7a2d3e; background: #f5eaec; }
+
+  .modal-inner { padding: 1.3rem 1.4rem; }
+
+  /* Cat selector */
+  .cat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .cat-radio { display: none; }
+  .cat-lbl {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 5px; padding: 10px 4px;
+    border: 1.5px solid #e8d8d8; border-radius: 12px;
+    cursor: pointer; font-size: 11.5px; font-weight: 500;
+    color: #664444; text-align: center; transition: all .18s;
+  }
+  .cat-lbl .ico { font-size: 20px; }
+  .cat-radio:checked + .cat-lbl { border-color: #7a2d3e; color: #7a2d3e; background: #fdf5f6; }
+
+  /* Fields */
+  .field { margin-bottom: 1rem; }
+  .field:first-child { margin-top: 0; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: #664444; margin-bottom: 5px; }
+  .field input, .field textarea {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid #e8d8d8; border-radius: 10px;
+    font-size: 13.5px; color: #2a1010; background: #fdfafa;
+    outline: none; resize: none; transition: border-color .18s, box-shadow .18s;
+    font-family: inherit;
+  }
+  .field input:focus, .field textarea:focus {
+    border-color: #7a2d3e; box-shadow: 0 0 0 3px rgba(122,45,62,0.08); background: #fff;
+  }
+  .field textarea { min-height: 100px; }
+
+  .modal-foot {
+    padding: .9rem 1.4rem 1.3rem;
+    display: flex; justify-content: flex-end; gap: 8px;
+    border-top: 0.5px solid #f5eaec;
+  }
+  .btn-sec {
+    padding: 8px 18px; border-radius: 999px; border: 1.5px solid #e8d8d8;
+    background: #fff; color: #664444; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .18s; font-family: inherit;
+  }
+  .btn-sec:hover { border-color: #7a2d3e; color: #7a2d3e; }
+  .btn-prim {
+    padding: 8px 22px; border-radius: 999px; border: none;
+    background: #7a2d3e; color: #fff; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background .18s; font-family: inherit;
+  }
+  .btn-prim:hover { background: #5a1e2c; }
+
+  /* Detalle */
+  .det-id     { font-size: 12px; font-weight: 600; color: #7a2d3e; margin-bottom: 3px; }
+  .det-asunto { font-size: 17px; font-weight: 500; color: #2a1010; margin: 0; line-height: 1.3; }
+  .det-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+  .det-section { margin-bottom: 1.1rem; }
+  .det-lbl {
+    font-size: 11px; font-weight: 600; color: #b08080;
+    letter-spacing: .6px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .det-text {
+    font-size: 13.5px; color: #2a1010; line-height: 1.65;
+    background: #fdfafa; padding: 10px 13px;
+    border-radius: 10px; border: 0.5px solid #e8d8d8;
+  }
+
+  .resp-box {
+    background: #f3faf0; border: 0.5px solid #c5e3bb;
+    border-radius: 12px; padding: .95rem 1.1rem; margin-bottom: 1.1rem;
+  }
+  .resp-lbl {
+    font-size: 11px; font-weight: 600; color: #3b6d11;
+    letter-spacing: .5px; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .resp-txt { font-size: 13.5px; color: #2a4020; line-height: 1.65; }
+
+  .pending-box {
+    background: #fffbf0; border: 0.5px solid #f5d9a8;
+    border-radius: 12px; padding: .85rem 1.1rem;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1.1rem;
+  }
+  .pending-box .pico { font-size: 20px; flex-shrink: 0; }
+  .pending-box p { margin: 0; font-size: 13px; color: #9a6414; line-height: 1.5; }
+
+  .det-meta { display: flex; flex-wrap: wrap; gap: 14px; padding-top: .8rem; border-top: 0.5px solid #f5eaec; }
+  .meta-chip { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 5px; }
+  .meta-chip strong { color: #664444; font-weight: 500; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 1.8rem; right: 1.8rem;
+    background: #2a1010; color: #fff; padding: 11px 18px;
+    border-radius: 12px; font-size: 13px;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(42,16,16,.25); z-index: 99999;
+    transform: translateY(60px); opacity: 0; pointer-events: none;
+    transition: all .3s cubic-bezier(.34,1.3,.64,1);
+  }
+  .toast.show { transform: none; opacity: 1; }
+
+  @media (max-width: 580px) {
+    .cat-grid { grid-template-columns: repeat(2,1fr); }
+    .top-bar  { flex-direction: column; align-items: flex-start; }
+    .btn-nueva { width: 100%; justify-content: center; }
+    .card-meta { gap: 6px; }
+  }
+</style>
+
+<div class="contenido">
+  <main class="main">
+    <div class="main__content">
+
+      <div class="top-bar">
+        <div>
+          <p class="page-title">Mis PQRS</p>
+          <p class="page-sub">Aquí puedes gestionar tus peticiones, quejas, reportes y solicitudes</p>
+        </div>
+        <button class="btn-nueva" onclick="abrirCrear()">Nueva PQRS</button>
+      </div>
+
+      <div class="filtros">
+        <a href="?f=todos"         class="filtro {% if not filtro_activo or filtro_activo == 'todos' %}activo{% endif %}">Todos</a>
+        <a href="?f=pregunta"      class="filtro {% if filtro_activo == 'pregunta' %}activo{% endif %}">Preguntas</a>
+        <a href="?f=queja"         class="filtro {% if filtro_activo == 'queja' %}activo{% endif %}">Quejas</a>
+        <a href="?f=reporte"       class="filtro {% if filtro_activo == 'reporte' %}activo{% endif %}">Reportes</a>
+        <a href="?f=solicitud"     class="filtro {% if filtro_activo == 'solicitud' %}activo{% endif %}">Solicitudes</a>
+        <a href="?f=sin_respuesta" class="filtro {% if filtro_activo == 'sin_respuesta' %}activo{% endif %}">Pendientes</a>
+        <a href="?f=respondido"    class="filtro {% if filtro_activo == 'respondido' %}activo{% endif %}">Respondidos</a>
+      </div>
+
+      {% if pqrs_list %}
+        {% for p in pqrs_list %}
+        <div class="pqrs-card">
+          <div class="card-header">
+            <span class="card-id">#PQRS-{{ p.id_pqrs }}</span>
+            <div class="card-meta">
+              <span class="badge badge-{{ p.categoria }}">
+                {% if p.categoria == 'pregunta' %}{% elif p.categoria == 'queja' %}{% elif p.categoria == 'reporte' %}{% else %}{% endif %}
+                {{ p.get_categoria_display }}
+              </span>
+              <span class="badge badge-{{ p.estado_respuesta }}">
+                {% if p.estado_respuesta == 'respondido' %}{% else %}{% endif %}
+                {{ p.get_estado_respuesta_display }}
+              </span>
+              <span class="card-fecha">{{ p.fecha_creacion|date:"d M Y" }}</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <h3 class="card-asunto">{{ p.asunto }}</h3>
+            <p class="card-preview">{{ p.mensaje }}</p>
+          </div>
+
+          <div class="card-footer">
+            <span class="footer-info">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              {{ p.fecha_creacion|date:"d M Y" }}
+            </span>
+            <div class="acciones">
+          <button class="btn-accion filled"
+          onclick="abrirDetalle('{{ p.id_pqrs }}','{{ p.asunto|escapejs }}','{{ p.categoria }}','{{ p.estado_respuesta }}','{{ p.mensaje|escapejs }}','{{ p.respuesta|default_if_none:""|escapejs }}','{{ p.fecha_creacion|date:'d M Y' }}')">
+          Ver detalle
+          </button>
+          {% if p.estado_respuesta == 'respondido' %}
+          <button class="btn-accion"
+            onclick="abrirRespuesta('{{ p.id_pqrs }}','{{ p.asunto|escapejs }}','{{ p.respuesta|default_if_none:""|escapejs }}','{{ p.fecha_creacion|date:'d M Y' }}')">
+            Ver respuesta
+            </button>
+            {% endif %}
+          </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <div class="empty">
+          <div class="empty-icon"></div>
+          <p>Aún no tienes PQRS.<br>¿Tienes alguna duda o inquietud?</p>
+          <button class="btn-nueva" onclick="abrirCrear()">Crear mi primera PQRS</button>
+        </div>
+      {% endif %}
+
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CREAR -->
+<div class="modal-overlay" id="modalCrear" onclick="if(event.target===this)cerrarCrear()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <h2>Nueva PQRS</h2>
+        <p>Te responderemos lo antes posible</p>
+      </div>
+      <button class="btn-close" onclick="cerrarCrear()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'crear_pqrs' %}">
+      {% csrf_token %}
+      <div class="modal-inner">
+
+        <div class="field">
+          <label>Categoría</label>
+          <div class="cat-grid">
+            <input type="radio" name="categoria" value="pregunta"  id="c1" class="cat-radio" checked>
+            <label for="c1" class="cat-lbl"><span class="ico"></span>Pregunta</label>
+            <input type="radio" name="categoria" value="queja"     id="c2" class="cat-radio">
+            <label for="c2" class="cat-lbl"><span class="ico"></span>Queja</label>
+            <input type="radio" name="categoria" value="reporte"   id="c3" class="cat-radio">
+            <label for="c3" class="cat-lbl"><span class="ico"></span>Reporte</label>
+            <input type="radio" name="categoria" value="solicitud" id="c4" class="cat-radio">
+            <label for="c4" class="cat-lbl"><span class="ico"></span>Solicitud</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="asunto">Asunto *</label>
+          <input type="text" name="asunto" id="asunto"
+                 placeholder="Ej: Problema con mi pedido #CRT-3"
+                 maxlength="225" required>
+        </div>
+
+        <div class="field">
+          <label for="mensaje">Descripción *</label>
+          <textarea name="mensaje" id="mensaje"
+                    placeholder="Cuéntanos con detalle tu situación..."
+                    required></textarea>
+        </div>
+
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-sec" onclick="cerrarCrear()">Cancelar</button>
+        <button type="submit" class="btn-prim">Enviar PQRS</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modalDetalle" onclick="if(event.target===this)cerrarDetalle()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <div class="det-id"    id="d-num"></div>
+        <h3 class="det-asunto" id="d-asunto"></h3>
+        <div class="det-badges">
+          <span class="badge" id="d-bcat"></span>
+          <span class="badge" id="d-best"></span>
+        </div>
+      </div>
+      <button class="btn-close" onclick="cerrarDetalle()">✕</button>
+    </div>
+
+    <div class="modal-inner">
+      <div class="det-section">
+        <div class="det-lbl">Tu mensaje</div>
+        <div class="det-text" id="d-msg"></div>
+      </div>
+      <div id="d-resp-area"></div>
+      <div class="det-meta">
+        <span class="meta-chip">🗓 <strong id="d-fecha"></strong></span>
+        <span class="meta-chip">🔖 <strong id="d-id2"></strong></span>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-sec" onclick="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL RESPUESTA -->
+<div class="modal-overlay" id="modalRespuesta" onclick="if(event.target===this)cerrarRespuesta()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <div class="det-id" id="r-num"></div>
+        <h3 class="det-asunto" id="r-asunto"></h3>
+        <div class="det-badges">
+          <span class="badge badge-respondido">Respondido</span>
+        </div>
+      </div>
+      <button class="btn-close" onclick="cerrarRespuesta()">✕</button>
+    </div>
+    <div class="modal-inner">
+      <div class="resp-box" style="margin-bottom:1rem;">
+        <div class="resp-lbl">Respuesta del equipo</div>
+        <div class="resp-txt" id="r-texto"></div>
+      </div>
+      <div class="det-meta">
+        <span class="meta-chip">🗓 <strong id="r-fecha"></strong></span>
+        <span class="meta-chip">🔖 <strong id="r-id2"></strong></span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-sec" onclick="cerrarRespuesta()">Cerrar</button>
+    </div>
+  </div>
+</div>
+<!-- TOAST -->
+<div class="toast" id="toast"><span></span><span id="toast-msg"></span></div>
+
+<script>
+  function abrirCrear()  { document.getElementById('modalCrear').classList.add('open');    document.body.style.overflow='hidden'; }
+  function cerrarCrear() { document.getElementById('modalCrear').classList.remove('open'); document.body.style.overflow=''; }
+
+  const catMap = {
+    pregunta: {e:'',l:'Pregunta', c:'badge-pregunta'},
+    queja:    {e:'',l:'Queja',    c:'badge-queja'},
+    reporte:  {e:'',l:'Reporte',  c:'badge-reporte'},
+    solicitud:{e:'',l:'Solicitud',c:'badge-solicitud'},
+  };
+  const estMap = {
+    sin_respuesta:{e:'⏳',l:'Sin respuesta',c:'badge-sin_respuesta'},
+    respondido:   {e:'',l:'Respondido',   c:'badge-respondido'},
+  };
+
+  function abrirDetalle(id, asunto, cat, est, msg, resp, fecha) {
+    document.getElementById('d-num').textContent   = '#PQRS-' + id;
+    document.getElementById('d-asunto').textContent= asunto;
+    document.getElementById('d-msg').textContent   = msg;
+    document.getElementById('d-fecha').textContent = fecha;
+    document.getElementById('d-id2').textContent   = '#PQRS-' + id;
+
+    const ci = catMap[cat]||{e:'📄',l:cat,c:''};
+    const bc = document.getElementById('d-bcat');
+    bc.className = 'badge ' + ci.c; bc.textContent = ci.e + ' ' + ci.l;
+
+    const ei = estMap[est]||{e:'⏳',l:est,c:''};
+    const be = document.getElementById('d-best');
+    be.className = 'badge ' + ei.c; be.textContent = ei.e + ' ' + ei.l;
+
+    const area = document.getElementById('d-resp-area');
+    if (est === 'respondido' && resp) {
+      area.innerHTML = `<div class="resp-box">
+        <div class="resp-lbl">Respuesta del equipo</div>
+        <div class="resp-txt">${esc(resp)}</div></div>`;
+    } else {
+      area.innerHTML = `<div class="pending-box">
+        <span class="pico">⏳</span>
+        <p>Tu PQRS está en revisión. Te daremos una respuesta pronto.</p>
+      </div>`;
+    }
+
+    document.getElementById('modalDetalle').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarDetalle() {
+    document.getElementById('modalDetalle').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  {% if messages %}{% for m in messages %}
+    window.addEventListener('load',()=>showToast("{{ m|escapejs }}"));
+  {% endfor %}{% endif %}
+
+  function showToast(txt){
+    const t=document.getElementById('toast');
+    document.getElementById('toast-msg').textContent=txt;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3500);
+  }
+  // Agrega estas dos funciones antes del addEventListener
+function abrirRespuesta(id, asunto, resp, fecha) {
+    document.getElementById('r-num').textContent    = '#PQRS-' + id;
+    document.getElementById('r-asunto').textContent = asunto;
+    document.getElementById('r-texto').textContent  = resp;
+    document.getElementById('r-fecha').textContent  = fecha;
+    document.getElementById('r-id2').textContent    = '#PQRS-' + id;
+    document.getElementById('modalRespuesta').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function cerrarRespuesta() {
+    document.getElementById('modalRespuesta').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Reemplaza la línea del Escape existente por esta:
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { cerrarCrear(); cerrarDetalle(); cerrarRespuesta(); }
+});
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape'){cerrarCrear();cerrarDetalle();} });
+</script>
+
+{% endblock %}

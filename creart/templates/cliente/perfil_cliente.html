@@ -1,0 +1,291 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+.wrap{max-width:860px;margin:0 auto;padding:2rem 1rem;}
+.page-title{font-size:22px;font-weight:500;color:#2a1010;margin-bottom:4px;}
+.page-sub{font-size:14px;color:#a07070;margin-bottom:2rem;}
+
+/* Avatar */
+.perfil-hero{background:#fff;border:0.5px solid #e8d8d8;border-radius:16px;padding:2rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#7a2d3e,#a84460);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:500;color:#fff;flex-shrink:0;}
+.hero-info h2{font-size:20px;font-weight:500;color:#2a1010;margin-bottom:4px;}
+.hero-info p{font-size:13px;color:#aaa;}
+.hero-badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.hbadge{font-size:11px;padding:4px 12px;border-radius:999px;font-weight:500;}
+.hbadge-cliente{background:#f5eaec;color:#7a2d3e;}
+.hbadge-activo{background:#eaf3de;color:#3b6d11;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem;}
+.stat{background:#fff;border:0.5px solid #e8d8d8;border-radius:14px;padding:1rem;text-align:center;}
+.stat label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;}
+.stat .val{font-size:22px;font-weight:500;color:#7a2d3e;}
+.stat .sub{font-size:11px;color:#ccc;margin-top:2px;}
+
+/* Cards */
+.card{background:#fff;border:0.5px solid #e8d8d8;border-radius:16px;overflow:hidden;margin-bottom:1.25rem;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:0.5px solid #f5eaec;background:#fdfafa;}
+.card-head-title{font-size:14px;font-weight:500;color:#2a1010;}
+.btn-edit{font-size:12px;padding:5px 14px;border-radius:8px;border:0.5px solid #e8d0d0;background:#fff;color:#7a2d3e;cursor:pointer;transition:all .18s;font-weight:500;}
+.btn-edit:hover{background:#7a2d3e;color:#fff;border-color:#7a2d3e;}
+
+/* Info grid */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0 1.25rem;}
+.info-item{padding:12px 0;border-bottom:0.5px solid #f5eaec;}
+.info-item:nth-last-child(-n+2){border-bottom:none;}
+.info-item.full{grid-column:1/-1;}
+.info-item label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px;}
+.info-item p{font-size:14px;color:#2a1010;font-weight:500;}
+
+/* Formulario edición */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:1.25rem;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:12px;color:#aaa;font-weight:500;}
+.form-group input{padding:9px 12px;border:0.5px solid #e0d0d0;border-radius:10px;font-size:14px;color:#2a1010;outline:none;transition:border-color .18s;}
+.form-group input:focus{border-color:#7a2d3e;}
+.form-actions{display:flex;gap:10px;padding:1rem 1.25rem;border-top:0.5px solid #f5eaec;background:#fdfafa;}
+.btn-save{padding:9px 24px;background:#7a2d3e;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:background .18s;}
+.btn-save:hover{background:#5e2030;}
+.btn-cancel{padding:9px 20px;background:#fff;color:#aaa;border:0.5px solid #e0d0d0;border-radius:10px;font-size:14px;cursor:pointer;}
+.btn-cancel:hover{background:#f5f0f0;}
+
+/* Actividad reciente */
+.actividad-list{padding:0 1.25rem;}
+.actividad-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid #f5eaec;}
+.actividad-item:last-child{border-bottom:none;}
+.act-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.act-icon.pedido{background:#f5eaec;color:#7a2d3e;}
+.act-icon.pago{background:#eaf3de;color:#3b6d11;}
+.act-icon.pqrs{background:#e8edf5;color:#2d4a7a;}
+.act-info{flex:1;}
+.act-info p{font-size:13px;color:#2a1010;margin-bottom:2px;}
+.act-info span{font-size:11px;color:#aaa;}
+.act-monto{font-size:13px;font-weight:500;color:#7a2d3e;}
+
+/* Seguridad */
+.seg-item{display:flex;align-items:center;justify-content:space-between;padding:12px 1.25rem;border-bottom:0.5px solid #f5eaec;}
+.seg-item:last-child{border-bottom:none;}
+.seg-left{display:flex;align-items:center;gap:10px;}
+.seg-icon{width:36px;height:36px;border-radius:10px;background:#f5eaec;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.seg-label{font-size:13px;color:#2a1010;font-weight:500;}
+.seg-sub{font-size:11px;color:#aaa;}
+.seg-status{font-size:11px;padding:3px 10px;border-radius:999px;}
+.seg-ok{background:#eaf3de;color:#3b6d11;}
+.seg-warn{background:#faeeda;color:#854f0b;}
+</style>
+
+<div class="wrap">
+
+  <p class="page-title">Mi Perfil</p>
+  <p class="page-sub">Gestiona tu información personal y preferencias</p>
+
+  <!-- Hero -->
+  <div class="perfil-hero">
+    <div class="avatar">
+      {{ usuario.nombre|slice:":1"|upper }}{{ usuario.apellido|slice:":1"|upper }}
+    </div>
+    <div class="hero-info">
+      <h2>{{ usuario.nombre }} {{ usuario.apellido }}</h2>
+      <p>{{ usuario.correo }}</p>
+      <div class="hero-badges">
+        <span class="hbadge hbadge-cliente">Cliente</span>
+        <span class="hbadge hbadge-activo">Cuenta activa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <label>Pedidos</label>
+      <span class="val">{{ total_pedidos }}</span>
+      <span class="sub">realizados</span>
+    </div>
+    <div class="stat">
+      <label>Gastado</label>
+      <span class="val">${{ total_gastado|floatformat:0 }}</span>
+      <span class="sub">COP</span>
+    </div>
+    <div class="stat">
+      <label>PQRS</label>
+      <span class="val">{{ total_pqrs }}</span>
+      <span class="sub">enviados</span>
+    </div>
+    <div class="stat">
+      <label>Miembro desde</label>
+      <span class="val">{{ usuario.fecha_creacion|date:"Y" }}</span>
+      <span class="sub">{{ usuario.fecha_creacion|date:"M Y" }}</span>
+    </div>
+  </div>
+
+  <!-- Info personal -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-head-title">👤 Información personal</span>
+      <button class="btn-edit" onclick="toggleEdit()">Editar</button>
+    </div>
+
+    <!-- Vista -->
+    <div id="vista-info">
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Nombre</label>
+          <p>{{ usuario.nombre }}</p>
+        </div>
+        <div class="info-item">
+          <label>Apellido</label>
+          <p>{{ usuario.apellido }}</p>
+        </div>
+        <div class="info-item">
+          <label>Correo</label>
+          <p>{{ usuario.correo }}</p>
+        </div>
+        <div class="info-item">
+          <label>Teléfono</label>
+          <p>{{ usuario.numero|default:"No registrado" }}</p>
+        </div>
+        <div class="info-item full">
+          <label>Dirección</label>
+          <p>{{ usuario.direccion|default:"No registrada" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario edición -->
+    <div id="form-edit" style="display:none;">
+      <form method="POST" action="{% url 'perfil_cliente' %}">
+        {% csrf_token %}
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{{ usuario.nombre }}">
+          </div>
+          <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" name="apellido" value="{{ usuario.apellido }}">
+          </div>
+          <div class="form-group">
+            <label>Correo</label>
+            <input type="email" name="correo" value="{{ usuario.correo }}">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" name="numero" value="{{ usuario.numero }}">
+          </div>
+          <div class="form-group full">
+            <label>Dirección</label>
+            <input type="text" name="direccion" value="{{ usuario.direccion }}">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Guardar cambios</button>
+          <button type="button" class="btn-cancel" onclick="toggleEdit()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cambiar contraseña -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-head-title">🔒 Cambiar contraseña</span>
+    </div>
+    <form method="POST" action="{% url 'perfil_cliente' %}">
+      {% csrf_token %}
+      <input type="hidden" name="cambiar_contrasena" value="1">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Contraseña actual</label>
+          <input type="password" name="contrasena_actual" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>Nueva contraseña</label>
+          <input type="password" name="nueva_contrasena" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>Confirmar contraseña</label>
+          <input type="password" name="confirmar_contrasena" placeholder="••••••••">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save">Actualizar contraseña</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Actividad reciente -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-head-title">🕐 Actividad reciente</span>
+    </div>
+    <div class="actividad-list">
+      {% for s in solicitudes_recientes %}
+      <div class="actividad-item">
+        <div class="act-icon pedido">🎂</div>
+        <div class="act-info">
+          <p>Pedido — {{ s.producto.nombre }}</p>
+          <span>{{ s.fecha_creacion|date:"d M Y" }} · {{ s.estado|capfirst }}</span>
+        </div>
+        <span class="act-monto">${{ s.precio_total|floatformat:0 }}</span>
+      </div>
+      {% empty %}
+      <div style="padding:1.5rem;text-align:center;color:#ccc;font-size:13px;">
+        Sin actividad reciente
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Seguridad -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-head-title">🛡️ Seguridad</span>
+    </div>
+    <div class="seg-item">
+      <div class="seg-left">
+        <div class="seg-icon">📧</div>
+        <div>
+          <p class="seg-label">Correo verificado</p>
+          <p class="seg-sub">{{ usuario.correo }}</p>
+        </div>
+      </div>
+      <span class="seg-status seg-ok">Verificado</span>
+    </div>
+    <div class="seg-item">
+      <div class="seg-left">
+        <div class="seg-icon">🔑</div>
+        <div>
+          <p class="seg-label">Contraseña</p>
+          <p class="seg-sub">Última actualización desconocida</p>
+        </div>
+      </div>
+      <span class="seg-status seg-warn">Actualizar</span>
+    </div>
+    <div class="seg-item">
+      <div class="seg-left">
+        <div class="seg-icon">📅</div>
+        <div>
+          <p class="seg-label">Miembro desde</p>
+          <p class="seg-sub">{{ usuario.fecha_creacion|date:"d \d\e F \d\e Y" }}</p>
+        </div>
+      </div>
+      <span class="seg-status seg-ok">Activo</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleEdit(){
+  const vista = document.getElementById('vista-info');
+  const form  = document.getElementById('form-edit');
+  const oculto = form.style.display === 'none';
+  form.style.display  = oculto ? 'block' : 'none';
+  vista.style.display = oculto ? 'none'  : 'block';
+}
+</script>
+
+{% endblock %}

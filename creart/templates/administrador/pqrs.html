@@ -2,140 +2,110 @@
 {% load static %}
 {% block content %}
 
-
 <!-- ═══════════ TARJETAS RESUMEN ═══════════ -->
 <section class="tarjetas-tx-grid">
     <div class="tarjeta-tx">
         <div class="tx-icono" style="background:#f5f5f5">
             <i class="fa-solid fa-comments fa-lg" style="color:#555"></i>
         </div>
-        <div><p class="tx-numero">6</p><p class="tx-etiqueta">Total PQRS</p></div>
+        <div><p class="tx-numero">{{ total_pqrs }}</p><p class="tx-etiqueta">Total PQRS</p></div>
     </div>
     <div class="tarjeta-tx">
         <div class="tx-icono tx-icono-rojo">
             <i class="fa-solid fa-clock fa-lg" style="color:#c62828"></i>
         </div>
-        <div><p class="tx-numero" style="color:#c62828">2</p><p class="tx-etiqueta">Pendientes</p></div>
-    </div>
-    <div class="tarjeta-tx">
-        <div class="tx-icono tx-icono-amarillo">
-            <i class="fa-solid fa-circle-exclamation fa-lg" style="color:#f57c00"></i>
-        </div>
-        <div><p class="tx-numero" style="color:#f57c00">2</p><p class="tx-etiqueta">En Proceso</p></div>
+        <div><p class="tx-numero" style="color:#c62828">{{ pendientes }}</p><p class="tx-etiqueta">Pendientes</p></div>
     </div>
     <div class="tarjeta-tx">
         <div class="tx-icono tx-icono-verde">
             <i class="fa-solid fa-circle-check fa-lg" style="color:#2e7d32"></i>
         </div>
-        <div><p class="tx-numero" style="color:#2e7d32">2</p><p class="tx-etiqueta">Resueltos</p></div>
+        <div><p class="tx-numero" style="color:#2e7d32">{{ resueltos }}</p><p class="tx-etiqueta">Resueltos</p></div>
     </div>
 </section>
 
+<!-- ═══════════ BUSCADOR ═══════════ -->
+<div class="barra-herramientas">
+    <form method="get" class="busqueda-caja">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="busqueda-input" name="q" value="{{ q }}"
+            placeholder="Buscar por ID, cliente o producto..."/>
+    </form>
+    <div class="filtros-tabs">
+        <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
+        <button class="tab" onclick="filtrarPQRS(this,'sin_respuesta')">Pendientes</button>
+        <button class="tab" onclick="filtrarPQRS(this,'respondido')">Respondidos</button>
+    </div>
 
-<!-- ═══════════ FILTROS ═══════════ -->
-<div class="filtros-tabs">
-    <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
-    <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
-    <button class="tab" onclick="filtrarPQRS(this,'en-proceso')">En Proceso</button>
-    <button class="tab" onclick="filtrarPQRS(this,'resuelto')">Resueltos</button>
 </div>
 
+<!-- ═══════════ FILTROS ═══════════ -->
 
+<div class="exportar-grupo">
+    <a href="{% url 'pqrs_export_excel' %}" id="btn-excel"
+    class="btn-exportar btn-excel">
+        <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+    <a href="{% url 'pqrs_export_pdf' %}" id="btn-pdf"
+    class="btn-exportar btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+</div>
 <!-- ═══════════ LAYOUT: lista + panel ═══════════ -->
 <div class="pqrs-layout">
 
     <!-- LISTA -->
     <div class="pqrs-lista" id="pqrsLista">
+        {% for p in pqrs_list %}
+            <div class="pqrs-tarjeta" data-estado="{{ p.estado_respuesta }}"
+                onclick="abrirDetalle(this,
+                '{{ p.id_pqrs }}',
+                '{{ p.categoria }}',
+                '{{ p.usuario.rol.nombre }}',
+                '{{ p.usuario.nombre }}',
+                '{{ p.usuario.email }}',
+                '{{ p.asunto|escapejs }}',
+                '{{ p.mensaje|escapejs }}',
+                '{{ p.fecha_creacion }}',
+                '{{ p.estado_respuesta }}')">
 
-        <div class="pqrs-tarjeta" data-estado="pendiente"
-             onclick="abrirDetalle(this,'PQRS001','Queja','Cliente','María García','maria.garcia@email.com','Pedido llegó tarde','Mi pedido de Cherry Pie llegó 2 horas después de lo programado. Me gustaría una explicación.','2026-03-07')">
-            <div class="pqrs-cabecera">
-                <div class="pqrs-tags">
-                    <span class="tag tag-queja">Queja</span>
-                    <span class="tag tag-cliente">Cliente</span>
-                </div>
-                <span class="badge-estado badge-amarillo">Pendiente</span>
-            </div>
-            <p class="pqrs-titulo">Pedido llegó tarde</p>
-            <p class="pqrs-usuario">María García</p>
-            <p class="pqrs-mensaje">Mi pedido de Cherry Pie llegó 2 horas después de lo programado. Me gustaría una explicación.</p>
-            <p class="pqrs-fecha">2026-03-07 · PQRS001</p>
-        </div>
+                <div class="pqrs-cabecera">
+                    <div class="pqrs-tags">
+                        <span class="tag tag-categoria">{{ p.categoria }}</span>
+                    </div>
 
-        <div class="pqrs-tarjeta" data-estado="en-proceso"
-             onclick="abrirDetalle(this,'PQRS002','Sugerencia','Cliente','Juan Pérez','juan.perez@email.com','Nuevos sabores','Sería genial si pudieran ofrecer pasteles sin azúcar para diabéticos.','2026-03-06')">
-            <div class="pqrs-cabecera">
-                <div class="pqrs-tags">
-                    <span class="tag tag-sugerencia">Sugerencia</span>
-                    <span class="tag tag-cliente">Cliente</span>
+                    {% if p.estado_respuesta == 'sin_respuesta' %}
+                        <span class="badge-estado badge-amarillo">Pendiente</span>
+                    {% else %}
+                        <span class="badge-estado badge-verde">Respondido</span>
+                    {% endif %}
                 </div>
-                <span class="badge-estado badge-naranja">En Proceso</span>
-            </div>
-            <p class="pqrs-titulo">Nuevos sabores</p>
-            <p class="pqrs-usuario">Juan Pérez</p>
-            <p class="pqrs-mensaje">Sería genial si pudieran ofrecer pasteles sin azúcar para diabéticos.</p>
-            <p class="pqrs-fecha">2026-03-06 · PQRS002</p>
-        </div>
 
-        <div class="pqrs-tarjeta" data-estado="resuelto"
-             onclick="abrirDetalle(this,'PQRS003','Queja','Cliente','Ana Rodríguez','ana.rodriguez@email.com','Producto con sabor extraño','El pastel de chocolate que recibí tenía un sabor extraño, como si estuviera vencido.','2026-03-05')">
-            <div class="pqrs-cabecera">
-                <div class="pqrs-tags">
-                    <span class="tag tag-queja">Queja</span>
-                    <span class="tag tag-cliente">Cliente</span>
-                </div>
-                <span class="badge-estado badge-verde">Resuelto</span>
-            </div>
-            <p class="pqrs-titulo">Producto con sabor extraño</p>
-            <p class="pqrs-usuario">Ana Rodríguez</p>
-            <p class="pqrs-mensaje">El pastel de chocolate que recibí tenía un sabor extraño, como si estuviera vencido.</p>
-            <p class="pqrs-fecha">2026-03-05 · PQRS003</p>
-        </div>
+                <p class="pqrs-titulo">{{ p.asunto }}</p>
+                <p class="pqrs-nusuario">{{ p.usuario.rol.nombre }}</p>
+                <p class="pqrs-usuario">{{ p.usuario.nombre }}</p>
+                <p class="pqrs-mensaje mensaje">
+                    {% for linea in p.mensaje.splitlines %}
+                        <p>{{ linea }}</p>
+                    {% endfor %}
+                </p>    
+                <p class="pqrs-fecha">{{ p.fecha_creacion }} · PQRS{{ p.id_pqrs }}</p>
 
-        <div class="pqrs-tarjeta" data-estado="en-proceso"
-             onclick="abrirDetalle(this,'PQRS004','Petición','Cliente','Carlos López','carlos.lopez@email.com','Torta personalizada para boda','Necesito una cotización para una torta de boda para 200 personas el próximo mes.','2026-03-04')">
-            <div class="pqrs-cabecera">
-                <div class="pqrs-tags">
-                    <span class="tag tag-peticion">Petición</span>
-                    <span class="tag tag-cliente">Cliente</span>
+                <div class="none">
+                    <div class="none_content" id="botones">
+                        <div class="respuesta">
+                            <strong>Respuesta del admin</strong>
+                            {% if p.respuesta %}
+                                <p class="pqrs-mensaje">{{ p.respuesta }}</p>
+                                <p class="pqrs-fecha">{{ p.fecha_modificacion }} ·</p>
+                            {% else %}
+                                <p class="pqrs-mensaje">Aún no hay respuesta</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <span class="badge-estado badge-naranja">En Proceso</span>
             </div>
-            <p class="pqrs-titulo">Torta personalizada para boda</p>
-            <p class="pqrs-usuario">Carlos López</p>
-            <p class="pqrs-mensaje">Necesito una cotización para una torta de boda para 200 personas el próximo mes.</p>
-            <p class="pqrs-fecha">2026-03-04 · PQRS004</p>
-        </div>
-
-        <div class="pqrs-tarjeta" data-estado="pendiente"
-             onclick="abrirDetalle(this,'PQRS005','Queja','Cliente','Sofía Martínez','sofia.martinez@email.com','Atención al cliente','La persona que me atendió fue poco amable al teléfono.','2026-03-04')">
-            <div class="pqrs-cabecera">
-                <div class="pqrs-tags">
-                    <span class="tag tag-queja">Queja</span>
-                    <span class="tag tag-cliente">Cliente</span>
-                </div>
-                <span class="badge-estado badge-amarillo">Pendiente</span>
-            </div>
-            <p class="pqrs-titulo">Atención al cliente</p>
-            <p class="pqrs-usuario">Sofía Martínez</p>
-            <p class="pqrs-mensaje">La persona que me atendió fue poco amable al teléfono.</p>
-            <p class="pqrs-fecha">2026-03-04 · PQRS005</p>
-        </div>
-
-        <div class="pqrs-tarjeta" data-estado="resuelto"
-             onclick="abrirDetalle(this,'PQRS006','Reclamo','Cliente','Luis Hernández','luis.hernandez@email.com','Cobro incorrecto','Me cobraron $50 de más en mi último pedido. Solicito reembolso.','2026-03-01')">
-            <div class="pqrs-cabecera">
-                <div class="pqrs-tags">
-                    <span class="tag tag-reclamo">Reclamo</span>
-                    <span class="tag tag-cliente">Cliente</span>
-                </div>
-                <span class="badge-estado badge-verde">Resuelto</span>
-            </div>
-            <p class="pqrs-titulo">Cobro incorrecto</p>
-            <p class="pqrs-usuario">Luis Hernández</p>
-            <p class="pqrs-mensaje">Me cobraron $50 de más en mi último pedido. Solicito reembolso.</p>
-            <p class="pqrs-fecha">2026-03-01 · PQRS006</p>
-        </div>
+        {% endfor %}
 
     </div>
 
@@ -151,30 +121,63 @@
         <div id="panelDetalle" style="display:none">
             <div class="panel-header">
                 <span class="panel-titulo">Detalles del PQRS</span>
-                <select class="form-select form-select-sm" id="panelEstado" style="width:auto">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en-proceso">En Proceso</option>
-                    <option value="resuelto">Resuelto</option>
-                </select>
+                <span class="badge-estado" id="pd-estado"></span>
             </div>
-            <div class="panel-campo"><p class="panel-clave">ID</p><p class="panel-valor" id="pd-id"></p></div>
-            <div class="panel-campo"><p class="panel-clave">Tipo</p><p class="panel-valor" id="pd-tipo"></p></div>
-            <div class="panel-campo"><p class="panel-clave">Origen</p><p class="panel-valor" id="pd-origen"></p></div>
-            <div class="panel-campo"><p class="panel-clave">Nombre</p><p class="panel-valor" id="pd-nombre"></p></div>
-            <div class="panel-campo"><p class="panel-clave">Asunto</p><p class="panel-valor" id="pd-asunto"></p></div>
-            <div class="panel-campo"><p class="panel-clave">Mensaje</p><p class="panel-valor td-gris" id="pd-mensaje" style="line-height:1.5"></p></div>
-            <div class="panel-campo"><p class="panel-clave">Fecha</p><p class="panel-valor" id="pd-fecha"></p></div>
+            <div class="panel-campo">
+                <p class="panel-clave">ID</p>
+                <p class="pqrs-nombre" id="pd-id"></p>
+            </div>
+            <div class="panel-campo">
+                <p class="panel-clave">Tipo</p>
+                <p class="pqrs-nombre" id="pd-tipo"></p>
+            </div>
+            <div class="panel-campo">
+                <p class="panel-clave">Origen</p>
+                <p class="pqrs-nombre" id="pd-origen"></p>
+            </div>
+            <div class="panel-campo">
+                <p class="panel-clave">Nombre</p>
+                <p class="pqrs-nombre" id="pd-nombre"></p>
+            </div>
+            <div class="panel-campo">
+                <p class="panel-clave">Asunto</p>
+                <p class="pqrs-mensaje" id="pd-asunto"></p>
+            </div>
+            <div class="panel-campo">
+                <p class="panel-clave">Mensaje</p>
+                <p class="pqrs-mensaje td-gris" id="pd-mensaje" style="line-height:1.5"></p>
+            </div>
+            <div class="panel-campo">
+                <p class="panel-clave">Fecha</p>
+                <p class="pqrs-categoria" id="pd-fecha"></p>
+            </div>
 
             <hr style="border-color:#e8e8e8;margin:12px 0">
 
-            <p class="panel-clave mb-1">Responder</p>
-            <textarea class="form-control" id="pd-respuesta" rows="4"
-                      placeholder="Escribe tu respuesta aquí..."
-                      oninput="actualizarBtnResponder()"></textarea>
-            <button class="btn-responder mt-2" id="btnResponder" onclick="enviarRespuesta()">
-                <i class="fa-solid fa-paper-plane"></i>
-                Enviar Respuesta y Marcar como Resuelto
-            </button>
+            <p class="panel-clave mb-1">Responder</p><br>
+            <form method="POST" id="formResponder" action="{% url 'pqrs_responder' %}">
+                {% csrf_token %}
+                
+                <input type="hidden" name="pqrs_id" id="pqrs_id">
+
+                <textarea id="pd-respuesta" class="form-control" name="respuesta" rows="4"
+                        placeholder="Escribe tu respuesta aquí..." required></textarea>
+                <br><br>
+                <button type="submit" id="btnResponder" class="btn-responder mt-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Enviar Respuesta y Marcar como Resuelto
+                </button>
+            </form>
+
+                <div id="accionesPerfil" style="display:none;" class="cambiar_perfil">
+                    <form method="POST" id="formPerfil" class="estado">
+                        {% csrf_token %}
+                        <input type="hidden" name="pqrs_id" id="perfil_pqrs_id">
+
+                        <button class="aceptar" name="accion" value="aceptar">Aceptar cambios</button>
+                        <button class="rechazar" name="accion" value="rechazar">Rechazar</button>
+                    </form>
+                </div>
         </div>
 
     </div>
@@ -186,27 +189,66 @@
         document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) {
             t.style.display = (estado === 'todos' || t.dataset.estado === estado) ? '' : 'none';
         });
+
+        // Actualizar los links de exportar con el filtro activo
+        const param = estado === 'todos' ? '' : `?estado=${estado}`;
+        document.getElementById('btn-excel').href = `{% url 'pqrs_export_excel' %}${param}`;
+        document.getElementById('btn-pdf').href   = `{% url 'pqrs_export_pdf' %}${param}`;
     }
 
-    function abrirDetalle(tarjeta, id, tipo, origen, nombre, correo, asunto, mensaje, fecha) {
-        document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) { t.classList.remove('seleccionada'); });
-        tarjeta.classList.add('seleccionada');
+    // Función para abrir el panel de detalle
+    function abrirDetalle(tarjeta, id, categoria, origen, nombre, correo, asunto, mensaje, fecha, estado_respuesta) {
+        // Estado en panel
+        const acciones = document.getElementById('accionesPerfil');
+        const form = document.getElementById('formPerfil');
+
+        if (asunto === 'Solicitud cambio de perfil') {
+            acciones.style.display = 'block';
+            document.getElementById('perfil_pqrs_id').value = id;
+            form.action = `/gestionar-cambio-perfil/${id}/`;
+        } else if (asunto.includes('Solicitud edición de producto')) { //nuevo
+            acciones.style.display = 'block';
+            document.getElementById('perfil_pqrs_id').value = id;
+            form.action = `/gestionar-edicion-producto/${id}/`;
+        } else {
+            acciones.style.display = 'none';
+        }
+        const spanEstado = document.getElementById('pd-estado');
+        spanEstado.textContent = estado_respuesta === 'sin_respuesta' ? 'Pendiente' : 'Respondido';
+        spanEstado.className = 'badge-estado ' + (estado_respuesta === 'sin_respuesta' ? 'badge-amarillo' : 'badge-verde');
+
+        document.getElementById('pqrs_id').value = id;
+
+        // Resaltar tarjeta seleccionada
+        document.querySelectorAll('.pqrs-tarjeta').forEach(t => t.classList.remove('seleccionada', 'active'));
+        tarjeta.classList.add('seleccionada', 'active');
+
+        // Mostrar panel detalle
         document.getElementById('panelVacio').style.display   = 'none';
         document.getElementById('panelDetalle').style.display = '';
+
+        // Llenar campos
         document.getElementById('pd-id').textContent      = id;
-        document.getElementById('pd-tipo').textContent    = tipo;
+        document.getElementById('pd-tipo').textContent    = categoria;
         document.getElementById('pd-origen').textContent  = origen;
         document.getElementById('pd-nombre').textContent  = nombre;
         document.getElementById('pd-asunto').textContent  = asunto;
-        document.getElementById('pd-mensaje').textContent = mensaje;
+        document.getElementById('pd-mensaje').innerHTML = mensaje.replace(/\n/g, "<br>");
         document.getElementById('pd-fecha').textContent   = fecha;
         document.getElementById('pd-respuesta').value     = '';
+
         actualizarBtnResponder();
     }
 
+    // Botón de respuesta
     function actualizarBtnResponder() {
-        var tiene = document.getElementById('pd-respuesta').value.trim().length > 0;
-        document.getElementById('btnResponder').classList.toggle('activo', tiene);
+        const textarea = document.getElementById('pd-respuesta');
+        const btn = document.getElementById('btnResponder');
+
+        const tiene = textarea.value.trim().length > 0;
+
+        btn.classList.toggle('activo', tiene);
+        btn.disabled = !tiene; // bloquea si está vacío
     }
 
     function enviarRespuesta() {
@@ -216,5 +258,7 @@
         actualizarBtnResponder();
         alert('Respuesta enviada y PQRS marcado como Resuelto.');
     }
+
+    document.getElementById('pd-respuesta').addEventListener('input', actualizarBtnResponder);
 </script>
 {% endblock %}

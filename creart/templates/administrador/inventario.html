@@ -1,0 +1,547 @@
+{% extends "layout_header.html" %}
+{% load static %}
+{% block content %}
+
+<div class="titulo">
+    <h2>Gestion de Inventario</h2>
+    <p class="p_gris">Control de productos y proveedores de la pasteleria</p>
+</div>
+
+<div class="botones_vista">
+    <ul class="lista_vista">
+        <li class="vista activo" id="btn_inventario"><i class="fa-solid fa-box"></i> Inventario</li>
+        <li class="vista" id="btn_proveedores"><i class="fa-solid fa-users"></i> Proveedores</li>
+    </ul>
+</div>
+
+<!-- ═══════════ VISTA INVENTARIO ═══════════ -->
+<div class="vista_productos" id="seccion_inventario">
+    <div class="buscador_boton">
+        <div class="input_icono">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">
+                <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+            </svg>
+            <input type="search" class="busqueda" id="buscador_elementos" placeholder="Buscar...">
+        </div>
+        <button data-bs-toggle="modal" data-bs-target="#modalCrearElemento" class="boton"><i class="fa-solid fa-plus"></i> Agregar Elemento</button>
+    </div>
+    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <div class="exportar-grupo">
+            <a href="{% url 'inventario_export_excel' %}" id="btn-excel"
+            class="btn-exportar btn-excel">
+                <i class="fa-solid fa-file-excel"></i> Exportar Excel
+            </a>
+            <a href="{% url 'inventario_export_pdf' %}" id="btn-pdf"
+            class="btn-exportar btn-pdf">
+                <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+            </a>
+        </div>
+    </div>
+    <table class="table_inventario">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Categoria</th>
+                <th>Proveedor</th>
+                <th>Stock Actual</th>
+                <th>Stock Minimo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in inventario %}
+            <tr>
+                <td>{{ i.nombre }}</td>
+                <td class="p_gris">{{ i.categoria }}</td>
+                <td>{{ i.id_proveedor.empresa }}</td>
+                <td>{{ i.cantidad }} {{ i.unidad }}</td>
+                <td class="p_gris">{{ i.stock_minimo }} {{ i.unidad }}</td>
+                <td><span class="td_span_verde">{% if i.estado %}OK{% else %}Inactivo{% endif %}</span></td>
+                <td>
+                    <button class="boton_modal btn-detalle"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalDetalle{{ i.id_inventario }}"
+                    >Ver detalles</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7">No hay elementos en el inventario</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ═══════════ MODALES DETALLE (fuera de la tabla) ═══════════ -->
+{% for i in inventario %}
+<div class="modal fade" id="modalDetalle{{ i.id_inventario }}" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header mio">
+        <h2 class="modal-title">{{ i.nombre }}</h2>
+        <p class="p_gris">{{ i.categoria }}</p>
+      </div>
+      <div class="modal-body mio_modal" id="vista_detalles_{{ i.id_inventario }}">
+            <div class="info_proveedor">
+                <p class="texto_fuerte">Informacion del Proveedor</p>
+                <div class="info_ordenada">
+                    <div class="info1">
+                        <div class="texto_lado">
+                            <p class="p_gris">Empresa</p>
+                            <p>{{ i.id_proveedor.empresa }}</p>
+                        </div>
+                        <div class="texto_lado">
+                            <p class="p_gris">Telefono</p>
+                            <p>{{ i.id_proveedor.numero }}</p>
+                        </div>
+                    </div>
+                    <div class="info2">
+                        <div class="texto_lado">
+                            <p class="p_gris">Contacto</p>
+                            <p>{{ i.id_proveedor.nombre }}</p>
+                        </div>
+                        <div class="texto_lado">
+                            <p class="p_gris">Email</p>
+                            <p>{{ i.id_proveedor.correo }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info_producto">
+                <p class="texto_fuerte">Informacion del Producto</p>
+                <div class="info_ordenada">
+                    <div class="info1">
+                        <div class="texto_lado">
+                            <p class="p_gris">Stock Actual</p>
+                            <p>{{ i.cantidad }}{{ i.unidad }}</p>
+                        </div>
+                        <div class="texto_lado">
+                            <p class="p_gris">Precio unitario</p>
+                            <p>{{ i.precio_unitario }}</p>
+                        </div>
+                    </div>
+                    <div class="info2">
+                        <div class="texto_lado">
+                            <p class="p_gris">Stock minimo</p>
+                            <p>{{ i.stock_minimo }}{{ i.unidad }}</p>
+                        </div>
+                        <div class="texto_lado">
+                            <p class="p_gris">Unidad</p>
+                            <p>{{ i.unidad }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="movimientos">
+                <h4 class="texto_fuerte">Historial de movimientos</h4>
+                {% for m in i.movimiento_set.all %}
+                <div class="card_movimiento">
+                    <div class="info_movi">
+                        {% if m.tipo == 'salida' or m.tipo == 'merma' %}
+                            <i class="fa-solid fa-arrow-down" style="color:red"></i>
+                        {% else %}
+                            <i class="fa-solid fa-arrow-up" style="color:green"></i>
+                        {% endif %}
+                        <div class="ti_fe">
+                            <strong>{{ m.tipo }}</strong>
+                            <p class="p_gris">{{ m.fecha }}</p>
+                            <p class="p_gris">{{ m.observacion }}</p>
+                        </div>
+                    </div>
+                    <div class="costo">
+                        <p>{{ m.cantidad }} {{ i.unidad }}</p>
+                        {% if m.costo_unitario %}
+                            <p>${{ m.costo_unitario }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                    <p class="p_gris">Sin movimientos registrados</p>
+                {% endfor %}
+            </div>
+
+      </div>
+      <div class="modal-body mio_modal" id="vista_editar_{{ i.id_inventario }}" style="display:none">
+            <form method="POST" action="{% url 'modificar_producto_inventario' i.id_inventario %}" class="form_inventario">
+                {% csrf_token %}
+                <div class="inputs">
+                    <div class="input">
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" value="{{ i.nombre }}" required>
+                    </div>
+                    <div class="input">
+                        <label>Categoria</label>
+                        <select name="categoria">
+                            <option value="harinas" {% if i.categoria == 'harinas' %}selected{% endif %}>Harinas</option>
+                            <option value="lacteos" {% if i.categoria == 'lacteos' %}selected{% endif %}>Lacteos</option>
+                            <option value="endulzantes" {% if i.categoria == 'endulzantes' %}selected{% endif %}>Endulzantes</option>
+                            <option value="licores" {% if i.categoria == 'licores' %}selected{% endif %}>Licores</option>
+                            <option value="frutas" {% if i.categoria == 'frutas' %}selected{% endif %}>Frutas</option>
+                            <option value="chocolates" {% if i.categoria == 'chocolates' %}selected{% endif %}>Chocolates</option>
+                            <option value="aceites" {% if i.categoria == 'aceites' %}selected{% endif %}>Aceites</option>
+                            <option value="huevos" {% if i.categoria == 'huevos' %}selected{% endif %}>Huevos</option>
+                            <option value="manies" {% if i.categoria == 'manies' %}selected{% endif %}>Manies</option>
+                            <option value="frutos_rojos" {% if i.categoria == 'frutos_rojos' %}selected{% endif %}>Frutos rojos</option>
+                        </select>
+                    </div>
+                </div>
+                <label>Proveedor</label>
+                <select name="nombre_proveedor">
+                    {% for p in proveedores %}
+                        <option value="{{ p.id_proveedor }}" {% if i.id_proveedor.id_proveedor == p.id_proveedor %}selected{% endif %}>
+                            {{ p.nombre }} {{ p.apellido }} - {{ p.empresa }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <label>Precio Unitario</label>
+                <input type="number" name="precio_unitario" value="{{ i.precio_unitario }}" required>
+                <label>Stock Minimo</label>
+                <input type="number" name="stock_minimo" value="{{ i.stock_minimo }}" required>
+                <label>Cantidad actual</label>
+                <input type="number" name="cantidad" value="{{ i.cantidad }}" required>
+                <br><br>
+                <button type="submit" class="boton">Guardar cambios</button>
+            </form>
+        </div>
+      <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn_editar boton_modal" 
+                onclick="toggleEditar({{ i.id_inventario }}, this)">
+                Editar
+            </button>
+            <button type="button" class="btn_eliminar boton_modal"
+                onclick="confirmarEliminar({{ i.id_inventario }})">
+                Eliminar
+            </button>
+        </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- ═══════════ VISTA PROVEEDORES ═══════════ -->
+<div class="vista_proveedores" id="seccion_proveedores">
+    <div class="buscador_boton">
+        <div class="input_icono">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">
+                <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+            </svg>
+            <input type="search" class="busqueda" id="buscador_proveedor" placeholder="Buscar...">
+        </div>
+        <button data-bs-toggle="modal" data-bs-target="#modalCrearProveedor" class="boton"><i class="fa-solid fa-plus"></i> Agregar proveedor</button>
+    </div>
+    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <div class="exportar-grupo">
+            <a href="{% url 'proveedores_export_excel' %}" id="btn-excel"
+            class="btn-exportar btn-excel">
+                <i class="fa-solid fa-file-excel"></i> Exportar Excel
+            </a>
+            <a href="{% url 'proveedores_export_pdf' %}" id="btn-pdf"
+            class="btn-exportar btn-pdf">
+                <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+            </a>
+        </div>
+    </div>
+    <div class="proveedores">
+        {% for p in proveedores %}
+        <div class="carta_proveedor" onclick="opcionesProveedor({{ p.id_proveedor }})">
+            <div class="presentacion_proveedor">
+                <i class="fa-solid fa-users"></i>
+                <div class="textos_proveedor">
+                    <strong>{{ p.nombre }} {{ p.apellido }}</strong>
+                    <p class="p_gris">{{ p.empresa }}</p>
+                </div>
+            </div>
+            <div class="descripcion">
+                <p class="p_gris">Categoria:</p>
+                {% regroup p.inventario_set.all by categoria as cats %}
+                {% for cat in cats %}
+                    <strong>{{ cat.grouper }}</strong>
+                {% endfor %}
+            </div>
+            <div class="descripcion">
+                <p class="p_gris">Telefono:</p>
+                <p>{{ p.numero }}</p>
+            </div>
+            <div class="descripcion">
+                <p class="p_gris">Email:</p>
+                <p>{{ p.correo }}</p>
+            </div>
+            <div class="descripcion">
+                <p class="p_gris">Direccion:</p>
+                <p>{{ p.direccion }}</p>
+            </div>
+        </div>
+        {% empty %}
+            <p>No hay proveedores registrados</p>
+        {% endfor %}
+    </div>
+    {% for p in proveedores %}
+        <div class="modal fade" id="modalEditarProveedor{{ p.id_proveedor }}" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header mio">
+                    <h5 class="modal-title">Editar proveedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'modificar_proveedor' p.id_proveedor %}" class="form_inventario">
+                        {% csrf_token %}
+                        <div class="inputs">
+                            <div class="input">
+                                <label>Nombre</label>
+                                <input type="text" name="nombre" value="{{ p.nombre }}" required>
+                            </div>
+                            <div class="input">
+                                <label>Apellido</label>
+                                <input type="text" name="apellido" value="{{ p.apellido }}" required>
+                            </div>
+                        </div>
+                        <div class="inputs">
+                            <div class="input">
+                                <label>Empresa</label>
+                                <input type="text" name="empresa" value="{{ p.empresa }}" required>
+                            </div>
+                            <div class="input">
+                                <label>Telefono</label>
+                                <input type="text" name="telefono" value="{{ p.numero }}" required>
+                            </div>
+                        </div>
+                        <div class="inputs">
+                            <div class="input">
+                                <label>Email</label>
+                                <input type="text" name="correo" value="{{ p.correo }}" required>
+                            </div>
+                            <div class="input">
+                                <label>Direccion</label>
+                                <input type="text" name="direccion" value="{{ p.direccion }}" required>
+                            </div>
+                        </div>
+                        <br>
+                        <button type="submit" class="boton">Guardar cambios</button>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+</div>
+
+<!-- ═══════════ MODAL CREAR ELEMENTO ═══════════ -->
+<div class="modal fade" id="modalCrearElemento" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header mio">
+        <h2 class="modal-title" class="">Agregar producto al inventario</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{% url 'crear_elemento_inventario' %}" method="POST" class="form_inventario">
+            {% csrf_token %}
+            <div class="inputs">
+                <div class="input">
+                    <label for="nombre">Nombre del elemento</label>
+                    <input type="text" name="nombre" id="nombre" required>
+                </div>
+                <div class="input">
+                    <label for="categoria">Categoria</label>
+                    <select name="categoria">
+                        <option value="harinas">Harinas</option>
+                        <option value="lacteos">Lacteos</option>
+                        <option value="endulzantes">Endulzantes</option>
+                        <option value="licores">Licores</option>
+                        <option value="frutas">Frutas</option>
+                        <option value="chocolates">Chocolates</option>
+                        <option value="aceites">Aceites</option>
+                        <option value="huevos">Huevos</option>
+                        <option value="manies">Manies</option>
+                        <option value="frutos_rojos">Frutos rojos</option>
+                    </select>
+                </div>
+            </div>
+            <label for="nombre_proveedor">Proveedor</label>
+            <select name="nombre_proveedor" aria-placeholder="Seleccionar proveedor">
+                {% for p in proveedores %}
+                    <option value="{{ p.id_proveedor }}">{{ p.nombre }} {{ p.apellido }} - {{ p.empresa }}</option>
+                {% endfor %}
+            </select>
+            <div class="inputs">
+                <div class="input">
+                    <label for="cantidad">Cantidad Inicial</label>
+                    <input type="number" name="cantidad" required>
+                </div>
+                <div class="input">
+                    <label for="stock_minimo">Stock Minimo</label>
+                    <input type="number" name="stock_minimo" required>
+                </div>
+                <div class="input">
+                    <label for="unidad">Unidad de medida</label>
+                    <select name="unidad">
+                        <option value="kg">Kilogramos</option>
+                        <option value="g">Gramos</option>
+                        <option value="L">Litros</option>
+                        <option value="ml">Mililitros</option>
+                        <option value="cc">Centimetros cubicos</option>
+                        <option value="lb">Libras</option>
+                    </select>
+                </div>
+            </div>
+            <label for="precio_unitario">Precio Unitario ($)</label>
+            <input type="number" name="precio_unitario" required>
+            <br><br>
+            <button type="submit" class="boton">Agregar elemento</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL CREAR PROVEEDOR ═══════════ -->
+<div class="modal fade" id="modalCrearProveedor" tabindex="-1">
+  <div class="modal-dialog modal-lg  modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header mio">
+        <h2 class="modal-title">Crear proveedor</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{% url 'crear_proveedor' %}" method="POST" class="form_inventario">
+            {% csrf_token %}
+            <div class="inputs">
+                <div class="input">
+                    <label for="nombre">Nombre del contacto</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="input">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" name="apellido" required>
+                </div>
+            </div>
+            <div class="inputs">
+                <div class="input">
+                    <label for="empresa">Empresa</label>
+                    <input type="text" name="empresa" required>
+                </div>
+                <div class="input">
+                    <label for="telefono">Telefono</label>
+                    <input type="text" name="telefono" required>
+                </div>
+            </div>
+            <div class="inputs">
+                <div class="input">
+                    <label for="correo">Email</label>
+                    <input type="text" name="correo" required>
+                </div>
+                <div class="input">
+                    <label for="direccion">Direccion</label>
+                    <input type="text" name="direccion" required>
+                </div>
+            </div>
+            <br><br>
+            <button type="submit" class="boton">Agregar proveedor</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Cambiar entre vista inventario y proveedores
+    const btnInv = document.getElementById('btn_inventario');
+    const btnProv = document.getElementById('btn_proveedores');
+    const secInv = document.getElementById('seccion_inventario');
+    const secProv = document.getElementById('seccion_proveedores');
+
+    secProv.style.display = 'none';
+
+    btnInv.addEventListener('click', () => {
+        secInv.style.display = 'block';
+        secProv.style.display = 'none';
+        btnInv.classList.add('activo');
+        btnProv.classList.remove('activo');
+    });
+
+    btnProv.addEventListener('click', () => {
+        secInv.style.display = 'none';
+        secProv.style.display = 'block';
+        btnProv.classList.add('activo');
+        btnInv.classList.remove('activo');
+    });
+</script>
+<script>
+    function toggleEditar(id, btn) {
+        const detalles = document.getElementById('vista_detalles_' + id);
+        const editar = document.getElementById('vista_editar_' + id);
+        const visible = editar.style.display !== 'none';
+
+        detalles.style.display = visible ? 'block' : 'none';
+        editar.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? 'Editar' : 'Cancelar';
+}
+</script>
+<script>
+    function confirmarEliminar(id) {
+    Swal.fire({
+        title: '¿Inactivar elemento?',
+        text: 'El elemento quedará inhabilitado.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#853953',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, inactivar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/administrador/inhactivar_elemento_inventario/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            }).then(() => window.location.reload());
+        }
+    });
+}
+</script>
+<script>
+    function opcionesProveedor(id) {
+        Swal.fire({
+            title: '¿Qué deseas hacer?',
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Editar',
+            denyButtonText: 'Inactivar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#853953',
+            denyButtonColor: '#6b7280',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Abrir modal de editar
+                const modal = new bootstrap.Modal(document.getElementById('modalEditarProveedor' + id));
+                modal.show();
+            } else if (result.isDenied) {
+                // Confirmar inactivar
+                Swal.fire({
+                    title: '¿Inactivar proveedor?',
+                    text: 'El proveedor quedará inhabilitado.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#853953',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Sí, inactivar',
+                    cancelButtonText: 'Cancelar'
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        fetch(`/administrador/inhactivar_proveedor/${id}/`, {
+                            method: 'POST',
+                            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                        }).then(() => window.location.reload());
+                    }
+                });
+            }
+        });
+    }
+</script>
+{% endblock %}

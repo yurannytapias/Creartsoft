@@ -73,14 +73,35 @@
 
 </section>
 
-<!-- ═══════════ FILTROS ═══════════ -->
-<div class="filtros-tabs">
-    <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
-    <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
-    <button class="tab" onclick="filtrarPQRS(this,'aprobado')">Aprobados</button>
-    <button class="tab" onclick="filtrarPQRS(this,'rechazado')">Rechazados</button>
-</div>
+<!-- ═══════════ BUSCADOR ═══════════ -->
+<div class="barra-herramientas">
+    <form method="get" class="busqueda-caja">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="busqueda-input" name="q" value="{{ q }}"
+            placeholder="Buscar por ID, cliente o producto..."/>
+    </form>
+    <div class="filtros-tabs">
+        <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
+        <button class="tab" onclick="filtrarPQRS(this,'pendiente')">Pendientes</button>
+        <button class="tab" onclick="filtrarPQRS(this,'aprobado')">Aprobados</button>
+        <button class="tab" onclick="filtrarPQRS(this,'rechazado')">Rechazados</button>
+    </div>
 
+
+</div>
+<!-- ═══════════ FILTROS ═══════════ -->
+
+<!-- ═══════════ Producto ═══════════ -->
+<div class="exportar-grupo">
+    <a href="{% url 'productos_export_excel' %}" id="btn-excel"
+       class="btn-exportar btn-excel">
+        <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+    <a href="{% url 'productos_export_pdf' %}" id="btn-pdf"
+       class="btn-exportar btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+</div>
 <!-- ═══════════ LAYOUT ═══════════ -->
 <div class="pqrs-layout">
 
@@ -111,9 +132,8 @@
                     <div class="pqrs-info">
                         <div class="pqrs-cabecera">
                             <span class="tag tag-categoria">{{ p.categoria }}</span>
-
                             {% if p.estado_aprobacion == "pendiente" %}
-                                <span class="badge-estado  badge-amarillo">Pendiente</span>
+                                <span class="badge-estado badge-amarillo">Pendiente</span>
                             {% elif p.estado_aprobacion == "aprobado" %}
                                 <span class="badge-estado badge-verde">Aprobado</span>
                             {% else %}
@@ -224,6 +244,11 @@
         document.querySelectorAll('.pqrs-tarjeta').forEach(function(t) {
             t.style.display = (estado === 'todos' || t.dataset.estado === estado) ? '' : 'none';
         });
+
+        // Actualizar los links de exportar con el filtro activo
+        const param = estado === 'todos' ? '' : `?estado=${estado}`;
+        document.getElementById('btn-excel').href = `{% url 'productos_export_excel' %}${param}`;
+        document.getElementById('btn-pdf').href   = `{% url 'productos_export_pdf' %}${param}`;
     }
 
     function abrirDetalle(tarjeta, id, estado_aprobacion, categoria, vendedor, nombre, descripcion, precio, fecha) {
@@ -239,15 +264,17 @@
 
         document.getElementById('pd-ID').textContent = id;
         let estadoEl = document.getElementById('pd-estado');
-        estadoEl.textContent = estado_aprobacion;
+        let estado = estado_aprobacion.toLowerCase(); // <-- normalizamos
+
+        estadoEl.textContent = estado.charAt(0).toUpperCase() + estado.slice(1); // muestra "Pendiente"
 
         estadoEl.className = 'badge-estado'; // reset
 
-        if (estado_aprobacion === 'pendiente') {
+        if (estado === 'pendiente') {
             estadoEl.classList.add('badge-amarillo');
-        } else if (estado_aprobacion === 'aprobado') {
+        } else if (estado === 'aprobado') {
             estadoEl.classList.add('badge-verde');
-        } else {
+        } else if (estado === 'rechazado') {
             estadoEl.classList.add('badge-rojo');
         }
 

@@ -2,13 +2,32 @@
 {% load static %}
 {% block content %}
 
-<!-- ═══════════ BUSCADOR ═══════════ -->
+<!-- ═══════════ BUSCADOR Y BOTÓN REGISTRAR ═══════════ -->
 <div class="barra-herramientas">
     <div class="busqueda-caja">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input class="busqueda-input" id="buscadorUsuarios"
                placeholder="Buscar usuarios..."
                oninput="filtrarUsuarios()"/>
+    </div>
+
+    <div class="filtros-grupo">
+        <form method="GET" action="{% url 'usuarios' %}" id="formFiltro" style="display:contents;">
+            <select class="select-filtro" name="rol" onchange="document.getElementById('formFiltro').submit()">
+                <option value="">Todos los roles</option>
+                {% for rol in roles %}
+                <option value="{{ rol.nombre }}"
+                    {% if rol_filtro == rol.nombre %}selected{% endif %}>
+                    {{ rol.nombre|capfirst }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <!-- BOTÓN NUEVO USUARIO -->
+        <button class="btn-nuevo-usuario" data-bs-toggle="modal" data-bs-target="#modalRegistrarUsuario">
+            <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+        </button>
     </div>
 </div>
 
@@ -18,20 +37,220 @@
     <div class="caja-stat">
         <i class="fa-solid fa-users fa-2x" style="color:#612D53;margin-bottom:8px"></i>
         <p class="stat-mini-label">Total Usuarios</p>
-        <p class="stat-mini-valor">8</p>
+        <p class="stat-mini-valor">{{ total_usuarios }}</p>
     </div>
     <div class="caja-stat">
         <i class="fa-solid fa-user-check fa-2x" style="color:#612D53;margin-bottom:8px"></i>
-        <p class="stat-mini-label">Usuarios Activos</p>
-        <p class="stat-mini-valor">7</p>
+        <p class="stat-mini-label">Activos</p>
+        <p class="stat-mini-valor">{{ total_activos }}</p>
     </div>
     <div class="caja-stat">
-        <i class="fa-solid fa-user-plus fa-2x" style="color:#612D53;margin-bottom:8px"></i>
-        <p class="stat-mini-label">Nuevos este Mes</p>
-        <p class="stat-mini-valor">3</p>
+        <i class="fa-solid fa-user-tie fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+        <p class="stat-mini-label">Clientes</p>
+        <p class="stat-mini-valor">{{ total_clientes }}</p>
+    </div>
+    <div class="caja-stat">
+        <i class="fa-solid fa-store fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+        <p class="stat-mini-label">Vendedores</p>
+        <p class="stat-mini-valor">{{ total_vendedores }}</p>
     </div>
 </section>
 
+<!-- ═══════════ REPORTE CRM ═══════════ -->
+<section class="reportes-crm">
+
+  <!-- Cards resumen -->
+  <div class="crm-cards">
+    <div class="caja-stat">
+      <i class="fa-solid fa-users fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+      <p class="stat-mini-label">Clientes registrados</p>
+      <p class="stat-mini-valor">{{ total_clientes_reporte }}</p>
+    </div>
+    <div class="caja-stat">
+      <i class="fa-solid fa-user-plus fa-2x" style="color:#3266ad;margin-bottom:8px"></i>
+      <p class="stat-mini-label">Clientes nuevos</p>
+      <p class="stat-mini-valor" style="color:#3266ad;">{{ total_nuevos }}</p>
+    </div>
+    <div class="caja-stat">
+      <i class="fa-solid fa-rotate fa-2x" style="color:#612D53;margin-bottom:8px"></i>
+      <p class="stat-mini-label">Recurrentes</p>
+      <p class="stat-mini-valor" style="color:#612D53;">{{ total_recurrentes }}</p>
+    </div>
+    <div class="caja-stat">
+      <i class="fa-solid fa-percent fa-2x" style="color:#15803d;margin-bottom:8px"></i>
+      <p class="stat-mini-label">Tasa de retención</p>
+      <p class="stat-mini-valor" style="color:#15803d;">{{ tasa_retencion }}%</p>
+    </div>
+  </div>
+
+  <!-- Botones exportar CRM -->
+<div class="exportar-grupo" style="padding: 0 1rem 1rem;">
+    <a href="{% url 'crm_export_excel' %}" class="btn-exportar btn-excel">
+        <i class="fa-solid fa-file-excel"></i> Exportar CRM Excel
+    </a>
+    <a href="{% url 'crm_export_pdf' %}" class="btn-exportar btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Exportar CRM PDF
+    </a>
+</div>
+  <!-- Gráficas -->
+  <div class="crm-graficas">
+
+    <!-- Dona: nuevos vs recurrentes -->
+    <div class="caja crm-card">
+      <p class="crm-titulo">Clientes nuevos vs recurrentes</p>
+      <p class="crm-subtitulo">Recurrente = más de 1 pedido</p>
+      <div class="crm-legend">
+        <span><span class="legend-sq" style="background:#3266ad;"></span>Nuevos ({{ total_nuevos }})</span>
+        <span><span class="legend-sq" style="background:#612D53;"></span>Recurrentes ({{ total_recurrentes }})</span>
+      </div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="chartNuevosVsRec"
+          role="img"
+          aria-label="Gráfica de dona: {{ total_nuevos }} clientes nuevos y {{ total_recurrentes }} recurrentes">
+          {{ total_nuevos }} nuevos, {{ total_recurrentes }} recurrentes.
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Barras: top 5 LTV -->
+    <div class="caja crm-card">
+      <p class="crm-titulo">Top 5 clientes por LTV</p>
+      <p class="crm-subtitulo">Gasto acumulado en pedidos pagados</p>
+      <div class="crm-legend">
+        <span><span class="legend-sq" style="background:#612D53;"></span>LTV acumulado</span>
+      </div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="chartLTV"
+          role="img"
+          aria-label="Barras horizontales con top 5 clientes por valor de vida">
+          Top 5 por LTV.
+        </canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tabla completa LTV -->
+  <div class="caja tabla-caja" style="margin-top:1rem;">
+    <p class="crm-titulo" style="padding:1rem 1rem 0;">Ranking completo — valor de vida del cliente (LTV)</p>
+    <div class="table-responsive">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Pedidos</th>
+            <th>Tipo</th>
+            <th>LTV acumulado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in ltv_clientes %}
+          <tr>
+            <td class="td-gris">{{ forloop.counter }}</td>
+            <td>{{ c.nombre }} {{ c.apellido }}</td>
+            <td class="td-gris" style="text-align:center;">{{ c.total_pedidos }}</td>
+            <td style="text-align:center;">
+              {% if c.total_pedidos > 1 %}
+                <span class="tag tag-vendedor">Recurrente</span>
+              {% else %}
+                <span class="tag tag-cliente">Nuevo</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right;font-weight:600;color:#612D53;">
+              ${{ c.ltv|default:0|floatformat:0 }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center td-gris" style="padding:2rem;">
+              No hay datos de compras registrados.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ─── Estilos CRM ─── -->
+<style>
+  .reportes-crm { display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem; }
+  .crm-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; }
+  .crm-graficas { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .crm-card { padding:1.25rem; }
+  .crm-titulo { font-size:0.9rem; font-weight:600; color:#612D53; margin:0 0 2px; }
+  .crm-subtitulo { font-size:0.78rem; color:#888; margin:0 0 0.75rem; }
+  .crm-legend { display:flex; gap:16px; font-size:12px; color:var(--color-text-secondary,#555); margin-bottom:10px; flex-wrap:wrap; }
+  .crm-legend span { display:flex; align-items:center; gap:5px; }
+  .legend-sq { display:inline-block; width:10px; height:10px; border-radius:2px; }
+  @media (max-width:700px) {
+    .crm-cards { grid-template-columns:1fr 1fr; }
+    .crm-graficas { grid-template-columns:1fr; }
+  }
+</style>
+
+<!-- ─── Scripts Chart.js ─── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  new Chart(document.getElementById('chartNuevosVsRec'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Nuevos', 'Recurrentes'],
+      datasets: [{
+        data: [{{ total_nuevos }}, {{ total_recurrentes }}],
+        backgroundColor: ['#3266ad', '#612D53'],
+        borderWidth: 2,
+        borderColor: ['#fff', '#fff'],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  new Chart(document.getElementById('chartLTV'), {
+    type: 'bar',
+    data: {
+      labels: [{% for c in ltv_top5 %}'{{ c.nombre|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+      datasets: [{
+        label: 'LTV',
+        data: [{% for c in ltv_top5 %}{{ c.ltv|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}],
+        backgroundColor: '#612D53',
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k', font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+</script>
+
+<!-- ═══════════ ACCIONES EXPORTAR ═══════════ -->
+<div class="exportar-grupo">
+    <a href="{% url 'usuarios_export_excel' %}?{{ request.GET.urlencode }}"
+       class="btn-exportar btn-excel">
+        <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+    <a href="{% url 'usuarios_export_pdf' %}?{{ request.GET.urlencode }}"
+       class="btn-exportar btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+</div>
 
 <!-- ═══════════ TABLA ═══════════ -->
 <section class="caja tabla-caja">
@@ -43,189 +262,145 @@
                     <th>Contacto</th>
                     <th>Rol</th>
                     <th>Fecha Registro</th>
-                    <th>Pedidos</th>
-                    <th>Total Gastado</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-
+                {% for u in usuarios %}
                 <tr>
+                    <!-- Usuario -->
                     <td>
                         <div class="usuario-celda">
-                            <div class="avatar-letra">M</div>
+                            <div class="avatar-letra">{{ u.nombre|first|upper }}</div>
                             <div>
-                                <p class="usuario-nombre">María García</p>
-                                <p class="usuario-id">ID: 1</p>
+                                <p class="usuario-nombre">{{ u.nombre }} {{ u.apellido }}</p>
+                                <p class="usuario-id">ID: {{ u.id_usuario }}</p>
                             </div>
                         </div>
                     </td>
+
+                    <!-- Contacto -->
                     <td>
                         <div class="contacto-celda">
-                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> maria.garcia@email.com</div>
-                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 123 4567</div>
-                        </div>
-                    </td>
-                    <td><span class="tag tag-cliente">Cliente</span></td>
-                    <td class="td-gris">2025-10-15</td>
-                    <td><div class="pedidos-badge">12</div></td>
-                    <td><strong>$5,400</strong></td>
-                    <td><span class="badge-estado badge-verde">Activo</span></td>
-                    <td>
-                        <div class="acciones-grupo">
-                            <button class="btn-accion-icono" title="Ver detalle"
-                                onclick="abrirModalUsuario('María García','maria.garcia@email.com','+52 555 123 4567','Cliente','2025-10-15')">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>
-                        <div class="usuario-celda">
-                            <div class="avatar-letra">J</div>
-                            <div>
-                                <p class="usuario-nombre">Juan Pérez</p>
-                                <p class="usuario-id">ID: 2</p>
+                            <div class="contacto-fila">
+                                <i class="fa-solid fa-envelope fa-xs"></i> {{ u.correo }}
+                            </div>
+                            <div class="contacto-fila">
+                                <i class="fa-solid fa-phone fa-xs"></i> {{ u.numero }}
                             </div>
                         </div>
                     </td>
+
+                    <!-- Rol -->
                     <td>
-                        <div class="contacto-celda">
-                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> juan.perez@email.com</div>
-                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 234 5678</div>
-                        </div>
+                        {% if u.rol.nombre == 'administrador' %}
+                            <span class="tag tag-admin">Administrador</span>
+                        {% elif u.rol.nombre == 'vendedor' %}
+                            <span class="tag tag-vendedor">Vendedor</span>
+                        {% else %}
+                            <span class="tag tag-cliente">Cliente</span>
+                        {% endif %}
                     </td>
-                    <td><span class="tag tag-cliente">Cliente</span></td>
-                    <td class="td-gris">2025-11-20</td>
-                    <td><div class="pedidos-badge">8</div></td>
-                    <td><strong>$3,040</strong></td>
-                    <td><span class="badge-estado badge-verde">Activo</span></td>
+
+                    <!-- Fecha -->
+                    <td class="td-gris">{{ u.fecha_creacion|date:"Y-m-d" }}</td>
+
+                    <!-- Estado -->
+                    <td>
+                        {% if u.estado %}
+                            <span class="badge-estado badge-verde">Activo</span>
+                        {% else %}
+                            <span class="badge-estado badge-gris">Inactivo</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Acciones -->
                     <td>
                         <div class="acciones-grupo">
                             <button class="btn-accion-icono" title="Ver detalle"
-                                onclick="abrirModalUsuario('Juan Pérez','juan.perez@email.com','+52 555 234 5678','Cliente','2025-11-20')">
+                                onclick="abrirModalUsuario(
+                                    '{{ u.nombre }} {{ u.apellido }}',
+                                    '{{ u.correo }}',
+                                    '{{ u.numero }}',
+                                    '{{ u.rol.nombre|capfirst }}',
+                                    '{{ u.fecha_creacion|date:"Y-m-d" }}',
+                                    '{{ u.direccion|default:"-" }}',
+                                    '{% if u.estado %}Activo{% else %}Inactivo{% endif %}'
+                                )">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
+
+                            <!-- Toggle estado activo/inactivo -->
+                            <form method="POST" action="{% url 'usuarios' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="toggle_estado"/>
+                                <input type="hidden" name="usuario_id" value="{{ u.id_usuario }}"/>
+                                <button type="submit" class="btn-accion-icono
+                                    {% if u.estado %}btn-accion-warning{% else %}btn-accion-success{% endif %}"
+                                    title="{% if u.estado %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="fa-solid {% if u.estado %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
-
+                {% empty %}
                 <tr>
-                    <td>
-                        <div class="usuario-celda">
-                            <div class="avatar-letra">A</div>
-                            <div>
-                                <p class="usuario-nombre">Ana Rodríguez</p>
-                                <p class="usuario-id">ID: 3</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="contacto-celda">
-                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> ana.rodriguez@email.com</div>
-                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 345 6789</div>
-                        </div>
-                    </td>
-                    <td><span class="tag tag-vendedor">Vendedor</span></td>
-                    <td class="td-gris">2025-12-05</td>
-                    <td><div class="pedidos-badge">15</div></td>
-                    <td><strong>$7,800</strong></td>
-                    <td><span class="badge-estado badge-verde">Activo</span></td>
-                    <td>
-                        <div class="acciones-grupo">
-                            <button class="btn-accion-icono" title="Ver detalle"
-                                onclick="abrirModalUsuario('Ana Rodríguez','ana.rodriguez@email.com','+52 555 345 6789','Vendedor','2025-12-05')">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
+                    <td colspan="6" class="text-center td-gris" style="padding:2.5rem;">
+                        <i class="fa-solid fa-users-slash fa-2x" style="opacity:0.3;display:block;margin-bottom:0.6rem;"></i>
+                        No se encontraron usuarios con ese criterio.
                     </td>
                 </tr>
-
-                <tr>
-                    <td>
-                        <div class="usuario-celda">
-                            <div class="avatar-letra">S</div>
-                            <div>
-                                <p class="usuario-nombre">Sofía Martínez</p>
-                                <p class="usuario-id">ID: 4</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="contacto-celda">
-                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> sofia.martinez@email.com</div>
-                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 567 8901</div>
-                        </div>
-                    </td>
-                    <td><span class="tag tag-cliente">Cliente</span></td>
-                    <td class="td-gris">2026-01-25</td>
-                    <td><div class="pedidos-badge">3</div></td>
-                    <td><strong>$1,290</strong></td>
-                    <td><span class="badge-estado badge-gris">Inactivo</span></td>
-                    <td>
-                        <div class="acciones-grupo">
-                            <button class="btn-accion-icono" title="Ver detalle"
-                                onclick="abrirModalUsuario('Sofía Martínez','sofia.martinez@email.com','+52 555 567 8901','Cliente','2026-01-25')">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>
-                        <div class="usuario-celda">
-                            <div class="avatar-letra">E</div>
-                            <div>
-                                <p class="usuario-nombre">Elena Torres</p>
-                                <p class="usuario-id">ID: 5</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="contacto-celda">
-                            <div class="contacto-fila"><i class="fa-solid fa-envelope fa-xs"></i> elena.torres@creart.com</div>
-                            <div class="contacto-fila"><i class="fa-solid fa-phone fa-xs"></i> +52 555 789 0123</div>
-                        </div>
-                    </td>
-                    <td><span class="tag tag-admin">Administrador</span></td>
-                    <td class="td-gris">2026-02-15</td>
-                    <td><div class="pedidos-badge">7</div></td>
-                    <td><strong>$3,150</strong></td>
-                    <td><span class="badge-estado badge-verde">Activo</span></td>
-                    <td>
-                        <div class="acciones-grupo">
-                            <button class="btn-accion-icono" title="Ver detalle"
-                                onclick="abrirModalUsuario('Elena Torres','elena.torres@creart.com','+52 555 789 0123','Administrador','2026-02-15')">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-
+                {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
-
 
 <!-- ═══════════ MODAL DETALLE USUARIO ═══════════ -->
 <div class="modal fade" id="modalUsuario" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fa-solid fa-user"></i> Detalle de Usuario</h5>
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-user"></i> Detalle de Usuario
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p><span class="fw-semibold">Nombre:</span> <span id="mu-nombre" style="color:#612D53"></span></p>
-                <p><span class="fw-semibold">Correo:</span> <span id="mu-correo" style="color:#612D53"></span></p>
-                <p><span class="fw-semibold">Teléfono:</span> <span id="mu-telefono" style="color:#612D53"></span></p>
-                <p><span class="fw-semibold">Rol:</span> <span id="mu-rol" style="color:#612D53"></span></p>
-                <p><span class="fw-semibold">Registro:</span> <span id="mu-fecha" style="color:#612D53"></span></p>
+                <!-- Avatar grande -->
+                <div style="text-align:center; margin-bottom:1.2rem;">
+                    <div id="mu-avatar" style="
+                        width:60px; height:60px; border-radius:50%;
+                        background:linear-gradient(135deg,#612D53,#9B4A7A);
+                        display:inline-flex; align-items:center; justify-content:center;
+                        font-size:1.5rem; color:white; font-weight:700;
+                        margin-bottom:0.5rem;">
+                    </div>
+                    <div id="mu-nombre" style="font-size:1.1rem;font-weight:600;color:#612D53;"></div>
+                    <div id="mu-rol-badge" style="margin-top:0.3rem;"></div>
+                </div>
+
+                <hr style="opacity:0.1;">
+
+                <div style="display:grid;gap:0.7rem;font-size:0.9rem;">
+                    <p><i class="fa-solid fa-envelope fa-fw" style="color:#612D53;margin-right:6px;"></i>
+                       <span class="fw-semibold">Correo:</span>
+                       <span id="mu-correo" style="color:#555;"></span></p>
+                    <p><i class="fa-solid fa-phone fa-fw" style="color:#612D53;margin-right:6px;"></i>
+                       <span class="fw-semibold">Teléfono:</span>
+                       <span id="mu-telefono" style="color:#555;"></span></p>
+                    <p><i class="fa-solid fa-location-dot fa-fw" style="color:#612D53;margin-right:6px;"></i>
+                       <span class="fw-semibold">Dirección:</span>
+                       <span id="mu-direccion" style="color:#555;"></span></p>
+                    <p><i class="fa-solid fa-calendar fa-fw" style="color:#612D53;margin-right:6px;"></i>
+                       <span class="fw-semibold">Registro:</span>
+                       <span id="mu-fecha" style="color:#555;"></span></p>
+                    <p><i class="fa-solid fa-circle-dot fa-fw" style="color:#612D53;margin-right:6px;"></i>
+                       <span class="fw-semibold">Estado:</span>
+                       <span id="mu-estado" style="color:#555;"></span></p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancelar" data-bs-dismiss="modal">Cerrar</button>
@@ -234,22 +409,317 @@
     </div>
 </div>
 
+<!-- ═══════════ MODAL REGISTRAR USUARIO ═══════════ -->
+<div class="modal fade" id="modalRegistrarUsuario" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Usuario
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{% url 'usuarios' %}" id="formRegistrarUsuario">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="registrar_usuario">
+
+                <div class="modal-body">
+                    <!-- Mensajes de error -->
+                    {% if error_registro %}
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-circle-exclamation"></i> {{ error_registro }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Mensajes de éxito -->
+                    {% if success_registro %}
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-circle-check"></i> {{ success_registro }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-grid">
+                        <!-- Nombre -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-user"></i> Nombre *</label>
+                            <input type="text" name="nombre" class="form-control" 
+                                   placeholder="Nombre" maxlength="50" required
+                                   oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+                        </div>
+
+                        <!-- Apellido -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-user"></i> Apellido *</label>
+                            <input type="text" name="apellido" class="form-control" 
+                                   placeholder="Apellido" maxlength="50" required
+                                   oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '')">
+                        </div>
+
+                        <!-- Correo -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-envelope"></i> Correo Electrónico *</label>
+                            <input type="email" name="correo" class="form-control" 
+                                   placeholder="correo@ejemplo.com" maxlength="100" required>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-phone"></i> Teléfono *</label>
+                            <input type="text" name="numero" class="form-control" 
+                                   placeholder="3001234567" maxlength="10" minlength="10" required
+                                   pattern="[0-9]*" inputmode="numeric"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+
+                        <!-- Dirección -->
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label><i class="fa-solid fa-location-dot"></i> Dirección</label>
+                            <input type="text" name="direccion" class="form-control" 
+                                   placeholder="Calle 123 #45-67" maxlength="100">
+                        </div>
+
+                        <!-- Rol -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-user-tag"></i> Rol *</label>
+                            <select name="rol" class="form-control" required>
+                                <option value="">Seleccione un rol</option>
+                                <option value="vendedor">Vendedor</option>
+                                <option value="administrador">Administrador</option>
+                            </select>
+                        </div>
+
+                        <!-- Contraseña -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-lock"></i> Contraseña *</label>
+                            <input type="password" name="contrasena" class="form-control" 
+                                   placeholder="Mínimo 8 caracteres" minlength="8" required
+                                   id="passwordRegistro">
+                            <small class="form-text text-muted">
+                                Mínimo 8 caracteres, una mayúscula, un número y un carácter especial
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-modal-confirmar">
+                        <i class="fa-solid fa-floppy-disk"></i> Registrar Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ─── Estilos ─── -->
+<style>
+    .filtros-grupo { display:flex; gap:0.6rem; align-items:center; }
+
+    .select-filtro {
+        padding: 0.45rem 0.85rem;
+        border: 1px solid rgba(97,45,83,0.2);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        background: white;
+        color: #333;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+    .select-filtro:focus { border-color: #612D53; }
+
+    /* Botón Nuevo Usuario */
+    .btn-nuevo-usuario {
+        padding: 0.5rem 1.1rem;
+        background: linear-gradient(135deg, #612D53, #7A3D6A);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-nuevo-usuario:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(97,45,83,0.3);
+    }
+
+    .btn-accion-warning { color: #b45309 !important; border-color: rgba(180,83,9,0.25) !important; }
+    .btn-accion-warning:hover { background: rgba(180,83,9,0.08) !important; border-color: #b45309 !important; }
+    .btn-accion-success { color: #15803d !important; border-color: rgba(21,128,61,0.25) !important; }
+    .btn-accion-success:hover { background: rgba(21,128,61,0.08) !important; border-color: #15803d !important; }
+
+    /* Botones de exportación */
+    .exportar-grupo {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-exportar {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.45rem 1rem;
+        border-radius: 8px;
+        font-size: 0.83rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid transparent;
+        transition: background 0.18s, transform 0.12s;
+    }
+    .btn-exportar:hover { transform: translateY(-1px); }
+
+    .btn-excel {
+        background: #f0faf4;
+        color: #15803d;
+        border-color: rgba(21,128,61,0.3);
+    }
+    .btn-excel:hover { background: #dcfce7; color: #15803d; }
+
+    .btn-pdf {
+        background: #fff1f1;
+        color: #b91c1c;
+        border-color: rgba(185,28,28,0.3);
+    }
+    .btn-pdf:hover { background: #fee2e2; color: #b91c1c; }
+
+    /* Stats */
+    .usuarios-stats { grid-template-columns: repeat(4, 1fr) !important; }
+    @media (max-width:700px) { .usuarios-stats { grid-template-columns: 1fr 1fr !important; } }
+
+    /* Formulario en grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #612D53;
+    }
+    .form-control {
+        padding: 0.55rem 0.8rem;
+        border: 1px solid rgba(97,45,83,0.2);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .form-control:focus {
+        border-color: #612D53;
+    }
+
+    /* Mensajes */
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+    .alert-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border-left: 4px solid #dc2626;
+    }
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border-left: 4px solid #10b981;
+    }
+
+    /* Botones del modal */
+    .btn-modal-cancelar {
+        padding: 0.5rem 1.2rem;
+        background: #f3f4f6;
+        color: #374151;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-modal-cancelar:hover {
+        background: #e5e7eb;
+    }
+
+    .btn-modal-confirmar {
+        padding: 0.5rem 1.2rem;
+        background: linear-gradient(135deg, #612D53, #7A3D6A);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: transform 0.2s;
+    }
+    .btn-modal-confirmar:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+
+<!-- ─── Scripts ─── -->
 <script>
+    /* Búsqueda cliente */
     function filtrarUsuarios() {
-        var q = document.getElementById('buscadorUsuarios').value.toLowerCase();
+        const q = document.getElementById('buscadorUsuarios').value.toLowerCase();
         document.querySelectorAll('#tablaUsuarios tbody tr').forEach(function(fila) {
             fila.style.display = fila.textContent.toLowerCase().includes(q) ? '' : 'none';
         });
     }
 
-    function abrirModalUsuario(nombre, correo, telefono, rol, fecha) {
-        document.getElementById('mu-nombre').textContent   = nombre;
-        document.getElementById('mu-correo').textContent   = correo;
+    /* Abre el modal con datos del usuario */
+    function abrirModalUsuario(nombre, correo, telefono, rol, fecha, direccion, estado) {
+        document.getElementById('mu-avatar').textContent = nombre.trim()[0].toUpperCase();
+        document.getElementById('mu-nombre').textContent = nombre;
+        document.getElementById('mu-correo').textContent = correo;
         document.getElementById('mu-telefono').textContent = telefono;
-        document.getElementById('mu-rol').textContent      = rol;
-        document.getElementById('mu-fecha').textContent    = fecha;
-        var modal = new bootstrap.Modal(document.getElementById('modalUsuario'));
-        modal.show();
+        document.getElementById('mu-direccion').textContent = direccion;
+        document.getElementById('mu-fecha').textContent = fecha;
+        document.getElementById('mu-estado').textContent = estado;
+
+        const colores = {
+            'Admin': '#612D53',
+            'Administrador': '#612D53',
+            'Vendedor': '#7A5C00',
+            'Cliente': '#1a6b4a',
+        };
+        const color = colores[rol] || '#555';
+        document.getElementById('mu-rol-badge').innerHTML =
+            `<span style="
+                display:inline-block;padding:0.2rem 0.75rem;border-radius:20px;
+                font-size:0.75rem;font-weight:600;letter-spacing:0.04em;
+                background:${color}20;color:${color};">
+                ${rol}
+            </span>`;
+
+        new bootstrap.Modal(document.getElementById('modalUsuario')).show();
     }
+
+    // Reabrir modal de registro si hay error
+    {% if error_registro or success_registro %}
+        window.addEventListener('DOMContentLoaded', function() {
+            new bootstrap.Modal(document.getElementById('modalRegistrarUsuario')).show();
+        });
+    {% endif %}
 </script>
+
 {% endblock %}

@@ -1,0 +1,83 @@
+{% extends "layout_header.html" %}
+{% block content %}
+<div style="max-width:700px;margin:0 auto;padding:2rem 1rem;">
+
+    <a href="javascript:history.back()" style="font-size:13px;color:#7a2d3e;">← Volver</a>
+    <h2 style="margin:1rem 0 4px;">Receta de {{ producto.nombre }}</h2>
+    <p style="color:#aaa;font-size:13px;margin-bottom:2rem;">
+        Define cuánto se gasta de cada ingrediente por porción.
+    </p>
+
+    <form method="POST">
+    {% csrf_token %}
+    <div id="filas">
+
+        {% for item in receta_actual %}
+        <div class="fila-ingrediente" style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">
+        <select name="ingrediente" style="flex:2;padding:8px;border-radius:8px;border:1px solid #e8d0d0;">
+            {% for ing in ingredientes_disponibles %}
+            <option value="{{ ing.id_inventario }}" {% if ing.id_inventario == item.ingrediente.id_inventario %}selected{% endif %}>
+                {{ ing.nombre }} ({{ ing.unidad }})
+            </option>
+            {% endfor %}
+        </select>
+        <input
+            type="number"
+            name="cantidad_por_porcion"
+            value="{{ item.cantidad_por_porcion }}"
+            step="0.01"
+            min="0"
+            placeholder="Cantidad por porción"
+            style="flex:1;padding:8px;border-radius:8px;border:1px solid #e8d0d0;"
+        >
+        <button type="button" onclick="this.parentElement.remove()"
+            style="background:#fef2f2;color:#c0392b;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">
+            ✕
+        </button>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <button type="button" onclick="agregarFila()"
+        style="margin-top:4px;background:#f5eaec;color:#7a2d3e;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px;">
+        + Agregar ingrediente
+    </button>
+
+    <br><br>
+    <button type="submit"
+        style="background:#7a2d3e;color:#fff;border:none;border-radius:10px;padding:10px 28px;font-size:14px;cursor:pointer;">
+        Guardar receta
+    </button>
+    </form>
+</div>
+
+<script>
+  const ingredientes = [
+    {% for ing in ingredientes_disponibles %}
+      { id: {{ ing.id_inventario }}, nombre: "{{ ing.nombre }} ({{ ing.unidad }})" },
+    {% endfor %}
+  ];
+
+  function agregarFila() {
+    const opciones = ingredientes.map(i =>
+      `<option value="${i.id}">${i.nombre}</option>`
+    ).join('');
+
+    const div = document.createElement('div');
+    div.className = 'fila-ingrediente';
+    div.style = 'display:flex;gap:10px;margin-bottom:10px;align-items:center;';
+    div.innerHTML = `
+      <select name="ingrediente" style="flex:2;padding:8px;border-radius:8px;border:1px solid #e8d0d0;">
+        ${opciones}
+      </select>
+      <input type="number" name="cantidad_por_porcion" step="0.01" min="0"
+        placeholder="Cantidad por porción"
+        style="flex:1;padding:8px;border-radius:8px;border:1px solid #e8d0d0;">
+      <button type="button" onclick="this.parentElement.remove()"
+        style="background:#fef2f2;color:#c0392b;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">✕</button>
+    `;
+    document.getElementById('filas').appendChild(div);
+  }
+</script>
+{% endblock %}

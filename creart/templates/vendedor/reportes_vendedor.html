@@ -1,108 +1,140 @@
 {% extends "layout_header.html" %}
 {% load static %}
 {% block content %}
-	<section class="reportes">
-		<div class="display">
-			<div class="titulo_area">
-				<i class="fa-solid fa-box"></i>
-				<div class="texto_area">
-					<strong>Mis reportes</strong>
-					<p>Reporta problemas y recibe respuestas del admin</p>
-				</div>
+<div class="filtros-tabs">
+    <button class="tab activo" onclick="filtrarPQRS(this,'todos')">Todos</button>
+    <button class="tab" onclick="filtrarPQRS(this,'sin_respuesta')">Sin respuesta</button>
+    <button class="tab" onclick="filtrarPQRS(this,'respondido')">Respondidos</button>
+</div>
+
+<section class="reportes">
+    <div class="display">
+        <div class="titulo_area">
+            <i class="fa-solid fa-box"></i>
+            <div class="texto_area">
+                <strong>Mis reportes</strong>
+                <p>Reporta problemas y recibe respuestas del admin</p>
+            </div>
+        </div>
+        <button class="button" id="openModalMio"><i class="fa-solid fa-plus"></i> Crear reporte</button>
+    </div>
+	
+    <!-- Modal Crear Reporte -->
+    <section class="modal_mio" id="modal_mio">
+        <div class="modal_content">
+            <strong>Crear reporte</strong><br><br>
+            <form method="POST" action="{% url 'crear_reporte_vendedor' %}" class="form">
+                {% csrf_token %}
+                <div class="inputs">
+                    <div class="input">
+                        <label>Asunto de la PQRS</label><br>
+                        <input type="text" name="asunto" maxlength="60">
+                    </div>
+                    <div class="input">
+                        <label>Categoria de la PQRS</label><br>
+                        <select name="categoria">
+                            <option value="pregunta">Pregunta</option>
+                            <option value="queja">Queja</option>
+                            <option value="reporte">Reporte</option>
+                            <option value="solicitud">Solicitud</option>
+                        </select>
+                    </div>
+                </div><br>
+                <label>Mensaje</label><br>
+                <textarea name="mensaje"></textarea><br><br>
+                <p>Tu reporte sera evaluado por administracion</p><br><br>
+                <button type="submit" class="button">Enviar</button><br><br>
+            </form>
+            <button class="button" id="close_modalMio">Cerrar modal</button>
+        </div>
+    </section>
+    <!-- Reportes Pendientes -->
+    <strong><i class="fa-regular fa-clock"></i> Pendientes de respuesta</strong><br><br>
+    <div class="reportes-list">
+        {% for r in sin_respuesta %}
+        <article class="card_reportes card-click pendiente_card" data-estado="sin_respuesta">
+            <div class="top">
+                <div class="icon warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="info">
+                    <h3>{{ r.asunto }}</h3>
+                    <span class="cliente">{{ r.usuario.nombre }}</span>
+                </div>
+                <span class="badge pendiente">{{ r.categoria }}</span>
+            </div>
+            <div class="mensaje">
+					{% for linea in r.mensaje.splitlines %}
+						<p>{{ linea }}</p>
+					{% endfor %}
 			</div>
-			<button class="button" id="openModal"><i class="fa-solid fa-plus"></i> Crear reporte</button>
-		</div>
-		<section class="modal" id="modal">
-			<div class="modal_content">
-				<strong>Crear reporte</strong><br><br>
-				<form method="POST" action="{% url 'crear_reporte_vendedor' %}" class="form">
-					{% csrf_token %}
-					<div class="display">
-						<div class="input">
-							<label>Asunto de la PQRS</label><br><br>
-							<input type="text" name="asunto">
-						</div>
-						<div class="input">
-							<label>Categoria de la PQRS</label><br><br>
-							<select name="categoria">
-								<option id="pregunta">Pregunta</option>
-								<option id="queja">Queja</option>
-								<option id="reporte">Reporte</option>
-								<option id="solicitud">Solicitud</option>
-							</select>
-						</div>
-					</div><br>
-					<label>Mensaje</label><br><br>
-					<textarea name="mensaje"></textarea><br><br>
-					<p>Tu reporte sera evaluado por administracion</p><br><br>
-					<button type="submit" class="button">Enviar</button><br><br>
-				</form>
-				<button class="button" id="close_modal">Cerra modal</button>
-			</div>
-		</section><br><br><br>
-		<br><br>
-		<strong><i class="fa-regular fa-clock"></i> Pendientes de respuesta (1)</strong><br><br>
-		<div class="pendiente">
-			{% for r in sin_respuesta %}
-				<article class="card_reportes pendiente_card">
-					<div class="top">
-						<div class="icon warning">
-							<i class="fa-solid fa-triangle-exclamation"></i>
-						</div>
-						<div class="info">
-							<h3>{{ r.asunto }}</h3>
-							<span class="cliente">{{ r.usuario.nombre }}</span>
-						</div>
+            <div class="respuesta" style="display:none;">
+                <strong>Respuesta del Admin:</strong><br>
+                {{ r.respuesta|default:"Aún no hay respuesta" }}
+            </div><br>
+            <div class="bottom">
+                <span>{{ r.fecha_creacion }}</span>
+                <span class="estado">{{ r.estado_respuesta }}</span>
+            </div>
+        </article>
+        {% empty %}
+            <p>No tienes reportes sin responder</p>
+        {% endfor %}
 
-						<span class="badge pendiente">{{ r.categoria }}</span>
-					</div>
+        {% for r in respondido %}
+        <article class="card_reportes card-click respondido_card" data-estado="respondido">
+            <div class="top">
+                <div class="icon success"><i class="fa-regular fa-comment"></i></div>
+                <div class="info">
+                    <h3>{{ r.asunto }}</h3>
+                    <span class="cliente">{{ r.usuario.nombre }}</span>
+                </div>
+                <span class="badge ok">{{ r.categoria }}</span>
+            </div>
+            <div class="mensaje gris">{{ r.mensaje }}</div>
+            <div class="respuesta">
+                <strong>Respuesta del Admin:</strong><br>
+                {{ r.respuesta|default:"No hay respuesta disponible" }}
+            </div><br>
+            <div class="bottom">
+                <span>{{ r.fecha_creacion }}</span>
+                <span class="estado">{{ r.estado_respuesta }}</span>
+            </div>
+        </article>
+        {% empty %}
+            <p>No tienes reportes respondidos</p>
+        {% endfor %}
+    </div>
+</section>
 
-					<div class="mensaje">
-						{{ r.mensaje}}
-					</div>
+<script>
+    // Filtrado por estado
+    function filtrarPQRS(btn, estado) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('activo'));
+        btn.classList.add('activo');
 
-					<div class="bottom">
-						<span>{{ r.fecha_creacion }}</span>
-						<span class="estado">{{ r.estado_respuesta}}</span>
-					</div>
-				</article>
-			{% empty %}
-				<p>No tienes reportes sin responder</p>
-			{% endfor %}
-		</div>
-		<br><br>
-		<strong><i class="fa-regular fa-clock"></i> Respondidas (2)</strong><br><br>
-		<div class="aceptados">
-			{% for a in respondidos %}
-				<article class="card_reportes respondido_card">
-					<div class="top">
-						<div class="icon success">
-							<i class="fa-regular fa-comment"></i>
-						</div>
+        document.querySelectorAll('.card_reportes').forEach(card => {
+            if (estado === 'todos' || card.dataset.estado === estado) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 
-						<div class="info">
-							<h3>R{{ a.asunto}}</h3>
-							<span class="cliente">{{ a.estado_respuesta}}</span>
-						</div>
-						<span class="badge ok">{{ a.categoria }}</span>
-					</div>
-					<div class="mensaje gris">
-						<strong>Tu reporte:</strong><br>
-						{{ a.mensaje}}
-					</div>
-					<div class="respuesta">
-						<strong>Respuesta del Admin:</strong><br>
-						Hemos revisado el caso. Por favor, ofrece un descuento del 15%.
-					</div>
-					<div class="bottom">
-						<span>{{ a.fecha_creacion }}</span>
-						<span>Respondido: 08/03/2024</span>
-						<span>{{ a.estado_respuesta}}</span>
-					</div>
-				</article>
-			{% empty %}
-				<p>No tienes reportes sin responder</p>
-			{% endfor %}
-		</div>
-	</section>
+    // Modal abrir/cerrar
+    const modal = document.getElementById('modal_mio');
+    document.getElementById('openModalMio').onclick = () => modal.style.display = 'block';
+    document.getElementById('close_modalMio').onclick = () => modal.style.display = 'none';
+
+    // Expandir card al click
+    document.querySelectorAll('.card-click').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.card-click').forEach(card => {
+                card.addEventListener('click', () => {
+                    card.classList.toggle('active');
+                });
+            })
+        });
+    });
+</script>
+
 {% endblock %}

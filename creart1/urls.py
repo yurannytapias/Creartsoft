@@ -71,7 +71,8 @@ urlpatterns = [
     path('gestionar-cambio-perfil/<int:id_pqrs>/', views.gestionar_cambio_perfil, name='gestionar_cambio_perfil'),   
     path('administrador/inventario/crear_elemento',   views.crear_elemento_inventario,   name='crear_elemento_inventario'),
     path('administrador/inventario/crear_proveedor',   views.crear_proveedor,   name='crear_proveedor'),
-    
+    path('usuarios/crm/excel/', views.crm_export_excel, name='crm_export_excel'),
+    path('usuarios/crm/pdf/',   views.crm_export_pdf,   name='crm_export_pdf'),
     # ═══════════════════════════════════════════════════════════════════
     # CLIENTE
     # ═══════════════════════════════════════════════════════════════════

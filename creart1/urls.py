@@ -73,6 +73,11 @@ urlpatterns = [
     path('administrador/inventario/crear_proveedor',   views.crear_proveedor,   name='crear_proveedor'),
     path('usuarios/crm/excel/', views.crm_export_excel, name='crm_export_excel'),
     path('usuarios/crm/pdf/',   views.crm_export_pdf,   name='crm_export_pdf'),
+    path('administrador/solicitudes/reporte/excel/', views.reporte_estado_export_excel, name='reporte_estado_export_excel'),
+    path('administrador/solicitudes/reporte/pdf/',   views.reporte_estado_export_pdf,   name='reporte_estado_export_pdf'),
+    path('administrador/reportes/productos-mas-vendidos/',       views.reporte_productos_mas_vendidos, name='reporte_productos_mas_vendidos'),
+    path('administrador/reportes/productos-mas-vendidos/pdf/',   views.reporte_productos_pdf,          name='reporte_productos_pdf'),
+    path('administrador/reportes/productos-mas-vendidos/excel/', views.reporte_productos_excel,        name='reporte_productos_excel'),
     # ═══════════════════════════════════════════════════════════════════
     # CLIENTE
     # ═══════════════════════════════════════════════════════════════════

@@ -2866,6 +2866,319 @@ def inventario_export_pdf(request):
     elements.append(tabla)
     doc.build(elements)
     return response
+# ══════════════════════════════════════════════════════════════════════
+#  REPORTES DE INVENTARIO — análisis para toma de decisiones
+#  Pega estas funciones en views.py y agrega las URLs correspondientes
+# ══════════════════════════════════════════════════════════════════════
+
+@login_requerido
+def inventario_export_excel(request):
+    """
+    Reporte Excel con análisis real:
+    - Por cada ingrediente: cuántas solicitudes usan productos que lo contienen
+    - Movimientos de salida vs merma
+    - Costo total consumido
+    - Veredicto: rentable / revisar / eliminar
+    """
+    from django.db.models import Count, Sum
+    from .models import Inventario, Movimiento, RecetaProducto, Solicitudes
+
+    qs = Inventario.objects.select_related('id_proveedor').order_by('categoria', 'nombre')
+
+    wb = openpyxl.Workbook()
+
+    # ══ HOJA 1: RESUMEN POR INGREDIENTE ══════════════════════════════
+    ws1 = wb.active
+    ws1.title = "Análisis Ingredientes"
+
+    header_fill  = PatternFill("solid", fgColor="7a2d3e")
+    verde_fill   = PatternFill("solid", fgColor="C6EFCE")
+    amarillo_fill = PatternFill("solid", fgColor="FFEB9C")
+    rojo_fill    = PatternFill("solid", fgColor="FFC7CE")
+    header_font  = Font(color="FFFFFF", bold=True, size=10)
+    center       = Alignment(horizontal="center", vertical="center")
+
+    headers = [
+        "Ingrediente", "Categoría", "Proveedor",
+        "Stock actual", "Stock mín.", "Unidad",
+        "Precio unit. ($)",
+        "Salidas reales", "Mermas", "% Merma",
+        "Costo merma ($)", "Costo total consumido ($)",
+        "Productos que lo usan", "Solicitudes relacionadas",
+        "Veredicto"
+    ]
+    ws1.append(headers)
+    for col, _ in enumerate(headers, 1):
+        c = ws1.cell(row=1, column=col)
+        c.fill = header_fill
+        c.font = header_font
+        c.alignment = center
+
+    for ing in qs:
+        # Movimientos
+        salidas = Movimiento.objects.filter(
+            id_inventario=ing, tipo='salida'
+        ).aggregate(total=Sum('cantidad'))['total'] or 0
+
+        mermas = Movimiento.objects.filter(
+            id_inventario=ing, tipo='merma'
+        ).aggregate(total=Sum('cantidad'))['total'] or 0
+
+        total_consumido = salidas + mermas
+        porcentaje_merma = round((mermas / total_consumido * 100), 1) if total_consumido > 0 else 0
+        costo_merma = round(float(ing.precio_unitario) * mermas, 2)
+        costo_total = round(float(ing.precio_unitario) * total_consumido, 2)
+
+        # Productos que usan este ingrediente
+        productos_count = RecetaProducto.objects.filter(
+            ingrediente=ing, estado=True
+        ).values('producto').distinct().count()
+
+        # Solicitudes de esos productos (pagadas o aceptadas = reales)
+        solicitudes_count = Solicitudes.objects.filter(
+            producto__receta__ingrediente=ing,
+            estado__in=['pagada', 'aceptada']
+        ).distinct().count()
+
+        # Veredicto
+        if solicitudes_count == 0 and productos_count == 0:
+            veredicto = "❌ Eliminar — sin uso"
+        elif porcentaje_merma > 40:
+            veredicto = "⚠️ Revisar — alta merma"
+        elif ing.cantidad < ing.stock_minimo:
+            veredicto = "⚠️ Reabastecer urgente"
+        elif solicitudes_count > 5:
+            veredicto = "✅ Rentable"
+        elif solicitudes_count > 0:
+            veredicto = "✅ En uso"
+        else:
+            veredicto = "⚠️ Revisar — poca demanda"
+
+        fila = [
+            ing.nombre,
+            ing.categoria,
+            ing.id_proveedor.empresa if ing.id_proveedor else '—',
+            ing.cantidad,
+            ing.stock_minimo,
+            ing.unidad,
+            float(ing.precio_unitario),
+            salidas,
+            mermas,
+            f"{porcentaje_merma}%",
+            costo_merma,
+            costo_total,
+            productos_count,
+            solicitudes_count,
+            veredicto,
+        ]
+        ws1.append(fila)
+        row_num = ws1.max_row
+
+        # Color de fila según veredicto
+        if "Eliminar" in veredicto:
+            fill = rojo_fill
+        elif "Revisar" in veredicto or "Reabastecer" in veredicto:
+            fill = amarillo_fill
+        else:
+            fill = verde_fill
+
+        for col in range(1, len(headers) + 1):
+            ws1.cell(row=row_num, column=col).fill = fill
+            ws1.cell(row=row_num, column=col).alignment = center
+
+    anchos = [22, 14, 20, 12, 10, 8, 14, 12, 8, 10, 14, 18, 16, 16, 22]
+    for i, w in enumerate(anchos, 1):
+        ws1.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+    # ══ HOJA 2: HISTORIAL DE MOVIMIENTOS ════════════════════════════
+    ws2 = wb.create_sheet("Movimientos")
+
+    headers2 = ["Ingrediente", "Categoría", "Tipo", "Cantidad", "Unidad", "Costo unit.", "Costo total", "Observación", "Fecha"]
+    ws2.append(headers2)
+    for col, _ in enumerate(headers2, 1):
+        c = ws2.cell(row=1, column=col)
+        c.fill = header_fill
+        c.font = header_font
+        c.alignment = center
+
+    movimientos = Movimiento.objects.select_related('id_inventario').order_by('-fecha')
+    for m in movimientos:
+        costo = round(float(m.id_inventario.precio_unitario) * m.cantidad, 2) if m.costo_unitario is None else float(m.costo_unitario) * m.cantidad
+        ws2.append([
+            m.id_inventario.nombre,
+            m.id_inventario.categoria,
+            m.tipo.capitalize(),
+            m.cantidad,
+            m.id_inventario.unidad,
+            float(m.id_inventario.precio_unitario),
+            costo,
+            m.observacion or '—',
+            m.fecha.strftime("%Y-%m-%d %H:%M"),
+        ])
+        row_num = ws2.max_row
+        if m.tipo == 'merma':
+            for col in range(1, 10):
+                ws2.cell(row=row_num, column=col).fill = rojo_fill
+        elif m.tipo == 'salida':
+            for col in range(1, 10):
+                ws2.cell(row=row_num, column=col).fill = amarillo_fill
+
+    anchos2 = [22, 14, 10, 10, 8, 12, 12, 35, 16]
+    for i, w in enumerate(anchos2, 1):
+        ws2.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+    # ══ HOJA 3: INGREDIENTES POR PRODUCTO ═══════════════════════════
+    ws3 = wb.create_sheet("Ingredientes por Producto")
+
+    headers3 = ["Producto", "Categoría producto", "Ingrediente", "Cantidad/porción", "Unidad", "Solicitudes pagadas", "Ingrediente rentable"]
+    ws3.append(headers3)
+    for col, _ in enumerate(headers3, 1):
+        c = ws3.cell(row=1, column=col)
+        c.fill = header_fill
+        c.font = header_font
+        c.alignment = center
+
+    recetas = RecetaProducto.objects.select_related(
+        'producto', 'ingrediente'
+    ).filter(estado=True).order_by('producto__nombre')
+
+    for r in recetas:
+        solis = Solicitudes.objects.filter(
+            producto=r.producto,
+            estado__in=['pagada', 'aceptada']
+        ).count()
+
+        rentable = "✅ Sí" if solis > 0 else "❌ No — producto sin ventas"
+
+        ws3.append([
+            r.producto.nombre,
+            r.producto.categoria,
+            r.ingrediente.nombre,
+            float(r.cantidad_por_porcion),
+            r.ingrediente.unidad,
+            solis,
+            rentable,
+        ])
+        row_num = ws3.max_row
+        fill = verde_fill if solis > 0 else rojo_fill
+        for col in range(1, 8):
+            ws3.cell(row=row_num, column=col).fill = fill
+
+    anchos3 = [25, 16, 22, 14, 8, 16, 22]
+    for i, w in enumerate(anchos3, 1):
+        ws3.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_inventario_decisiones.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_requerido
+def inventario_export_pdf(request):
+    """
+    PDF ejecutivo: resumen de ingredientes con veredicto para toma de decisiones.
+    """
+    from django.db.models import Sum
+    from .models import Inventario, Movimiento, RecetaProducto, Solicitudes
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_inventario_decisiones.pdf"'
+
+    doc = SimpleDocTemplate(
+        response, pagesize=landscape(A4),
+        leftMargin=20, rightMargin=20, topMargin=30, bottomMargin=20
+    )
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("<b>Reporte de Inventario — Análisis para Toma de Decisiones</b>", styles['Title']))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph(
+        "Verde = rentable · Amarillo = revisar · Rojo = eliminar o reabastecer urgente",
+        styles['Normal']
+    ))
+    elements.append(Spacer(1, 12))
+
+    data = [[
+        "Ingrediente", "Categoría", "Stock", "Mín.",
+        "Salidas", "Mermas", "% Merma",
+        "Prods.", "Solicitudes", "Veredicto"
+    ]]
+
+    qs = Inventario.objects.select_related('id_proveedor').order_by('categoria', 'nombre')
+    filas_colores = []
+
+    for ing in qs:
+        salidas = Movimiento.objects.filter(id_inventario=ing, tipo='salida').aggregate(t=Sum('cantidad'))['t'] or 0
+        mermas  = Movimiento.objects.filter(id_inventario=ing, tipo='merma').aggregate(t=Sum('cantidad'))['t'] or 0
+        total   = salidas + mermas
+        pct     = round(mermas / total * 100, 1) if total > 0 else 0
+
+        productos_count = RecetaProducto.objects.filter(
+            ingrediente=ing, estado=True
+        ).values('producto').distinct().count()
+
+        solicitudes_count = Solicitudes.objects.filter(
+            producto__receta__ingrediente=ing,
+            estado__in=['pagada', 'aceptada']
+        ).distinct().count()
+
+        if solicitudes_count == 0 and productos_count == 0:
+            veredicto = "Eliminar"
+            color = colors.HexColor('#FFC7CE')
+        elif pct > 40:
+            veredicto = "Alta merma"
+            color = colors.HexColor('#FFC7CE')
+        elif ing.cantidad < ing.stock_minimo:
+            veredicto = "Reabastecer"
+            color = colors.HexColor('#FFEB9C')
+        elif solicitudes_count > 5:
+            veredicto = "Rentable"
+            color = colors.HexColor('#C6EFCE')
+        elif solicitudes_count > 0:
+            veredicto = "En uso"
+            color = colors.HexColor('#C6EFCE')
+        else:
+            veredicto = "Poca demanda"
+            color = colors.HexColor('#FFEB9C')
+
+        data.append([
+            ing.nombre,
+            ing.categoria,
+            f"{ing.cantidad} {ing.unidad}",
+            f"{ing.stock_minimo} {ing.unidad}",
+            salidas,
+            mermas,
+            f"{pct}%",
+            productos_count,
+            solicitudes_count,
+            veredicto,
+        ])
+        filas_colores.append(color)
+
+    tabla = Table(data, repeatRows=1, colWidths=[90, 60, 55, 50, 45, 45, 50, 40, 60, 65])
+    style = [
+        ('BACKGROUND',  (0, 0), (-1, 0), colors.HexColor('#7a2d3e')),
+        ('TEXTCOLOR',   (0, 0), (-1, 0), colors.white),
+        ('FONTNAME',    (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',    (0, 0), (-1, 0), 8),
+        ('ALIGN',       (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN',      (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTSIZE',    (0, 1), (-1, -1), 7),
+        ('GRID',        (0, 0), (-1, -1), 0.4, colors.HexColor('#cccccc')),
+        ('ROWHEIGHT',   (0, 0), (-1, -1), 18),
+    ]
+    for i, color in enumerate(filas_colores, start=1):
+        style.append(('BACKGROUND', (0, i), (-1, i), color))
+
+    tabla.setStyle(TableStyle(style))
+    elements.append(tabla)
+
+    doc.build(elements)
+    return response
 
 def _filtrar_proveedores(request):
     q = request.GET.get('q', '').strip()

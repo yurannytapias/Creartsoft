@@ -1,9 +1,12 @@
 import random
+import requests
+from io import BytesIO
 from datetime import timedelta, date, time
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
+from django.core.files.base import ContentFile
 from django.utils import timezone
 
 from creart.models import (
@@ -12,10 +15,26 @@ from creart.models import (
 )
 
 
+def descargar_imagen(seed, ancho=600, alto=600):
+    """Descarga una imagen real desde Picsum usando un seed fijo (reproducible)."""
+    url = f'https://picsum.photos/seed/{seed}/{ancho}/{alto}'
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        return ContentFile(resp.content, name=f'{seed}.jpg')
+    except Exception:
+        return None
+
+
 class Command(BaseCommand):
     help = 'Pobla la base de datos con datos de prueba (productos, usuarios, transacciones, pqrs, solicitudes, inventario)'
 
     def handle(self, *args, **kwargs):
+        # Evita duplicar datos si el comando ya corrió antes
+        if Usuarios.objects.filter(correo='cliente1@creart.com').exists():
+            self.stdout.write(self.style.WARNING('⚠️ Los datos de prueba ya existen. Comando omitido para evitar duplicados.'))
+            return
+
         self.stdout.write('🌱 Iniciando poblado de datos...')
 
         # ══════════════════════════════════════════════
@@ -91,24 +110,9 @@ class Command(BaseCommand):
 
         # ══════════════════════════════════════════════
         # PRODUCTOS — 15 (5 eventos / 5 diarios / 5 antojos)
-        # Reutiliza imágenes ya existentes en media/productos/
+        # Las imágenes se descargan automáticamente (Picsum) porque
+        # el almacenamiento de archivos en Render free es efímero
         # ══════════════════════════════════════════════
-        imagenes_eventos = [
-            'productos/pastel_baby_shower.jpg', 'productos/pastel_bodas_3pisos.jpg',
-            'productos/pastel_grados_2pisos.jpg', 'productos/pastel_naked_floral.jpg',
-            'productos/pastel_quinceanera_2pisos.jpg',
-        ]
-        imagenes_diarios = [
-            'productos/torta_chocolate.jpg', 'productos/torta_red_velvet.jpg',
-            'productos/torta_zanahoria.jpg', 'productos/torta_vainilla_fresas.jpg',
-            'productos/torta_mousse_maracuya.jpg',
-        ]
-        imagenes_antojos = [
-            'productos/cupcake.jpg', 'productos/brownie.jpg',
-            'productos/dona.jpg', 'productos/muffin_arandanos.jpg',
-            'productos/macarons_surtidos.jpg',
-        ]
-
         nombres_eventos = ['Pastel Baby Shower Encanto', 'Pastel de Boda 3 Pisos',
                            'Pastel de Grado 2 Pisos', 'Pastel Naked Floral',
                            'Pastel Quinceañera 2 Pisos']
@@ -121,30 +125,36 @@ class Command(BaseCommand):
 
         productos_creados = {'eventos': [], 'diarios': [], 'antojos': []}
 
-        for categoria, nombres_p, imagenes in [
-            ('eventos', nombres_eventos, imagenes_eventos),
-            ('diarios', nombres_diarios, imagenes_diarios),
-            ('antojos', nombres_antojos, imagenes_antojos),
+        for categoria, nombres_p in [
+            ('eventos', nombres_eventos),
+            ('diarios', nombres_diarios),
+            ('antojos', nombres_antojos),
         ]:
-            for nombre_p, imagen in zip(nombres_p, imagenes):
+            for idx, nombre_p in enumerate(nombres_p):
                 precio_base = {
                     'eventos': random.randint(180000, 450000),
                     'diarios': random.randint(45000, 90000),
                     'antojos': random.randint(5000, 15000),
                 }[categoria]
 
-                p = Productos.objects.create(
+                p = Productos(
                     nombre=nombre_p,
                     descripcion=f'Delicioso producto de pastelería: {nombre_p}. Elaborado con ingredientes frescos y de la mejor calidad.',
                     precio=Decimal(precio_base),
-                    imagen=imagen,
                     vendedor=vendedor_principal,
                     categoria=categoria,
                     estado_aprobacion='aprobado',
                 )
+
+                seed = f'creartsoft-{categoria}-{idx}'
+                imagen_file = descargar_imagen(seed)
+                if imagen_file:
+                    p.imagen.save(f'{seed}.jpg', imagen_file, save=False)
+                p.save()
+
                 productos_creados[categoria].append(p)
 
-        self.stdout.write('✅ 15 productos creados (5 eventos, 5 diarios, 5 antojos)')
+        self.stdout.write('✅ 15 productos creados con imágenes descargadas (5 eventos, 5 diarios, 5 antojos)')
 
         todos_productos = productos_creados['eventos'] + productos_creados['diarios'] + productos_creados['antojos']
 

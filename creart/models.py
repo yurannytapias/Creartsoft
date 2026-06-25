@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class ModeloBase(models.Model):
     # auto_now_add: se pone solo al crear

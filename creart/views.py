@@ -3574,7 +3574,7 @@ def editar_producto_vendedor(request, id_producto):
 
             producto.save()
 
-            except Exception as e:
+        except Exception as e:
             messages.error(request, f"Error real: {e}")
 
     return redirect('Fvendedor_productos')

@@ -2093,7 +2093,7 @@ def reporte_metodo_pago_excel(request):
 @login_requerido
 def reporte_estado_export_excel(request):
     from openpyxl.utils import get_column_letter
-    from openpyxl.chart import DoughnutChart, Reference
+    from openpyxl.chFart import DoughnutChart, Reference
     from openpyxl.chart.series import DataPoint
     from datetime import date
 
@@ -3574,10 +3574,10 @@ def editar_producto_vendedor(request, id_producto):
 
             producto.save()
 
-        except Exception as e:
-            messages.error(request, "Error al guardar. Intentalo de nuevo")
+            except Exception as e:
+            messages.error(request, f"Error real: {e}")
 
-    return redirect('vendedor_productos')
+    return redirect('Fvendedor_productos')
 
 @login_requerido
 def carga_masiva_productos(request):

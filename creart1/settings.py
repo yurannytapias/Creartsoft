@@ -107,3 +107,17 @@ EMAILJS_SERVICE_ID  = os.environ.get('EMAILJS_SERVICE_ID',  'service_47n78bl')
 EMAILJS_TEMPLATE_ID = os.environ.get('EMAILJS_TEMPLATE_ID', 'template_p5o1oo8')
 EMAILJS_PUBLIC_KEY  = os.environ.get('EMAILJS_PUBLIC_KEY',  'BxiWrppr2O6FBg0E_')
 EMAILJS_PRIVATE_KEY = os.environ.get('EMAILJS_PRIVATE_KEY', 'MYXgqKGHbm_xW0A_kTeqI')
+
+
+# === DEBUG TEMPORAL - BORRAR DESPUÉS ===
+print("=" * 50)
+print("STORAGE CONFIGURADO:", DEFAULT_FILE_STORAGE)
+print("CLOUDINARY CLOUD_NAME:", CLOUDINARY_STORAGE.get('CLOUD_NAME'))
+print("CLOUDINARY API_KEY presente:", bool(CLOUDINARY_STORAGE.get('API_KEY')))
+print("CLOUDINARY API_SECRET presente:", bool(CLOUDINARY_STORAGE.get('API_SECRET')))
+try:
+    import cloudinary_storage
+    print("django-cloudinary-storage importa OK")
+except ImportError as e:
+    print("ERROR IMPORTANDO cloudinary_storage:", e)
+print("=" * 50)

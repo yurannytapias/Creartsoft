@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+﻿from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
@@ -27,9 +27,9 @@ import requests
 from django.conf import settings
 from django.utils.crypto import get_random_string
 
-# ════════════════════════════════════════════════════════════════════════════════════════════════
-#  PÁGINAS GENERALES
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  PÃGINAS GENERALES
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def index(request):
     return render(request, 'index.html')
@@ -48,12 +48,12 @@ def index(request):
         'es_index': True,  # esta variable
 })
 
-# ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-#  PROTECTORES DE SESIÓN
-# ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  PROTECTORES DE SESIÃ“N
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def login_requerido(vista):
-    # Redirige al login si no hay sesión activa
+    # Redirige al login si no hay sesiÃ³n activa
     def wrapper(request, *args, **kwargs):
         if not request.session.get('usuario_id'):
             return redirect('inicio')
@@ -63,7 +63,7 @@ def login_requerido(vista):
 
 
 def get_usuario_sesion(request): 
-    # Retorna el objeto Usuarios de la sesión activa o None
+    # Retorna el objeto Usuarios de la sesiÃ³n activa o None
     usuario_id = request.session.get('usuario_id')
     if usuario_id:
         try:
@@ -73,9 +73,9 @@ def get_usuario_sesion(request):
     return None
 
 
-# ════════════════════════════════════════════════════════════════════════════════════════════════
-#  AUTENTICACIÓN
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  AUTENTICACIÃ“N
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def registrar_usuario(request):
     if request.method != "POST":
@@ -93,11 +93,11 @@ def registrar_usuario(request):
         return redirect("inicio")
 
     if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', correo):
-        messages.error(request, "El correo no es válido.")
+        messages.error(request, "El correo no es vÃ¡lido.")
         return redirect("inicio")
 
     if Usuarios.objects.filter(correo=correo).exists():
-        messages.error(request, "Este correo ya está registrado.")
+        messages.error(request, "Este correo ya estÃ¡ registrado.")
         return redirect("inicio")
 
     try:
@@ -130,7 +130,7 @@ def registrar_usuario(request):
         print(e)
         messages.error(
             request,
-            "Ocurrió un error al crear la cuenta."
+            "OcurriÃ³ un error al crear la cuenta."
         )
         return redirect("inicio")
 
@@ -149,14 +149,14 @@ def login_usuario(request):
         usuario = Usuarios.objects.get(correo=correo)
 
         if not check_password(contrasena, usuario.contrasena):
-            messages.error(request, "La contraseña es incorrecta. Por favor, inténtalo de nuevo.")
+            messages.error(request, "La contraseÃ±a es incorrecta. Por favor, intÃ©ntalo de nuevo.")
             return redirect("inicio")
 
-        # Verificar si la cuenta está activada
+        # Verificar si la cuenta estÃ¡ activada
         if not usuario.estado:
             messages.error(
                 request,
-                "Debes activar tu cuenta desde el correo electrónico antes de iniciar sesión."
+                "Debes activar tu cuenta desde el correo electrÃ³nico antes de iniciar sesiÃ³n."
             )
             return redirect("inicio")
 
@@ -165,7 +165,7 @@ def login_usuario(request):
 
         messages.success(
             request,
-            "¡Bienvenido/a de nuevo! Has iniciado sesión correctamente."
+            "Â¡Bienvenido/a de nuevo! Has iniciado sesiÃ³n correctamente."
         )
 
         rol = usuario.rol.nombre
@@ -184,21 +184,21 @@ def login_usuario(request):
     except Usuarios.DoesNotExist:
         messages.error(
             request,
-            "No existe una cuenta con ese correo electrónico."
+            "No existe una cuenta con ese correo electrÃ³nico."
         )
         return redirect("inicio")
 
 
 def cerrar_sesion(request):
     request.session.flush()
-    messages.success(request, "Has cerrado sesión correctamente. ¡Hasta pronto!")
+    messages.success(request, "Has cerrado sesiÃ³n correctamente. Â¡Hasta pronto!")
     return redirect("inicio")
 
 
 
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  ADMINISTRADOR
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def administrador(request):
@@ -276,15 +276,15 @@ def administrador(request):
     }
     return render(request, 'administrador/administrador.html', context)
 
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  USUARIOS (ADMIN)
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def usuarios(request):
     usuario = get_usuario_sesion(request)
 
-    # ── REGISTRAR USUARIO ──
+    # â”€â”€ REGISTRAR USUARIO â”€â”€
     if request.method == 'POST' and request.POST.get('accion') == 'registrar_usuario':
         nombre     = request.POST.get('nombre', '').strip()
         apellido   = request.POST.get('apellido', '').strip()
@@ -299,7 +299,7 @@ def usuarios(request):
             return redirect('usuarios')
 
         if Usuarios.objects.filter(correo=correo).exists():
-            messages.error(request, f"El correo {correo} ya está registrado.")
+            messages.error(request, f"El correo {correo} ya estÃ¡ registrado.")
             return redirect('usuarios')
 
         try:
@@ -318,11 +318,11 @@ def usuarios(request):
         except Roles.DoesNotExist:
             messages.error(request, f"El rol '{rol_nombre}' no existe en la base de datos.")
         except Exception:
-            messages.error(request, "Ocurrió un error al registrar el usuario. Intenta de nuevo.")
+            messages.error(request, "OcurriÃ³ un error al registrar el usuario. Intenta de nuevo.")
 
         return redirect('usuarios')
 
-    # ── TOGGLE ESTADO ──
+    # â”€â”€ TOGGLE ESTADO â”€â”€
     if request.method == 'POST' and request.POST.get('accion') == 'toggle_estado':
         uid = request.POST.get('usuario_id')
         try:
@@ -332,10 +332,10 @@ def usuarios(request):
             estado_txt = "activado" if u.estado else "desactivado"
             messages.success(request, f"Usuario {u.nombre} {u.apellido} {estado_txt} correctamente.")
         except Usuarios.DoesNotExist:
-            messages.error(request, "No se encontró el usuario.")
+            messages.error(request, "No se encontrÃ³ el usuario.")
         return redirect('usuarios')
 
-    # ── LISTADO ──
+    # â”€â”€ LISTADO â”€â”€
     q = request.GET.get('q', '').strip()
     rol_filtro = request.GET.get('rol', '').strip()
 
@@ -391,7 +391,7 @@ def usuarios_export_excel(request):
     header_font = Font(color="FFFFFF", bold=True, size=11)
     header_alig = Alignment(horizontal="center", vertical="center")
  
-    headers = ["ID", "Nombre", "Apellido", "Correo", "Número", "Rol", "Estado", "Fecha registro"]
+    headers = ["ID", "Nombre", "Apellido", "Correo", "NÃºmero", "Rol", "Estado", "Fecha registro"]
     ws.append(headers)
     for col_num, _ in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col_num)
@@ -446,7 +446,7 @@ def usuarios_export_pdf(request):
     styles   = getSampleStyleSheet()
     elements = [Paragraph("<b>Reporte de Usuarios</b>", styles['Title']), Spacer(1, 12)]
  
-    data = [["ID", "Nombre", "Apellido", "Correo", "Número", "Rol", "Estado", "Fecha"]]
+    data = [["ID", "Nombre", "Apellido", "Correo", "NÃºmero", "Rol", "Estado", "Fecha"]]
     for u in qs:
         data.append([str(u.id_usuario), u.nombre, u.apellido, u.correo, u.numero,
                      u.rol.nombre if u.rol else '', 'Activo' if u.estado else 'Inactivo',
@@ -490,7 +490,7 @@ def crm_export_excel(request):
 
     wb = openpyxl.Workbook()
 
-    # ── Hoja 1: Nuevos vs Recurrentes ──
+    # â”€â”€ Hoja 1: Nuevos vs Recurrentes â”€â”€
     ws1 = wb.active
     ws1.title = "Nuevos vs Recurrentes"
 
@@ -507,7 +507,7 @@ def crm_export_excel(request):
     nuevos      = [c for c in clientes_data if c['total_pedidos'] <= 1]
     tasa = round(len(recurrentes) / total * 100, 1) if total else 0
 
-    resumen_headers = ["Total clientes", "Clientes nuevos", "Clientes recurrentes", "Tasa de retención (%)"]
+    resumen_headers = ["Total clientes", "Clientes nuevos", "Clientes recurrentes", "Tasa de retenciÃ³n (%)"]
     ws1.append(resumen_headers)
     for col_num in range(1, 5):
         cell = ws1.cell(row=3, column=col_num)
@@ -533,7 +533,7 @@ def crm_export_excel(request):
     for i, ancho in enumerate([8, 20, 20, 16, 14], 1):
         ws1.column_dimensions[openpyxl.utils.get_column_letter(i)].width = ancho
 
-    # ── Hoja 2: LTV Clientes ──
+    # â”€â”€ Hoja 2: LTV Clientes â”€â”€
     ws2 = wb.create_sheet(title="LTV Clientes")
 
     ws2.append(["Reporte: Valor de Vida del Cliente (LTV)"])
@@ -614,12 +614,12 @@ def crm_export_pdf(request):
         ('ROWHEIGHT',      (0, 0), (-1, -1), 20),
     ])
 
-    # ── Sección 1: Resumen nuevos vs recurrentes ──
-    elements.append(Paragraph("<b>Reporte CRM — Clientes Nuevos vs Recurrentes</b>", styles['Title']))
+    # â”€â”€ SecciÃ³n 1: Resumen nuevos vs recurrentes â”€â”€
+    elements.append(Paragraph("<b>Reporte CRM â€” Clientes Nuevos vs Recurrentes</b>", styles['Title']))
     elements.append(Spacer(1, 8))
 
     resumen_data = [
-        ["Total clientes", "Clientes nuevos", "Clientes recurrentes", "Tasa de retención"],
+        ["Total clientes", "Clientes nuevos", "Clientes recurrentes", "Tasa de retenciÃ³n"],
         [str(total), str(len(nuevos)), str(len(recurrentes)), f"{tasa}%"],
     ]
     t_resumen = Table(resumen_data, colWidths=[130, 130, 130, 130])
@@ -638,9 +638,9 @@ def crm_export_pdf(request):
     t_detalle.setStyle(style_tabla)
     elements.append(t_detalle)
 
-    # ── Sección 2: LTV ──
+    # â”€â”€ SecciÃ³n 2: LTV â”€â”€
     elements.append(Spacer(1, 20))
-    elements.append(Paragraph("<b>Reporte CRM — Valor de Vida del Cliente (LTV)</b>", styles['Title']))
+    elements.append(Paragraph("<b>Reporte CRM â€” Valor de Vida del Cliente (LTV)</b>", styles['Title']))
     elements.append(Spacer(1, 8))
 
     ltv_data = [["#", "ID", "Nombre", "Apellido", "Pedidos", "Tipo", "LTV ($)"]]
@@ -659,9 +659,9 @@ def crm_export_pdf(request):
     doc.build(elements)
     return response
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  TRANSACCIONES (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
  
 def _filtrar_transacciones(request):
     """Helper sin decorador."""
@@ -727,7 +727,7 @@ def transacciones_export_excel(request):
     header_font = Font(color="FFFFFF", bold=True, size=11)
     header_alig = Alignment(horizontal="center", vertical="center")
  
-    headers = ["ID", "Cliente", "Producto", "Importe", "Moneda", "Método pago", "Estado", "Fecha"]
+    headers = ["ID", "Cliente", "Producto", "Importe", "Moneda", "MÃ©todo pago", "Estado", "Fecha"]
     ws.append(headers)
     for col_num, _ in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col_num)
@@ -769,7 +769,7 @@ def transacciones_export_pdf(request):
     styles   = getSampleStyleSheet()
     elements = [Paragraph("<b>Reporte de Transacciones</b>", styles['Title']), Spacer(1, 12)]
  
-    data = [["ID", "Cliente", "Producto", "Importe", "Método pago", "Estado", "Fecha"]]
+    data = [["ID", "Cliente", "Producto", "Importe", "MÃ©todo pago", "Estado", "Fecha"]]
     for t in qs:
         if t.solicitud:
             cliente  = f"{t.solicitud.usuario.nombre} {t.solicitud.usuario.apellido}" if t.solicitud.usuario else t.solicitud.nombre_invitado or 'Invitado'
@@ -795,9 +795,9 @@ def transacciones_export_pdf(request):
     elements.append(tabla)
     doc.build(elements)
     return response
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  PRODUCTOS (ADMIN)
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def productos(request):
@@ -819,7 +819,7 @@ def productos(request):
     inactivos  = Productos.objects.filter(estado=False).order_by('-fecha_creacion')
     total_tx   = Productos.objects.count()
 
-    # ── datos reporte ──
+    # â”€â”€ datos reporte â”€â”€
     productos_ranking = (
         Productos.objects
         .filter(estado_aprobacion='aprobado')
@@ -889,7 +889,7 @@ def cambiar_estado_producto(request, id_producto):
 
             producto.save()
         except Exception as e:
-            messages.error(request, "Ocurrió un error al cambiar el estado del producto. Intentelo de nuevo.")
+            messages.error(request, "OcurriÃ³ un error al cambiar el estado del producto. Intentelo de nuevo.")
 
     return redirect("productos")
 
@@ -1002,14 +1002,14 @@ def productos_export_pdf(request):
     elements.append(tabla)
     doc.build(elements)
     return response
-# ═══════════════════════════════════════════════════════════════════
-#  REPORTE: PRODUCTOS MÁS VENDIDOS
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  REPORTE: PRODUCTOS MÃS VENDIDOS
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @login_requerido
 def reporte_productos_mas_vendidos(request):
     usuario = get_usuario_sesion(request)
 
-    # ── ranking: solo productos aprobados con al menos 1 solicitud pagada ──
+    # â”€â”€ ranking: solo productos aprobados con al menos 1 solicitud pagada â”€â”€
     productos_ranking = (
         Productos.objects
         .filter(estado_aprobacion='aprobado')
@@ -1027,7 +1027,7 @@ def reporte_productos_mas_vendidos(request):
         .order_by('-solicitudes_pagadas', '-total_solicitudes')[:20]
     )
 
-    # ── tarjetas resumen ──
+    # â”€â”€ tarjetas resumen â”€â”€
     total_productos   = Productos.objects.filter(estado_aprobacion='aprobado').count()
     total_solicitudes = Solicitudes.objects.count()
     total_pagadas     = Solicitudes.objects.filter(estado='pagada').count()
@@ -1037,10 +1037,10 @@ def reporte_productos_mas_vendidos(request):
         .aggregate(t=Sum('precio_total'))['t'] or 0
     )
 
-    # ── top 1 para destacar ──
+    # â”€â”€ top 1 para destacar â”€â”€
     top1 = productos_ranking.first()
 
-    # ── JSON para Chart.js ──
+    # â”€â”€ JSON para Chart.js â”€â”€
     import json
     top10 = list(productos_ranking[:10])
     chart_labels  = [p.nombre for p in top10]
@@ -1111,11 +1111,11 @@ def reporte_productos_pdf(request):
     sec_style    = ParagraphStyle('sc', fontSize=12, textColor=colors.HexColor('#2a1010'),
                                   fontName='Helvetica-Bold', spaceAfter=10)
 
-    elements.append(Paragraph("CreartSoft — Productos Más Vendidos", titulo_style))
+    elements.append(Paragraph("CreartSoft â€” Productos MÃ¡s Vendidos", titulo_style))
     elements.append(Paragraph(f"Generado el {date.today().strftime('%d/%m/%Y')}", sub_style))
     elements.append(HRFlowable(width="100%", thickness=1.5, color=VINO, spaceAfter=20))
 
-    # ── tarjetas ──
+    # â”€â”€ tarjetas â”€â”€
     total_productos = Productos.objects.filter(estado_aprobacion='aprobado').count()
     total_pagadas   = Solicitudes.objects.filter(estado='pagada').count()
 
@@ -1140,13 +1140,13 @@ def reporte_productos_pdf(request):
     elements.append(card_table)
     elements.append(Spacer(1, 20))
 
-    # ── ranking ──
+    # â”€â”€ ranking â”€â”€
     elements.append(HRFlowable(width="100%", thickness=0.5, color=thin, spaceAfter=10))
-    elements.append(Paragraph("Ranking de productos más vendidos (top 20)", sec_style))
+    elements.append(Paragraph("Ranking de productos mÃ¡s vendidos (top 20)", sec_style))
 
-    data = [['#', 'Producto', 'Categoría', 'Vendedor', 'Solicitudes', 'Pagadas', 'Ingresos ($)']]
+    data = [['#', 'Producto', 'CategorÃ­a', 'Vendedor', 'Solicitudes', 'Pagadas', 'Ingresos ($)']]
     for i, p in enumerate(productos_ranking, 1):
-        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else '—'
+        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else 'â€”'
         data.append([
             str(i),
             p.nombre,
@@ -1184,7 +1184,7 @@ def reporte_productos_pdf(request):
     elements.append(HRFlowable(width="100%", thickness=1, color=VINO, spaceBefore=6, spaceAfter=6))
     pie_style = ParagraphStyle('pie', fontSize=8, textColor=colors.HexColor('#aaaaaa'),
                                 alignment=TA_CENTER)
-    elements.append(Paragraph("CreartSoft · Reporte generado automáticamente", pie_style))
+    elements.append(Paragraph("CreartSoft Â· Reporte generado automÃ¡ticamente", pie_style))
 
     doc.build(elements)
     return response
@@ -1224,7 +1224,7 @@ def reporte_productos_excel(request):
 
     wb  = openpyxl.Workbook()
     ws  = wb.active
-    ws.title = "Productos más vendidos"
+    ws.title = "Productos mÃ¡s vendidos"
     ws.sheet_view.showGridLines = False
 
     VINO   = "7a2d3e"
@@ -1236,9 +1236,9 @@ def reporte_productos_excel(request):
     thin   = Side(style='thin', color='e0c8c8')
     borde  = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    # ── título ──
+    # â”€â”€ tÃ­tulo â”€â”€
     ws.merge_cells('A1:G1')
-    ws['A1'] = 'CreartSoft — Productos Más Vendidos'
+    ws['A1'] = 'CreartSoft â€” Productos MÃ¡s Vendidos'
     ws['A1'].font = Font(name='Calibri', bold=True, size=15, color=VINO)
     ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
     ws.row_dimensions[1].height = 34
@@ -1249,7 +1249,7 @@ def reporte_productos_excel(request):
     ws['A2'].alignment = Alignment(horizontal='center')
     ws.row_dimensions[2].height = 16
 
-    # ── tarjetas fila 4-6 ──
+    # â”€â”€ tarjetas fila 4-6 â”€â”€
     tarjetas = [
         ('Productos activos', str(total_productos),        'EDE9FE', '5B21B6'),
         ('Ventas pagadas',    str(total_pagadas),           'D1FAE5', '065F46'),
@@ -1272,9 +1272,9 @@ def reporte_productos_excel(request):
         c_l.alignment = Alignment(horizontal='center', vertical='center')
         c_l.border = borde
 
-    # ── tabla ranking (fila 9) ──
+    # â”€â”€ tabla ranking (fila 9) â”€â”€
     ws.row_dimensions[9].height = 20
-    headers = ['#', 'Producto', 'Categoría', 'Vendedor', 'Total solicitudes', 'Ventas pagadas', 'Ingresos ($)']
+    headers = ['#', 'Producto', 'CategorÃ­a', 'Vendedor', 'Total solicitudes', 'Ventas pagadas', 'Ingresos ($)']
     for ci, h in enumerate(headers, 1):
         c = ws.cell(row=9, column=ci, value=h)
         c.font = h_font; c.fill = h_fill
@@ -1285,7 +1285,7 @@ def reporte_productos_excel(request):
     for ri, p in enumerate(productos_ranking, 10):
         pos = ri - 9
         ws.row_dimensions[ri].height = 18
-        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else '—'
+        vendedor = f"{p.vendedor.nombre} {p.vendedor.apellido}" if p.vendedor else 'â€”'
         bg = medallas.get(pos, VINO_L if ri % 2 == 0 else BLANCO)
         fila = [
             pos,
@@ -1306,12 +1306,12 @@ def reporte_productos_excel(request):
             if ci == 7:
                 c.number_format = '$#,##0.00'
 
-    # ── gráfica de barras (top 10) ──
+    # â”€â”€ grÃ¡fica de barras (top 10) â”€â”€
     last_row = 9 + min(len(list(productos_ranking)), 10)
     chart = BarChart()
     chart.type    = "col"
     chart.style   = 10
-    chart.title   = "Top 10 productos más vendidos"
+    chart.title   = "Top 10 productos mÃ¡s vendidos"
     chart.y_axis.title = "Ventas pagadas"
     chart.x_axis.title = "Producto"
     chart.grouping = "clustered"
@@ -1325,7 +1325,7 @@ def reporte_productos_excel(request):
     chart.height = 12
     ws.add_chart(chart, "I9")
 
-    # ── anchos columnas ──
+    # â”€â”€ anchos columnas â”€â”€
     for col, ancho in zip(range(1, 8), [5, 28, 14, 22, 16, 14, 16]):
         ws.column_dimensions[get_column_letter(col)].width = ancho
 
@@ -1335,9 +1335,9 @@ def reporte_productos_excel(request):
     wb.save(response)
     return response
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  SOLICITUDES (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def _filtrar_solicitudes(request):
@@ -1428,7 +1428,7 @@ def solicitudes_export_excel(request):
     header_font = Font(color="FFFFFF", bold=True, size=11)
     header_alig = Alignment(horizontal="center", vertical="center")
 
-    headers = ["ID", "Cliente", "Producto", "Vendedor", "Categoría", "Total ($)", "Abono ($)", "Tipo entrega", "Estado", "Fecha"]
+    headers = ["ID", "Cliente", "Producto", "Vendedor", "CategorÃ­a", "Total ($)", "Abono ($)", "Tipo entrega", "Estado", "Fecha"]
     ws.append(headers)
 
     for col_num, _ in enumerate(headers, 1):
@@ -1484,13 +1484,13 @@ def solicitudes_export_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    # Título
+    # TÃ­tulo
     titulo = Paragraph("<b>Reporte de Solicitudes</b>", styles['Title'])
     elements.append(titulo)
     elements.append(Spacer(1, 12))
 
     # Tabla
-    data = [["ID", "Cliente", "Producto", "Vendedor", "Categoría", "Total", "Estado", "Fecha"]]
+    data = [["ID", "Cliente", "Producto", "Vendedor", "CategorÃ­a", "Total", "Estado", "Fecha"]]
     for s in qs:
         cliente = f"{s.usuario.nombre} {s.usuario.apellido}" if s.usuario else s.nombre_invitado or "Invitado"
         data.append([
@@ -1521,9 +1521,9 @@ def solicitudes_export_pdf(request):
 
     doc.build(elements)
     return response
-# ════════════════════════════════════════════════════════════════════
-#  REPORTE — SOLICITUDES POR ESTADO
-# ════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  REPORTE â€” SOLICITUDES POR ESTADO
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def reporte_solicitudes_estado(request):
@@ -1588,7 +1588,7 @@ def reporte_solicitudes_estado(request):
     return render(request, 'administrador/reporte_solicitudes_estado.html', context)
 
 
-# ── PDF ──────────────────────────────────────────────────────────────
+# â”€â”€ PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @login_requerido
 def reporte_estado_export_pdf(request):
     from reportlab.platypus import HRFlowable
@@ -1629,11 +1629,11 @@ def reporte_estado_export_pdf(request):
                                    fontName='Helvetica-Bold', spaceAfter=10)
 
     from datetime import date
-    elements.append(Paragraph("CreartSoft — Reporte de Solicitudes por Estado", titulo_style))
+    elements.append(Paragraph("CreartSoft â€” Reporte de Solicitudes por Estado", titulo_style))
     elements.append(Paragraph(f"Generado el {date.today().strftime('%d/%m/%Y')}", sub_style))
     elements.append(HRFlowable(width="100%", thickness=1.5, color=VINO, spaceAfter=20))
 
-    # ── tarjetas resumen ──
+    # â”€â”€ tarjetas resumen â”€â”€
     card_data = [[
         Paragraph(f"<b>{total}</b><br/>Total",       styles['Normal']),
         Paragraph(f"<b>{pendientes}</b><br/>Pendientes", styles['Normal']),
@@ -1659,10 +1659,10 @@ def reporte_estado_export_pdf(request):
     elements.append(card_table)
     elements.append(Spacer(1, 20))
 
-    # ── tabla distribución SIN barra visual ──
+    # â”€â”€ tabla distribuciÃ³n SIN barra visual â”€â”€
     elements.append(HRFlowable(width="100%", thickness=0.5,
                                 color=colors.HexColor('#e0c8c8'), spaceAfter=10))
-    elements.append(Paragraph("Distribución por estado", seccion_style))
+    elements.append(Paragraph("DistribuciÃ³n por estado", seccion_style))
 
     thin = colors.HexColor('#e0c8c8')
     dist_data = [['Estado', 'Cantidad', 'Porcentaje (%)']]
@@ -1686,10 +1686,10 @@ def reporte_estado_export_pdf(request):
     elements.append(dist_table)
     elements.append(Spacer(1, 20))
 
-    # ── últimas 10 solicitudes ──
+    # â”€â”€ Ãºltimas 10 solicitudes â”€â”€
     elements.append(HRFlowable(width="100%", thickness=0.5,
                                 color=colors.HexColor('#e0c8c8'), spaceAfter=10))
-    elements.append(Paragraph("Últimas 10 solicitudes", seccion_style))
+    elements.append(Paragraph("Ãšltimas 10 solicitudes", seccion_style))
 
     ultimas = (Solicitudes.objects
                .select_related('usuario', 'producto')
@@ -1720,33 +1720,33 @@ def reporte_estado_export_pdf(request):
     elements.append(sol_table)
     elements.append(Spacer(1, 16))
 
-    # ── pie ──
+    # â”€â”€ pie â”€â”€
     elements.append(HRFlowable(width="100%", thickness=1, color=VINO,
                                 spaceBefore=6, spaceAfter=6))
     pie_style = ParagraphStyle('pie', fontSize=8, textColor=colors.HexColor('#aaaaaa'),
                                 alignment=TA_CENTER)
     elements.append(Paragraph(
-        f"CreartSoft · Reporte generado automáticamente · "
+        f"CreartSoft Â· Reporte generado automÃ¡ticamente Â· "
         f"Ingresos confirmados: ${ingresos:,.0f}", pie_style))
 
     doc.build(elements)
     return response
 
 
-# ═══════════════════════════════════════════════════════════════════
-#  ARCHIVO 2 — NUEVO REPORTE: Ingresos por método de pago
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  ARCHIVO 2 â€” NUEVO REPORTE: Ingresos por mÃ©todo de pago
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def reporte_metodo_pago(request):
     """
-    Reporte: Ingresos por método de pago
-    Muestra cuánto se ha recaudado y cuántas transacciones se hicieron
-    por cada método (tarjeta, PSE, efectivo, transferencia, etc.)
+    Reporte: Ingresos por mÃ©todo de pago
+    Muestra cuÃ¡nto se ha recaudado y cuÃ¡ntas transacciones se hicieron
+    por cada mÃ©todo (tarjeta, PSE, efectivo, transferencia, etc.)
     """
     usuario = get_usuario_sesion(request)
 
-    # ── datos principales ──
+    # â”€â”€ datos principales â”€â”€
     por_metodo = (
         Transacciones.objects
         .values('metodo_pago')
@@ -1760,14 +1760,14 @@ def reporte_metodo_pago(request):
     total_ingresos     = Transacciones.objects.aggregate(t=Sum('importe_total'))['t'] or 0
     total_transacciones = Transacciones.objects.count()
 
-    # ── últimas 10 transacciones ──
+    # â”€â”€ Ãºltimas 10 transacciones â”€â”€
     ultimas = (
         Transacciones.objects
         .select_related('solicitud__usuario', 'solicitud__producto')
         .order_by('-fecha_creacion')[:10]
     )
 
-    # ── JSON para Chart.js ──
+    # â”€â”€ JSON para Chart.js â”€â”€
     import json
     labels  = [m['metodo_pago'] or 'Sin especificar' for m in por_metodo]
     valores = [float(m['total_ingresos'] or 0)        for m in por_metodo]
@@ -1826,15 +1826,15 @@ def reporte_metodo_pago_pdf(request):
     seccion_style = ParagraphStyle('sc', fontSize=12, textColor=colors.HexColor('#2a1010'),
                                    fontName='Helvetica-Bold', spaceAfter=10)
 
-    elements.append(Paragraph("CreartSoft — Ingresos por Método de Pago", titulo_style))
+    elements.append(Paragraph("CreartSoft â€” Ingresos por MÃ©todo de Pago", titulo_style))
     elements.append(Paragraph(f"Generado el {date.today().strftime('%d/%m/%Y')}", sub_style))
     elements.append(HRFlowable(width="100%", thickness=1.5, color=VINO, spaceAfter=20))
 
-    # ── tarjetas resumen ──
+    # â”€â”€ tarjetas resumen â”€â”€
     card_data = [[
         Paragraph(f"<b>${total_ingresos:,.0f}</b><br/>Ingresos totales", styles['Normal']),
         Paragraph(f"<b>{total_transacciones}</b><br/>Transacciones",     styles['Normal']),
-        Paragraph(f"<b>{por_metodo.count()}</b><br/>Métodos usados",     styles['Normal']),
+        Paragraph(f"<b>{por_metodo.count()}</b><br/>MÃ©todos usados",     styles['Normal']),
     ]]
     card_table = Table(card_data, colWidths=[5*cm, 4*cm, 5*cm])
     card_table.setStyle(TableStyle([
@@ -1852,11 +1852,11 @@ def reporte_metodo_pago_pdf(request):
     elements.append(card_table)
     elements.append(Spacer(1, 20))
 
-    # ── tabla por método ──
+    # â”€â”€ tabla por mÃ©todo â”€â”€
     elements.append(HRFlowable(width="100%", thickness=0.5, color=thin, spaceAfter=10))
-    elements.append(Paragraph("Detalle por método de pago", seccion_style))
+    elements.append(Paragraph("Detalle por mÃ©todo de pago", seccion_style))
 
-    met_data = [['Método de pago', 'Transacciones', 'Ingresos ($)', 'Participación (%)']]
+    met_data = [['MÃ©todo de pago', 'Transacciones', 'Ingresos ($)', 'ParticipaciÃ³n (%)']]
     for m in por_metodo:
         met_data.append([
             m['metodo_pago'] or 'Sin especificar',
@@ -1881,15 +1881,15 @@ def reporte_metodo_pago_pdf(request):
     elements.append(met_table)
     elements.append(Spacer(1, 20))
 
-    # ── últimas 10 transacciones ──
+    # â”€â”€ Ãºltimas 10 transacciones â”€â”€
     elements.append(HRFlowable(width="100%", thickness=0.5, color=thin, spaceAfter=10))
-    elements.append(Paragraph("Últimas 10 transacciones", seccion_style))
+    elements.append(Paragraph("Ãšltimas 10 transacciones", seccion_style))
 
     ultimas = (Transacciones.objects
                .select_related('solicitud__usuario', 'solicitud__producto')
                .order_by('-fecha_creacion')[:10])
 
-    tx_data = [['#', 'Cliente', 'Método', 'Importe ($)', 'Estado', 'Fecha']]
+    tx_data = [['#', 'Cliente', 'MÃ©todo', 'Importe ($)', 'Estado', 'Fecha']]
     for t in ultimas:
         cliente = "Invitado"
         if t.solicitud and t.solicitud.usuario:
@@ -1897,7 +1897,7 @@ def reporte_metodo_pago_pdf(request):
         tx_data.append([
             f"TX{t.id_transaccion}",
             cliente,
-            t.metodo_pago or '—',
+            t.metodo_pago or 'â€”',
             f"${t.importe_total:,.0f}",
             t.estado.capitalize(),
             t.fecha_creacion.strftime("%d/%m/%Y"),
@@ -1922,7 +1922,7 @@ def reporte_metodo_pago_pdf(request):
     elements.append(HRFlowable(width="100%", thickness=1, color=VINO, spaceBefore=6, spaceAfter=6))
     pie_style = ParagraphStyle('pie', fontSize=8, textColor=colors.HexColor('#aaaaaa'),
                                 alignment=TA_CENTER)
-    elements.append(Paragraph("CreartSoft · Reporte generado automáticamente", pie_style))
+    elements.append(Paragraph("CreartSoft Â· Reporte generado automÃ¡ticamente", pie_style))
 
     doc.build(elements)
     return response
@@ -1946,7 +1946,7 @@ def reporte_metodo_pago_excel(request):
 
     wb  = openpyxl.Workbook()
     ws  = wb.active
-    ws.title = "Ingresos por método"
+    ws.title = "Ingresos por mÃ©todo"
     ws.sheet_view.showGridLines = False
 
     VINO   = "7a2d3e"
@@ -1958,9 +1958,9 @@ def reporte_metodo_pago_excel(request):
     thin   = Side(style='thin', color='e0c8c8')
     borde  = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    # título
+    # tÃ­tulo
     ws.merge_cells('A1:E1')
-    ws['A1'] = 'CreartSoft — Ingresos por Método de Pago'
+    ws['A1'] = 'CreartSoft â€” Ingresos por MÃ©todo de Pago'
     ws['A1'].font = Font(name='Calibri', bold=True, size=15, color=VINO)
     ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
     ws.row_dimensions[1].height = 34
@@ -1975,7 +1975,7 @@ def reporte_metodo_pago_excel(request):
     tarjetas = [
         ('Ingresos totales', f"${total_ingresos:,.0f}", "D1FAE5", "065F46"),
         ('Transacciones',    str(total_transacciones),  "DBEAFE", "1E3A8A"),
-        ('Métodos usados',   str(por_metodo.count()),   "FEF3C7", "92400E"),
+        ('MÃ©todos usados',   str(por_metodo.count()),   "FEF3C7", "92400E"),
     ]
     ws.row_dimensions[4].height = 14
     ws.row_dimensions[5].height = 28
@@ -1994,9 +1994,9 @@ def reporte_metodo_pago_excel(request):
         c_lbl.alignment = Alignment(horizontal='center', vertical='center')
         c_lbl.border = borde
 
-    # tabla por método (fila 9)
+    # tabla por mÃ©todo (fila 9)
     ws.row_dimensions[9].height = 20
-    headers = ['Método de pago', 'Transacciones', 'Ingresos ($)', 'Participación (%)']
+    headers = ['MÃ©todo de pago', 'Transacciones', 'Ingresos ($)', 'ParticipaciÃ³n (%)']
     for ci, h in enumerate(headers, 1):
         c = ws.cell(row=9, column=ci, value=h)
         c.font = h_font; c.fill = h_fill
@@ -2021,10 +2021,10 @@ def reporte_metodo_pago_excel(request):
             if ci == 4:
                 c.number_format = '0.0"%"'
 
-    # gráfica de dona
+    # grÃ¡fica de dona
     last_row = 9 + por_metodo.count()
     chart = DoughnutChart()
-    chart.title = "Ingresos por método de pago"
+    chart.title = "Ingresos por mÃ©todo de pago"
     chart.style = 10
     chart.hole_size = 50
     data_ref   = Reference(ws, min_col=3, min_row=9, max_row=last_row)
@@ -2043,16 +2043,16 @@ def reporte_metodo_pago_excel(request):
     for col, ancho in zip(range(1, 6), [22, 16, 16, 18, 2]):
         ws.column_dimensions[get_column_letter(col)].width = ancho
 
-    # hoja 2 — últimas transacciones
-    ws2 = wb.create_sheet("Últimas transacciones")
+    # hoja 2 â€” Ãºltimas transacciones
+    ws2 = wb.create_sheet("Ãšltimas transacciones")
     ws2.sheet_view.showGridLines = False
     ws2.merge_cells('A1:F1')
-    ws2['A1'] = 'Últimas 10 transacciones'
+    ws2['A1'] = 'Ãšltimas 10 transacciones'
     ws2['A1'].font = Font(name='Calibri', bold=True, size=13, color=VINO)
     ws2['A1'].alignment = Alignment(horizontal='center', vertical='center')
     ws2.row_dimensions[1].height = 28
 
-    headers2 = ['# Trans.', 'Cliente', 'Método', 'Importe ($)', 'Estado', 'Fecha']
+    headers2 = ['# Trans.', 'Cliente', 'MÃ©todo', 'Importe ($)', 'Estado', 'Fecha']
     for ci, h in enumerate(headers2, 1):
         c = ws2.cell(row=2, column=ci, value=h)
         c.font = h_font; c.fill = h_fill
@@ -2068,7 +2068,7 @@ def reporte_metodo_pago_excel(request):
         if t.solicitud and t.solicitud.usuario:
             cliente = f"{t.solicitud.usuario.nombre} {t.solicitud.usuario.apellido}"
         bg = BLANCO if ri % 2 == 0 else VINO_L
-        fila = [f"TX{t.id_transaccion}", cliente, t.metodo_pago or '—',
+        fila = [f"TX{t.id_transaccion}", cliente, t.metodo_pago or 'â€”',
                 float(t.importe_total), t.estado.capitalize(),
                 t.fecha_creacion.strftime("%d/%m/%Y")]
         ws2.row_dimensions[ri].height = 18
@@ -2089,7 +2089,7 @@ def reporte_metodo_pago_excel(request):
     response['Content-Disposition'] = 'attachment; filename="reporte_metodo_pago.xlsx"'
     wb.save(response)
     return response
-# ── EXCEL ─────────────────────────────────────────────────────────────
+# â”€â”€ EXCEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @login_requerido
 def reporte_estado_export_excel(request):
     from openpyxl.utils import get_column_letter
@@ -2111,7 +2111,7 @@ def reporte_estado_export_excel(request):
 
     wb = openpyxl.Workbook()
 
-    # ── HOJA 1 — RESUMEN ──────────────────────────────────────────
+    # â”€â”€ HOJA 1 â€” RESUMEN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     ws = wb.active
     ws.title = "Resumen"
     ws.sheet_view.showGridLines = False
@@ -2131,9 +2131,9 @@ def reporte_estado_export_excel(request):
     thin   = Side(style='thin', color='e0c8c8')
     borde  = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    # — título —
+    # â€” tÃ­tulo â€”
     ws.merge_cells('A1:G1')
-    ws['A1']           = 'CreartSoft — Reporte de Solicitudes por Estado'
+    ws['A1']           = 'CreartSoft â€” Reporte de Solicitudes por Estado'
     ws['A1'].font      = Font(name='Calibri', bold=True, size=16, color=VINO)
     ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
     ws.row_dimensions[1].height = 36
@@ -2144,7 +2144,7 @@ def reporte_estado_export_excel(request):
     ws['A2'].alignment = Alignment(horizontal='center')
     ws.row_dimensions[2].height = 18
 
-    # — tarjetas —
+    # â€” tarjetas â€”
     tarjetas = [
         ('Total',      total,      GRIS,    '555555'),
         ('Pendientes', pendientes, AMARILLO,'92400E'),
@@ -2170,7 +2170,7 @@ def reporte_estado_export_excel(request):
         c_lbl.alignment = Alignment(horizontal='center', vertical='center')
         c_lbl.border    = borde
 
-    # — ingreso especial col 6 —
+    # â€” ingreso especial col 6 â€”
     c_ing               = ws.cell(row=5, column=6, value=float(ingresos))
     c_ing.number_format = '$#,##0'
     c_ing.font          = Font(name='Calibri', bold=True, size=14, color='065F46')
@@ -2184,7 +2184,7 @@ def reporte_estado_export_excel(request):
     c_lbl2.alignment    = Alignment(horizontal='center', vertical='center')
     c_lbl2.border       = borde
 
-    # — tabla distribución (fila 9) —
+    # â€” tabla distribuciÃ³n (fila 9) â€”
     ws.row_dimensions[9].height = 20
     for ci, h in enumerate(['Estado', 'Cantidad', 'Porcentaje (%)'], 1):
         c           = ws.cell(row=9, column=ci, value=h)
@@ -2212,9 +2212,9 @@ def reporte_estado_export_excel(request):
             if ci == 3:
                 c.number_format = '0.0"%"'
 
-    # — gráfica de dona —
+    # â€” grÃ¡fica de dona â€”
     chart           = DoughnutChart()
-    chart.title     = "Distribución por Estado"
+    chart.title     = "DistribuciÃ³n por Estado"
     chart.style     = 10
     chart.hole_size = 50
 
@@ -2235,12 +2235,12 @@ def reporte_estado_export_excel(request):
     for col, ancho in zip(range(1, 8), [14, 12, 16, 2, 2, 20, 2]):
         ws.column_dimensions[get_column_letter(col)].width = ancho
 
-    # ── HOJA 2 — ÚLTIMAS SOLICITUDES ─────────────────────────────
-    ws2 = wb.create_sheet("Últimas solicitudes")
+    # â”€â”€ HOJA 2 â€” ÃšLTIMAS SOLICITUDES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    ws2 = wb.create_sheet("Ãšltimas solicitudes")
     ws2.sheet_view.showGridLines = False
 
     ws2.merge_cells('A1:F1')
-    ws2['A1']           = 'Últimas 10 solicitudes'
+    ws2['A1']           = 'Ãšltimas 10 solicitudes'
     ws2['A1'].font      = Font(name='Calibri', bold=True, size=13, color=VINO)
     ws2['A1'].alignment = Alignment(horizontal='center', vertical='center')
     ws2.row_dimensions[1].height = 28
@@ -2280,9 +2280,9 @@ def reporte_estado_export_excel(request):
     wb.save(response)
     return response
 
-# ═════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  PQRS (ADMIN)
-# ═════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def pqrs(request):
@@ -2335,11 +2335,11 @@ def gestionar_cambio_perfil(request, id_pqrs):
             accion = request.POST.get('accion')
 
             if accion == "aceptar":
-                # AQUÍ aplicas los cambios al usuario
+                # AQUÃ aplicas los cambios al usuario
                 usuario = pqrs.usuario
 
                 # OJO: tu mensaje es texto, no JSON
-                # así que toca parsearlo manual (simple)
+                # asÃ­ que toca parsearlo manual (simple)
                 lineas = pqrs.mensaje.split("\n")
 
                 campo_actual = None
@@ -2522,23 +2522,23 @@ def gestionar_edicion_producto(request, id_pqrs):
 
             producto.save()
 
-            pqrs.respuesta = "Solicitud de edición aceptada. Producto actualizado."
+            pqrs.respuesta = "Solicitud de ediciÃ³n aceptada. Producto actualizado."
             pqrs.estado_respuesta = "respondido"
             pqrs.save()
 
             messages.success(request, "Producto actualizado correctamente.")
 
         elif accion == "rechazar":
-            pqrs.respuesta = "Solicitud de edición rechazada."
+            pqrs.respuesta = "Solicitud de ediciÃ³n rechazada."
             pqrs.estado_respuesta = "respondido"
             pqrs.save()
 
             messages.info(request, "Solicitud rechazada.")
 
     return redirect('pqrs')
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  PERFIL (ADMIN)
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def administrador_perfil(request):
@@ -2562,7 +2562,7 @@ def administrador_perfil(request):
             return redirect('administrador_perfil')
         
         except Exception as e:
-            messages.error(request, "Algo salió mal en la actualizacion del perfil. Intentelo de nuevo.")
+            messages.error(request, "Algo saliÃ³ mal en la actualizacion del perfil. Intentelo de nuevo.")
 
     context = {
         'usuario': usuario,
@@ -2570,9 +2570,9 @@ def administrador_perfil(request):
     }
     return render(request, 'administrador/administrador_perfil.html', context)
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  INVENTARIO (ADMIN)
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def inventario_admin(request):
@@ -2631,7 +2631,7 @@ def crear_elemento_inventario(request):
             messages.success(request, "Elemento creado exitosamente")
 
         except Exception as e:
-            messages.error(request, "Algo salió mal, intentalo de nuevo")
+            messages.error(request, "Algo saliÃ³ mal, intentalo de nuevo")
 
     return redirect('inventario')
 
@@ -2661,7 +2661,7 @@ def crear_proveedor(request):
             messages.success(request, "Proveedor creado exitosamente")
 
         except Exception as e:
-            messages.error(request, "Algo salió mal, intentalo de nuevo")
+            messages.error(request, "Algo saliÃ³ mal, intentalo de nuevo")
 
     return redirect('inventario')
 
@@ -2692,7 +2692,7 @@ def modificar_producto_inventario(request, id_inventario):
             messages.success(request, "Elemento modificado exitosamente")
 
         except Exception as e:
-            messages.error(request, "Algo salió mal, intentalo de nuevo")
+            messages.error(request, "Algo saliÃ³ mal, intentalo de nuevo")
 
     return redirect('inventario')
 
@@ -2705,7 +2705,7 @@ def inhactivar_elemento_inventario(request, id_inventario):
 
             elemento.estado = not elemento.estado
             elemento.save()
-            messages.success(request, "Elemento inhabilitado. Se notificó al vendedor para cerrar productos.")
+            messages.success(request, "Elemento inhabilitado. Se notificÃ³ al vendedor para cerrar productos.")
         
         except Exception as e:
             messages.error(request, "Error al cambiar estado. Intentalo de nuevo")
@@ -2739,7 +2739,7 @@ def modificar_proveedor(request, id_proveedor):
             messages.success(request, "Proveedor actualizado exitosamente")
 
         except Exception as e:
-            messages.error(request, "Algo salió mal, intentalo de nuevo")
+            messages.error(request, "Algo saliÃ³ mal, intentalo de nuevo")
 
     return redirect('inventario')
 
@@ -2866,16 +2866,16 @@ def inventario_export_pdf(request):
     elements.append(tabla)
     doc.build(elements)
     return response
-# ══════════════════════════════════════════════════════════════════════
-#  REPORTES DE INVENTARIO — análisis para toma de decisiones
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  REPORTES DE INVENTARIO â€” anÃ¡lisis para toma de decisiones
 #  Pega estas funciones en views.py y agrega las URLs correspondientes
-# ══════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def inventario_export_excel(request):
     """
-    Reporte Excel con análisis real:
-    - Por cada ingrediente: cuántas solicitudes usan productos que lo contienen
+    Reporte Excel con anÃ¡lisis real:
+    - Por cada ingrediente: cuÃ¡ntas solicitudes usan productos que lo contienen
     - Movimientos de salida vs merma
     - Costo total consumido
     - Veredicto: rentable / revisar / eliminar
@@ -2887,9 +2887,9 @@ def inventario_export_excel(request):
 
     wb = openpyxl.Workbook()
 
-    # ══ HOJA 1: RESUMEN POR INGREDIENTE ══════════════════════════════
+    # â•â• HOJA 1: RESUMEN POR INGREDIENTE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     ws1 = wb.active
-    ws1.title = "Análisis Ingredientes"
+    ws1.title = "AnÃ¡lisis Ingredientes"
 
     header_fill  = PatternFill("solid", fgColor="7a2d3e")
     verde_fill   = PatternFill("solid", fgColor="C6EFCE")
@@ -2899,8 +2899,8 @@ def inventario_export_excel(request):
     center       = Alignment(horizontal="center", vertical="center")
 
     headers = [
-        "Ingrediente", "Categoría", "Proveedor",
-        "Stock actual", "Stock mín.", "Unidad",
+        "Ingrediente", "CategorÃ­a", "Proveedor",
+        "Stock actual", "Stock mÃ­n.", "Unidad",
         "Precio unit. ($)",
         "Salidas reales", "Mermas", "% Merma",
         "Costo merma ($)", "Costo total consumido ($)",
@@ -2942,22 +2942,22 @@ def inventario_export_excel(request):
 
         # Veredicto
         if solicitudes_count == 0 and productos_count == 0:
-            veredicto = "❌ Eliminar — sin uso"
+            veredicto = "âŒ Eliminar â€” sin uso"
         elif porcentaje_merma > 40:
-            veredicto = "⚠️ Revisar — alta merma"
+            veredicto = "âš ï¸ Revisar â€” alta merma"
         elif ing.cantidad < ing.stock_minimo:
-            veredicto = "⚠️ Reabastecer urgente"
+            veredicto = "âš ï¸ Reabastecer urgente"
         elif solicitudes_count > 5:
-            veredicto = "✅ Rentable"
+            veredicto = "âœ… Rentable"
         elif solicitudes_count > 0:
-            veredicto = "✅ En uso"
+            veredicto = "âœ… En uso"
         else:
-            veredicto = "⚠️ Revisar — poca demanda"
+            veredicto = "âš ï¸ Revisar â€” poca demanda"
 
         fila = [
             ing.nombre,
             ing.categoria,
-            ing.id_proveedor.empresa if ing.id_proveedor else '—',
+            ing.id_proveedor.empresa if ing.id_proveedor else 'â€”',
             ing.cantidad,
             ing.stock_minimo,
             ing.unidad,
@@ -2974,7 +2974,7 @@ def inventario_export_excel(request):
         ws1.append(fila)
         row_num = ws1.max_row
 
-        # Color de fila según veredicto
+        # Color de fila segÃºn veredicto
         if "Eliminar" in veredicto:
             fill = rojo_fill
         elif "Revisar" in veredicto or "Reabastecer" in veredicto:
@@ -2990,10 +2990,10 @@ def inventario_export_excel(request):
     for i, w in enumerate(anchos, 1):
         ws1.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
 
-    # ══ HOJA 2: HISTORIAL DE MOVIMIENTOS ════════════════════════════
+    # â•â• HOJA 2: HISTORIAL DE MOVIMIENTOS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     ws2 = wb.create_sheet("Movimientos")
 
-    headers2 = ["Ingrediente", "Categoría", "Tipo", "Cantidad", "Unidad", "Costo unit.", "Costo total", "Observación", "Fecha"]
+    headers2 = ["Ingrediente", "CategorÃ­a", "Tipo", "Cantidad", "Unidad", "Costo unit.", "Costo total", "ObservaciÃ³n", "Fecha"]
     ws2.append(headers2)
     for col, _ in enumerate(headers2, 1):
         c = ws2.cell(row=1, column=col)
@@ -3012,7 +3012,7 @@ def inventario_export_excel(request):
             m.id_inventario.unidad,
             float(m.id_inventario.precio_unitario),
             costo,
-            m.observacion or '—',
+            m.observacion or 'â€”',
             m.fecha.strftime("%Y-%m-%d %H:%M"),
         ])
         row_num = ws2.max_row
@@ -3027,10 +3027,10 @@ def inventario_export_excel(request):
     for i, w in enumerate(anchos2, 1):
         ws2.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
 
-    # ══ HOJA 3: INGREDIENTES POR PRODUCTO ═══════════════════════════
+    # â•â• HOJA 3: INGREDIENTES POR PRODUCTO â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     ws3 = wb.create_sheet("Ingredientes por Producto")
 
-    headers3 = ["Producto", "Categoría producto", "Ingrediente", "Cantidad/porción", "Unidad", "Solicitudes pagadas", "Ingrediente rentable"]
+    headers3 = ["Producto", "CategorÃ­a producto", "Ingrediente", "Cantidad/porciÃ³n", "Unidad", "Solicitudes pagadas", "Ingrediente rentable"]
     ws3.append(headers3)
     for col, _ in enumerate(headers3, 1):
         c = ws3.cell(row=1, column=col)
@@ -3048,7 +3048,7 @@ def inventario_export_excel(request):
             estado__in=['pagada', 'aceptada']
         ).count()
 
-        rentable = "✅ Sí" if solis > 0 else "❌ No — producto sin ventas"
+        rentable = "âœ… SÃ­" if solis > 0 else "âŒ No â€” producto sin ventas"
 
         ws3.append([
             r.producto.nombre,
@@ -3094,16 +3094,16 @@ def inventario_export_pdf(request):
     styles = getSampleStyleSheet()
     elements = []
 
-    elements.append(Paragraph("<b>Reporte de Inventario — Análisis para Toma de Decisiones</b>", styles['Title']))
+    elements.append(Paragraph("<b>Reporte de Inventario â€” AnÃ¡lisis para Toma de Decisiones</b>", styles['Title']))
     elements.append(Spacer(1, 6))
     elements.append(Paragraph(
-        "Verde = rentable · Amarillo = revisar · Rojo = eliminar o reabastecer urgente",
+        "Verde = rentable Â· Amarillo = revisar Â· Rojo = eliminar o reabastecer urgente",
         styles['Normal']
     ))
     elements.append(Spacer(1, 12))
 
     data = [[
-        "Ingrediente", "Categoría", "Stock", "Mín.",
+        "Ingrediente", "CategorÃ­a", "Stock", "MÃ­n.",
         "Salidas", "Mermas", "% Merma",
         "Prods.", "Solicitudes", "Veredicto"
     ]]
@@ -3287,12 +3287,12 @@ def proveedores_export_pdf(request):
     elements.append(tabla)
     doc.build(elements)
     return response
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  VENDEDOR
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _get_vendedor(request):
-    """Helper interno: retorna el usuario vendedor de la sesión o None."""
+    """Helper interno: retorna el usuario vendedor de la sesiÃ³n o None."""
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
         return None
@@ -3315,7 +3315,7 @@ def vendedor(request):
         fecha_creacion__date=hoy
     ).count()
 
-    # Solicitudes nuevas (últimas)
+    # Solicitudes nuevas (Ãºltimas)
     solicitudes_nuevas = Solicitudes.objects.filter(
         producto__vendedor=vendedor,
         estado='pendiente',
@@ -3405,7 +3405,7 @@ def ventas_vendedor(request):
         solicitud__producto__vendedor=vendedor
     ).select_related('solicitud__usuario', 'solicitud__producto')
 
-    # Estadísticas
+    # EstadÃ­sticas
     total_ventas = ventas.aggregate(total=Sum('importe_total'))['total'] or 0
     total_pedidos = ventas.count()
 
@@ -3513,7 +3513,7 @@ def cambiar_estado_producto_vendedor(request, id_producto):
                     categoria='reporte',
                     estado_respuesta='sin_respuesta'
                 )
-                messages.info(request, "Producto inhabilitado. Se notificó al administrador.")
+                messages.info(request, "Producto inhabilitado. Se notificÃ³ al administrador.")
             else:
                 messages.success(request, "Estado del producto actualizado.")
         
@@ -3547,18 +3547,18 @@ def editar_producto_vendedor(request, id_producto):
                 if mensaje:
                     PQRS.objects.create(
                         usuario=producto.vendedor,
-                        asunto=f"Solicitud edición de producto #{producto.id_producto}",
+                        asunto=f"Solicitud ediciÃ³n de producto #{producto.id_producto}",
                         mensaje=f"[Producto ID: {producto.id_producto}]\n\n" + mensaje,
                         categoria='solicitud',
                         estado_respuesta='sin_respuesta'
                     )
-                    messages.info(request, "Solicitud enviada al administrador para revisión.")
+                    messages.info(request, "Solicitud enviada al administrador para revisiÃ³n.")
                 else:
                     messages.warning(request, "No detectamos cambios en el producto.")
 
                 return redirect('vendedor_productos')
 
-            # Pendiente o rechazado — editar directo
+            # Pendiente o rechazado â€” editar directo
             producto.nombre = request.POST.get("nombre")
             producto.descripcion = request.POST.get("descripcion")
             producto.precio = request.POST.get("precio")
@@ -3568,7 +3568,7 @@ def editar_producto_vendedor(request, id_producto):
 
             if producto.estado_aprobacion == 'rechazado':
                 producto.estado_aprobacion = 'pendiente'
-                messages.success(request, "Producto reenviado a revisión.")
+                messages.success(request, "Producto reenviado a revisiÃ³n.")
             else:
                 messages.success(request, "Producto actualizado correctamente.")
 
@@ -3608,7 +3608,7 @@ def carga_masiva_productos(request):
             try:
                 with zipfile.ZipFile(archivo_zip, 'r') as zip_ref:
                     zip_ref.extractall(ruta_temp)
-                    print("Contenido ZIP:", zip_ref.namelist())  # para ver qué hay adentro
+                    print("Contenido ZIP:", zip_ref.namelist())  # para ver quÃ© hay adentro
                 print("ZIP descomprimido")
             except Exception as e:
                 messages.error(request, "Error al leer el ZIP")
@@ -3629,7 +3629,7 @@ def carga_masiva_productos(request):
 
                 try:
                     if not fila.get('nombre') or not fila.get('precio'):
-                        print("Fila inválida:", fila)
+                        print("Fila invÃ¡lida:", fila)
                         continue
 
                     producto = Productos(
@@ -3673,7 +3673,7 @@ def carga_masiva_productos(request):
         if productos_creados > 0:
             messages.success(request, f"Se subieron {productos_creados} productos correctamente")
         else:
-            messages.warning(request, "No se creó ningún producto (revisa tu CSV)")
+            messages.warning(request, "No se creÃ³ ningÃºn producto (revisa tu CSV)")
 
     return redirect('vendedor_productos')
 
@@ -3690,7 +3690,7 @@ def crear_productos(request):
         imagen = request.FILES.get("imagen")
         categoria = request.POST.get("categoria")
 
-        # Validación de campos vacíos
+        # ValidaciÃ³n de campos vacÃ­os
         if not all([nombre, descripcion, precio, categoria]):
             messages.warning(request, "Todos los campos son obligatorios.")
             return redirect("vendedor_productos")
@@ -3705,7 +3705,7 @@ def crear_productos(request):
                 categoria=categoria,
                 estado_aprobacion='pendiente'
             )
-            messages.success(request, "¡Producto creado! Quedará pendiente de aprobación.")
+            messages.success(request, "Â¡Producto creado! QuedarÃ¡ pendiente de aprobaciÃ³n.")
 
         except Exception as e:
             messages.error(request, "Error al guardar. Intentalo de nuevo")
@@ -3721,7 +3721,7 @@ def descargar_plantilla_csv(request):
     # Encabezados (IMPORTANTE)
     writer.writerow(['nombre', 'descripcion', 'precio', 'categoria', 'imagen'])
 
-    # Ejemplo (esto ayuda MUCHÍSIMO al usuario)
+    # Ejemplo (esto ayuda MUCHÃSIMO al usuario)
     writer.writerow(['Pastel de chocolate', 'Delicioso pastel', '500', 'antojos', 'pastel.jpg'])
 
     return response
@@ -3769,7 +3769,7 @@ def aceptar_soli(request, id_solicitud):
                 porcentaje = request.POST.get("porcentaje_abono")
 
                 if not porcentaje or not porcentaje.isdigit():
-                    messages.error(request, "Debes ingresar un porcentaje válido para aceptar.")
+                    messages.error(request, "Debes ingresar un porcentaje vÃ¡lido para aceptar.")
                     return redirect('vendedor_solicitudes')
 
                 porcentaje = int(porcentaje)
@@ -3799,7 +3799,7 @@ def aceptar_soli(request, id_solicitud):
             solicitud.save()
 
         except Exception as e:
-            messages.error(request, "Ocurrió un error al procesar la solicitud.")
+            messages.error(request, "OcurriÃ³ un error al procesar la solicitud.")
 
     return redirect('vendedor_solicitudes')
 
@@ -3823,7 +3823,7 @@ def mi_perfil_vendedor(request):
         producto__vendedor=usuario
     ).count()
 
-    # Clientes únicos
+    # Clientes Ãºnicos
     clientes = Usuarios.objects.filter(
         solicitudes__producto__vendedor=usuario
     ).distinct().count()
@@ -3871,14 +3871,14 @@ def editar_perfil_vendedor(request):
             PQRS.objects.create(
                 usuario=usuario,
                 asunto="Solicitud cambio de perfil",
-                mensaje=mensaje,  # Aquí ya no guardamos JSON crudo
+                mensaje=mensaje,  # AquÃ­ ya no guardamos JSON crudo
                 categoria='solicitud',
                 estado_respuesta='sin_respuesta'
             )
             messages.info(request, "Tu solicitud de cambio de informacion ha sido enviada para futura revision.")
 
         except Exception as e:
-            messages.error(request, "Ocurrió un error al procesar la solicitud.")
+            messages.error(request, "OcurriÃ³ un error al procesar la solicitud.")
 
     return redirect('vendedor_perfil')
 
@@ -3898,7 +3898,7 @@ def crear_reporte_vendedor(request):
             categoria = request.POST.get('categoria')
             mensaje = request.POST.get('mensaje')
 
-            # Validar que no estén vacíos
+            # Validar que no estÃ©n vacÃ­os
             if asunto and categoria and mensaje:
                 PQRS.objects.create(
                     usuario=vendedor,
@@ -3913,7 +3913,7 @@ def crear_reporte_vendedor(request):
 
             return redirect('vendedor_reportes')
         except Exception as e:
-            messages.error(request, "Ocurrió un error generando el reporte. Intentalo de nuevo")
+            messages.error(request, "OcurriÃ³ un error generando el reporte. Intentalo de nuevo")
 
     pendientes = PQRS.objects.filter(
         usuario=vendedor,
@@ -3931,9 +3931,9 @@ def crear_reporte_vendedor(request):
         "respondidos": respondidos
     })
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  CLIENTE
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def perfil_cliente(request):
@@ -3947,24 +3947,24 @@ def perfil_cliente(request):
             confirmar = request.POST.get('confirmar_contrasena', '').strip()
 
             if not all([actual, nueva, confirmar]):
-                messages.warning(request, "Todos los campos de contraseña son obligatorios.")
+                messages.warning(request, "Todos los campos de contraseÃ±a son obligatorios.")
                 return redirect('perfil_cliente')
 
             if not check_password(actual, usuario.contrasena):
-                messages.error(request, "La contraseña actual es incorrecta.")
+                messages.error(request, "La contraseÃ±a actual es incorrecta.")
                 return redirect('perfil_cliente')
 
             if nueva != confirmar:
-                messages.error(request, "La nueva contraseña y la confirmación no coinciden.")
+                messages.error(request, "La nueva contraseÃ±a y la confirmaciÃ³n no coinciden.")
                 return redirect('perfil_cliente')
 
             if len(nueva) < 6:
-                messages.warning(request, "La nueva contraseña debe tener al menos 6 caracteres.")
+                messages.warning(request, "La nueva contraseÃ±a debe tener al menos 6 caracteres.")
                 return redirect('perfil_cliente')
 
             usuario.contrasena = make_password(nueva)
             usuario.save()
-            messages.success(request, "Contraseña actualizada correctamente.")
+            messages.success(request, "ContraseÃ±a actualizada correctamente.")
 
         else:
             nombre   = request.POST.get('nombre', '').strip()
@@ -3973,11 +3973,11 @@ def perfil_cliente(request):
             numero   = request.POST.get('numero', '').strip()
 
             if not all([nombre, apellido, correo, numero]):
-                messages.warning(request, "Los campos nombre, apellido, correo y número son obligatorios.")
+                messages.warning(request, "Los campos nombre, apellido, correo y nÃºmero son obligatorios.")
                 return redirect('perfil_cliente')
 
             if Usuarios.objects.filter(correo=correo).exclude(id_usuario=usuario.id_usuario).exists():
-                messages.error(request, "Este correo ya está registrado por otro usuario.")
+                messages.error(request, "Este correo ya estÃ¡ registrado por otro usuario.")
                 return redirect('perfil_cliente')
 
             try:
@@ -3990,7 +3990,7 @@ def perfil_cliente(request):
                 request.session['usuario_nombre'] = usuario.nombre
                 messages.success(request, "Perfil actualizado correctamente.")
             except Exception:
-                messages.error(request, "Ocurrió un error al actualizar el perfil. Intenta de nuevo.")
+                messages.error(request, "OcurriÃ³ un error al actualizar el perfil. Intenta de nuevo.")
 
         return redirect('perfil_cliente')
 
@@ -4009,7 +4009,7 @@ def perfil_cliente(request):
 
 def catalogo(request):
     if request.GET.get('cancelado'):
-        messages.warning(request, "Compra cancelada. Puedes seguir explorando el catálogo.")
+        messages.warning(request, "Compra cancelada. Puedes seguir explorando el catÃ¡logo.")
     usuario = get_usuario_sesion(request)
     categoria = request.GET.get("categoria", "todos")
     pasteles = (
@@ -4035,9 +4035,9 @@ def compra_rapida(request, producto_id):
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  TRANSACIIONES DEL CLIENTE
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @login_requerido
 def mis_transacciones(request):
@@ -4061,9 +4061,9 @@ def mis_transacciones(request):
         'abonadas':      abonadas,
     })
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  CONFIGURADOR
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def configurador(request, producto_id):
     producto = get_object_or_404(
@@ -4083,9 +4083,9 @@ def configurador(request, producto_id):
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  SOLICITUDES (CLIENTE)
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def crear_solicitud(request, producto_id):
     if request.method != 'POST':
@@ -4096,7 +4096,7 @@ def crear_solicitud(request, producto_id):
     usuario    = Usuarios.objects.get(id_usuario=usuario_id) if usuario_id else None
 
     if producto.categoria == 'eventos' and not usuario:
-        messages.warning(request, "Debes iniciar sesión para solicitar un evento.")
+        messages.warning(request, "Debes iniciar sesiÃ³n para solicitar un evento.")
         return redirect('inicio')
 
     precio_total = int(float(request.POST.get('precio_total', producto.precio)))
@@ -4122,11 +4122,11 @@ def crear_solicitud(request, producto_id):
             estado            = 'pendiente',
         )
     except Exception as e:
-        messages.error(request, "Ocurrió un error al crear la solicitud. Intenta de nuevo.")
+        messages.error(request, "OcurriÃ³ un error al crear la solicitud. Intenta de nuevo.")
         return redirect('catalogo')
 
     if producto.categoria == 'eventos':
-        messages.success(request, "¡Solicitud enviada! Pronto nos pondremos en contacto contigo.")
+        messages.success(request, "Â¡Solicitud enviada! Pronto nos pondremos en contacto contigo.")
         return redirect('solicitud_pendiente', solicitud_id=solicitud.id_solicitud)
 
     return _redirigir_a_mercadopago(solicitud, usuario, producto, precio_total)
@@ -4178,9 +4178,9 @@ def solicitud_pendiente(request, solicitud_id):
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  PQRS CLIENTE
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 @login_requerido
 def mis_pqrs(request):
     usuario = get_usuario_sesion(request)
@@ -4225,14 +4225,14 @@ def crear_pqrs(request):
             categoria        = categoria,
             estado_respuesta = 'sin_respuesta',
         )
-        messages.success(request, "¡Tu PQRS fue enviada correctamente! Te responderemos pronto.")
+        messages.success(request, "Â¡Tu PQRS fue enviada correctamente! Te responderemos pronto.")
     except Exception:
-        messages.error(request, "Ocurrió un error al enviar tu PQRS. Intenta de nuevo.")
+        messages.error(request, "OcurriÃ³ un error al enviar tu PQRS. Intenta de nuevo.")
 
     return redirect('mis_pqrs')
-# ═══════════════════════════════════════════════════════════════════
-#  MERCADOPAGO — PAGOS
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  MERCADOPAGO â€” PAGOS
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 def _redirigir_a_mercadopago(solicitud, usuario, producto, precio_total):
     """Helper interno: crea una preferencia MP y redirige al init_point."""
@@ -4277,7 +4277,7 @@ def pagar_abono(request, solicitud_id):
 
     preference_data = {
         "items": [{
-            "title": f"Abono — {solicitud.producto.nombre}",
+            "title": f"Abono â€” {solicitud.producto.nombre}",
             "quantity": 1,
             "unit_price": float(solicitud.abono),
             "currency_id": "COP",
@@ -4291,17 +4291,29 @@ def pagar_abono(request, solicitud_id):
     }
 
     preference = sdk.preference().create(preference_data)
-    return redirect(preference["response"]["sandbox_init_point"])
+    print("=== RESPUESTA MERCADOPAGO ===")
+    print(preference)
+    print("==============================")
 
+    response = preference.get("response", {})
+    init_point = response.get("sandbox_init_point") or response.get("init_point")
+
+    if not init_point:
+        return HttpResponse(
+            f"Error al crear preferencia de pago. Respuesta de MercadoPago: {response}",
+            status=500
+        )
+
+    return redirect(init_point)
 
 def pago_exitoso(request, solicitud_id):
     solicitud = get_object_or_404(Solicitudes, id_solicitud=solicitud_id)
     solicitud.estado = 'pagada'
     solicitud.save()
-    usuario = get_usuario_sesion(request)  # ← agrega esto
+    usuario = get_usuario_sesion(request)  # â† agrega esto
     return render(request, 'cliente/pago_exitoso.html', {
         'solicitud': solicitud,
-        'usuario': usuario,  # ← agrega esto
+        'usuario': usuario,  # â† agrega esto
     })
 
 def pago_fallido(request, solicitud_id):
@@ -4320,9 +4332,9 @@ def pago_pendiente(request, solicitud_id):
         'usuario': usuario,  
     })
 
-# ═══════════════════════════════════════════════════════════════════
-#  MERCADOPAGO — WEBHOOK
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  MERCADOPAGO â€” WEBHOOK
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @csrf_exempt
 def webhook_mp(request):
@@ -4361,13 +4373,13 @@ def webhook_mp(request):
 
     return HttpResponse(status=200)
 
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 #  COMPRAS DE INVITADO
-# ═══════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 def mis_compras_invitado(request):
     correo  = request.GET.get('correo', '').strip()
     usuario = get_usuario_sesion(request)
-    solicitudes = Solicitudes.objects.none()  # ← queryset vacío, no lista
+    solicitudes = Solicitudes.objects.none()  # â† queryset vacÃ­o, no lista
 
     if usuario:
         solicitudes = Solicitudes.objects.filter(
@@ -4379,7 +4391,7 @@ def mis_compras_invitado(request):
             usuario=None
         ).select_related('producto').order_by('-fecha_creacion')
 
-    # Ahora sí es un queryset y puedes usar .filter() y .aggregate()
+    # Ahora sÃ­ es un queryset y puedes usar .filter() y .aggregate()
     total_gastado = solicitudes.filter(estado='pagada').aggregate(
         total=Sum('precio_total')
     )['total'] or 0
@@ -4442,7 +4454,7 @@ def bajar_inventario_por_solicitud(solicitud):
     ).select_related('ingrediente')
 
     if not receta.exists():
-        return True, ["El producto no tiene receta cargada, no se descontó inventario."]
+        return True, ["El producto no tiene receta cargada, no se descontÃ³ inventario."]
 
     errores = []
     for item in receta:
@@ -4467,20 +4479,20 @@ def bajar_inventario_por_solicitud(solicitud):
             id_inventario=ingrediente,
             cantidad=int(cantidad_necesaria),
             tipo='salida',
-            observacion=f'Solicitud #{solicitud.id_solicitud} — {solicitud.producto.nombre} ({porciones} porciones)'
+            observacion=f'Solicitud #{solicitud.id_solicitud} â€” {solicitud.producto.nombre} ({porciones} porciones)'
         )
 
     return True, []
 
-# ════════════════════════════════════════════════════════════════════════════════════════════════
-#  CORREOS MASIVOS — EmailJS via HTTP
-# ════════════════════════════════════════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+#  CORREOS MASIVOS â€” EmailJS via HTTP
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-def _enviar_emailjs(to_email, subject, username, message, subtitle="Notificación del sistema",
+def _enviar_emailjs(to_email, subject, username, message, subtitle="NotificaciÃ³n del sistema",
                     button_text="", button_link=""):
     """
-    Función base que llama a la API HTTP de EmailJS.
-    Retorna True si el correo se envió, False si falló.
+    FunciÃ³n base que llama a la API HTTP de EmailJS.
+    Retorna True si el correo se enviÃ³, False si fallÃ³.
     """
     try:
         response = requests.post(
@@ -4503,7 +4515,7 @@ def _enviar_emailjs(to_email, subject, username, message, subtitle="Notificació
             timeout=10,
         )
         if response.status_code == 200:
-            print(f"[EMAILJS OK] → {to_email}")
+            print(f"[EMAILJS OK] â†’ {to_email}")
             return True
         else:
             print(f"[EMAILJS ERROR {response.status_code}] {response.text}")
@@ -4513,7 +4525,7 @@ def _enviar_emailjs(to_email, subject, username, message, subtitle="Notificació
         return False
 
 
-# ── ACTIVACIÓN DE CUENTA ────────────────────────────────────────────────────────────────────────
+# â”€â”€ ACTIVACIÃ“N DE CUENTA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def correo_activacion(usuario, request):
     enlace = f"{request.scheme}://{request.get_host()}/activar/{usuario.token_activacion}/"
@@ -4545,54 +4557,54 @@ def activar_cuenta(request, token):
     except Usuarios.DoesNotExist:
         messages.error(
             request,
-            "El enlace de activación no es válido."
+            "El enlace de activaciÃ³n no es vÃ¡lido."
         )
 
     return redirect('inicio')
 
-# ── RECUPERACIÓN DE CONTRASEÑA ──────────────────────────────────────────────────────────────────
+# â”€â”€ RECUPERACIÃ“N DE CONTRASEÃ‘A â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def correo_recuperacion(usuario, token, request):
     enlace = f"{request.scheme}://{request.get_host()}/nueva-contrasena/{token}/"
     _enviar_emailjs(
         to_email=usuario.correo,
-        subject='Recupera tu contraseña - CreartSoft',
+        subject='Recupera tu contraseÃ±a - CreartSoft',
         username=usuario.nombre,
         message=(
-            f"Recibimos una solicitud para cambiar tu contraseña.\n\n"
-            f"Haz clic aquí para crear una nueva:\n\n"
+            f"Recibimos una solicitud para cambiar tu contraseÃ±a.\n\n"
+            f"Haz clic aquÃ­ para crear una nueva:\n\n"
             f"{enlace}\n\n"
             f"Este enlace expira en 1 hora. Si no lo pediste, ignora este correo."
         ),
     )
 
 
-# ── ESTADO DE SOLICITUD ─────────────────────────────────────────────────────────────────────────
+# â”€â”€ ESTADO DE SOLICITUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def correo_estado_solicitud(solicitud):
     """
-    llamar después de solicitud.save() en aceptar_soli() y donde cambies estados.
+    llamar despuÃ©s de solicitud.save() en aceptar_soli() y donde cambies estados.
     """
     if not solicitud.usuario:
         return  # invitado sin correo registrado
 
     estados = {
         'aceptada': (
-            '✅ Tu solicitud fue aceptada - CreartSoft',
-            f'¡Buenas noticias! Tu pedido de "{solicitud.producto.nombre}" fue aceptado.\n'
+            'âœ… Tu solicitud fue aceptada - CreartSoft',
+            f'Â¡Buenas noticias! Tu pedido de "{solicitud.producto.nombre}" fue aceptado.\n'
             f'El abono a pagar es ${solicitud.abono}.\n\n'
             f'Ingresa a tu cuenta para ver el detalle y realizar el pago.'
         ),
         'rechazada': (
-            '❌ Tu solicitud fue rechazada - CreartSoft',
+            'âŒ Tu solicitud fue rechazada - CreartSoft',
             f'Lamentamos informarte que tu pedido de "{solicitud.producto.nombre}" '
             f'no pudo ser aceptado en este momento.\n\n'
             f'Si tienes dudas, puedes contactarnos por PQRS.'
         ),
         'pagada': (
-            '💳 Pago confirmado - CreartSoft',
+            'ðŸ’³ Pago confirmado - CreartSoft',
             f'Confirmamos el pago de tu pedido "{solicitud.producto.nombre}".\n\n'
-            f'¡Nos ponemos a trabajar! Gracias por confiar en CreartSoft.'
+            f'Â¡Nos ponemos a trabajar! Gracias por confiar en CreartSoft.'
         ),
     }
 
@@ -4608,11 +4620,11 @@ def correo_estado_solicitud(solicitud):
     )
 
 
-# ── RESPUESTA A PQRS ────────────────────────────────────────────────────────────────────────────
+# â”€â”€ RESPUESTA A PQRS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def correo_respuesta_pqrs(pqrs):
     """
-    llamar después de pqrs_obj.save() en pqrs_responder().
+    llamar despuÃ©s de pqrs_obj.save() en pqrs_responder().
     """
     _enviar_emailjs(
         to_email=pqrs.usuario.correo,
@@ -4625,7 +4637,7 @@ def correo_respuesta_pqrs(pqrs):
         ),
     )
 
-# ── VALIDACION DE CONTRASENAS IGUALES ────────────────────────────────────────────────────────────────────────────
+# â”€â”€ VALIDACION DE CONTRASENAS IGUALES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def nueva_contrasena(request, token):
     print("TOKEN RECIBIDO:", token)
@@ -4636,18 +4648,18 @@ def nueva_contrasena(request, token):
         contrasena2 = request.POST.get('contrasena2', '').strip()
 
         if contrasena != contrasena2:
-            messages.error(request, "Las contraseñas no coinciden.")
+            messages.error(request, "Las contraseÃ±as no coinciden.")
             return render(request, 'nueva_contrasena.html', {'token': token})
 
         usuario.contrasena = make_password(contrasena)
         usuario.token_activacion = ''
         usuario.save()
-        messages.success(request, "Contraseña actualizada. Ya puedes iniciar sesión.")
+        messages.success(request, "ContraseÃ±a actualizada. Ya puedes iniciar sesiÃ³n.")
         return redirect('inicio')
     
     return render(request, 'nueva_contrasena.html', {'token': token})
 
-# ── RECUPERACION DE CONTRASEÑA CON ESTADO ────────────────────────────────────────────────────────────────────────────
+# â”€â”€ RECUPERACION DE CONTRASEÃ‘A CON ESTADO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def recuperacion_contrasena(request):
     if request.method != 'POST':
@@ -4663,5 +4675,6 @@ def recuperacion_contrasena(request):
         correo_recuperacion(usuario, token, request)
         messages.success(request, "Te enviamos un enlace a tu correo.")
     except Usuarios.DoesNotExist:
-        messages.error(request, "No encontramos ese correo o la cuenta está inactiva.")
+        messages.error(request, "No encontramos ese correo o la cuenta estÃ¡ inactiva.")
     return redirect('inicio')
+

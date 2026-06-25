@@ -4279,7 +4279,7 @@ def pagar_abono(request, solicitud_id):
         "items": [{
             "title": f"Abono â€” {solicitud.producto.nombre}",
             "quantity": 1,
-            "unit_price": float(solicitud.abono),
+            "unit_price": int(solicitud.abono),
             "currency_id": "COP",
         }],
         "back_urls": {

@@ -49,7 +49,7 @@ class Productos(ModeloBase):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    imagen = models.ImageField(upload_to='productos/')
+    imagen = models.ImageField(upload_to='productos/', storage=MediaCloudinaryStorage())
     motivo_rechazo = models.TextField(blank=True, null=True)
     vendedor = models.ForeignKey(Usuarios, on_delete=models.CASCADE)
 
